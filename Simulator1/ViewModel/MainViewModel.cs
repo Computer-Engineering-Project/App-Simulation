@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Environment.Model.Module;
 using Microsoft.Extensions.DependencyInjection;
 using Environment.Model.Packet;
+using Environment.Model.History;
 
 namespace Simulator1.ViewModel
 {
@@ -30,11 +31,16 @@ namespace Simulator1.ViewModel
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
 
+        private HistoryObject selectedItemHistory;
+        public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
 
         private List<string> testports = new List<string>() {"COM6" };
 
+        private ObservableCollection<HistoryObject> historyObjects;
+        public ObservableCollection<HistoryObject> HistoryObjects { get => historyObjects; set { historyObjects = value; OnPropertyChanged(); } }
 
         private readonly MainStore mainStore;
         private readonly ModuleStore moduleStore;
@@ -55,6 +61,8 @@ namespace Simulator1.ViewModel
 
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
+        public ICommand SelectionChangedCommand { get; set; }
+
 
         ~MainViewModel() { }
         public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM)
@@ -69,6 +77,127 @@ namespace Simulator1.ViewModel
             //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
             ports = new ObservableCollection<string>(/**/ testports);
+            HistoryObjects = new ObservableCollection<HistoryObject>()
+            {
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 2,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 3,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+                new HistoryObject()
+                {
+                    Id = 1,
+                    Source = "Hoang Dep Traiii",
+                    Data = "0xxxxxxxxxxxxxxxxx",
+                    DelayTime = "0xccccc"
+                },
+            };
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
@@ -86,6 +215,9 @@ namespace Simulator1.ViewModel
             {
                 ExecuteAutoSavePosition(o);
             });
+
+            SelectionChangedCommand = new RelayCommand(() => DectectActionSelectedColumn());
+
             RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
         }
         //Delegate handler
@@ -169,6 +301,11 @@ namespace Simulator1.ViewModel
         private void ExecuteChangeMode(string port, string mode)
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().changeModeDevice(port, mode);
+        }
+
+        private void DectectActionSelectedColumn()
+        {
+            //todo
         }
 
         //Dispose
