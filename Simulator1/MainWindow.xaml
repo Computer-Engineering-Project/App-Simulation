@@ -200,102 +200,128 @@
                             <Grid Grid.Row="2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <ColumnDefinition Width="3"></ColumnDefinition>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
+                                <GridSplitter Grid.Column="1"
+                                              HorizontalAlignment="Stretch"></GridSplitter>
 
-                                <Border Grid.Column="0"
-                                        BorderBrush="#CDDBE3"
-                                        BorderThickness="0,0,1,0">
-                                    <Grid>
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="40" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0"
+                                               Text="Information"
+                                               Margin="10 10 10 0"
+                                               Padding="0 0 0 0"
+                                               FontSize="15"
+                                               FontWeight="Bold" />
+
+                                    <!--Table-->
+
+                                    <materialDesign:Card Grid.Row="1"
+                                                         Margin="5"
+                                                         VerticalAlignment="Stretch">
+                                        <ScrollViewer VerticalScrollBarVisibility="
+                                                             Auto">
+
+                                            <ListView x:Name="history"
+                                                      ItemsSource="{Binding HistoryObjects}"
+                                                      SelectedItem="{Binding SelectedItemHistory, Mode=OneWayToSource}">
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="Event"
+                                                                        DisplayMemberBinding="{Binding Id}"></GridViewColumn>
+                                                        <GridViewColumn Header="Source"
+                                                                        DisplayMemberBinding="{Binding Source}"></GridViewColumn>
+                                                        <GridViewColumn Header="Data"
+                                                                        DisplayMemberBinding="{Binding Data}"></GridViewColumn>
+                                                        <GridViewColumn Header="Delay Time"
+                                                                        DisplayMemberBinding="{Binding DelayTime}"></GridViewColumn>
+                                                    </GridView>
+                                                </ListView.View>
+
+                                                <ListView.Resources>
+                                                    <Style TargetType="ListViewItem">
+                                                        <Setter Property="Background"
+                                                                Value="LightGray" />
+                                                        <Setter Property="BorderThickness"
+                                                                Value="0,0,0,1" />
+                                                        <Setter Property="BorderBrush"
+                                                                Value="Gray" />
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ListViewItem">
+                                                                    <Border BorderThickness="{TemplateBinding BorderThickness}"
+                                                                            BorderBrush="{TemplateBinding BorderBrush}">
+                                                                        <Grid>
+                                                                            <GridViewRowPresenter Content="{TemplateBinding Content}" />
+                                                                            <Border BorderThickness="0,0,0,0"
+                                                                                    BorderBrush="Gray"
+                                                                                    HorizontalAlignment="Stretch"
+                                                                                    VerticalAlignment="Bottom" />
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </ListView.Resources>
+                                                <i:Interaction.Triggers>
+                                                    <i:EventTrigger EventName="SelectionChanged">
+                                                        <prism:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
+                                                    </i:EventTrigger>
+                                                </i:Interaction.Triggers>
+                                            </ListView>
+                                        </ScrollViewer>
+                                    </materialDesign:Card>
+
+
+                                </Grid>
+
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="40" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0"
+                                               Text="Detail Information"
+                                               Margin="10 10 10 0"
+                                               Padding="0 0 0 0"
+                                               FontSize="15"
+                                               FontWeight="Bold" />
+                                    <Grid Grid.Row="1"
+                                          Margin="10 0 0 0">
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="40" />
-                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="30"></RowDefinition>
+                                            <RowDefinition Height="30"></RowDefinition>
+                                            <RowDefinition Height="30"></RowDefinition>
+
                                         </Grid.RowDefinitions>
-
-                                        <TextBlock Grid.Row="0"
-                                                   Text="Information"
-                                                   Margin="10 10 10 0"
-                                                   Padding="0 0 0 0"
-                                                   FontSize="15"
-                                                   FontWeight="Bold" />
-
-                                        <!--Table-->
-                                        <Grid Grid.Row="1">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-
-                                                <ListView x:Name="history"
-                                                          ItemsSource="{Binding HistoryObjects}"
-                                                          SelectedItem="{Binding SelectedItemHistory, Mode=OneWayToSource}">
-                                                    <ListView.View>
-                                                        <GridView>
-                                                            <GridViewColumn Header="Event"
-                                                                            DisplayMemberBinding="{Binding Id}"
-                                                                            Width="85"></GridViewColumn>
-                                                            <GridViewColumn Header="Source"
-                                                                            DisplayMemberBinding="{Binding Source}"
-                                                                            Width="160"></GridViewColumn>
-                                                            <GridViewColumn Header="Data"
-                                                                            DisplayMemberBinding="{Binding Data}"
-                                                                            Width="160"></GridViewColumn>
-                                                            <GridViewColumn Header="Delay Time"
-                                                                            DisplayMemberBinding="{Binding DelayTime}"
-                                                                            Width="140"></GridViewColumn>
-                                                        </GridView>
-                                                    </ListView.View>
-
-                                                    <ListView.Resources>
-                                                        <Style TargetType="ListViewItem">
-                                                            <Setter Property="Background"
-                                                                    Value="LightGray" />
-                                                            <Setter Property="BorderThickness"
-                                                                    Value="0,0,0,1" />
-                                                            <Setter Property="BorderBrush"
-                                                                    Value="Gray" />
-                                                            <Setter Property="Template">
-                                                                <Setter.Value>
-                                                                    <ControlTemplate TargetType="ListViewItem">
-                                                                        <Border BorderThickness="{TemplateBinding BorderThickness}"
-                                                                                BorderBrush="{TemplateBinding BorderBrush}">
-                                                                            <Grid>
-                                                                                <GridViewRowPresenter Content="{TemplateBinding Content}" />
-                                                                                <Border BorderThickness="0,0,0,0"
-                                                                                        BorderBrush="Gray"
-                                                                                        HorizontalAlignment="Stretch"
-                                                                                        VerticalAlignment="Bottom" />
-                                                                            </Grid>
-                                                                        </Border>
-                                                                    </ControlTemplate>
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                        </Style>
-                                                        <Style TargetType="GridViewColumnHeader">
-                                                            <Setter Property="Padding"
-                                                                    Value="0 10 0 10" />
-                                                            <Setter Property="HorizontalContentAlignment"
-                                                                    Value="Center" />
-
-
-                                                        </Style>
-                                                    </ListView.Resources>
-                                                    <i:Interaction.Triggers>
-                                                        <i:EventTrigger EventName="SelectionChanged">
-                                                            <prism:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
-                                                        </i:EventTrigger>
-                                                    </i:Interaction.Triggers>
-                                                </ListView>
-                                            </ScrollViewer>
-                                        </Grid>
-
+                                        <StackPanel Orientation="Horizontal"
+                                                    Grid.Row="0">
+                                            <TextBlock Padding="0 0 10 0"
+                                                       Width="80">Source</TextBlock>
+                                            <TextBlock Text="{Binding SourceHistory}"></TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal"
+                                                    Grid.Row="1">
+                                            <TextBlock Padding="0 0 10 0"
+                                                       Width="80">Data</TextBlock>
+                                            <TextBlock Text="{Binding DataHistory}"></TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal"
+                                                    Grid.Row="2">
+                                            <TextBlock Padding="0 0 10 0"
+                                                       Width="80">Delay Time</TextBlock>
+                                            <TextBlock Text="{Binding DelayTimeHistory}"></TextBlock>
+                                        </StackPanel>
 
                                     </Grid>
-                                </Border>
-                                <Border Grid.Column="1"
-                                        BorderBrush="#CDDBE3"
-                                        BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Column 2"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" />
-                                </Border>
+                                </Grid>
 
                             </Grid>
                         </Grid>
