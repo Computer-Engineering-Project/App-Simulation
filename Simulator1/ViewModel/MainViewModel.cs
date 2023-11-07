@@ -68,10 +68,14 @@ namespace Simulator1.ViewModel
             ports = new ObservableCollection<string>(/**/ testports);
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
+            this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => OpenDialog(port));
             UpdateModuleCommand = new ParameterRelayCommand<string>((port) => { return true; }, (port) =>
-            {
+            {   
+                moduleStateManagement.isActionUpdate(new { 
+                    value = true
+                });
                 ExecuteUpdateModule(port);
             });
             LoadHistoryCommand = new RelayCommand(() => ExecuteLoadHistory());
@@ -123,8 +127,7 @@ namespace Simulator1.ViewModel
                         port = port,
                         x = moduleObject.x,
                         y = moduleObject.y,
-                    });
-                    
+                    });    
                 }
             }
         }
@@ -145,6 +148,8 @@ namespace Simulator1.ViewModel
                     module.y = Double.Parse(listParams["y"]);
                 }
             }
+
+            ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
         }
         private void CloseDialog(string port)
         {
@@ -156,6 +161,5 @@ namespace Simulator1.ViewModel
             moduleStateManagement.ModuleObjectCreated -= OnModuleObjectCreated;
             base.Dispose();
         }
-
     }
 }

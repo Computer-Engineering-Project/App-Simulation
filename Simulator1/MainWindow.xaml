@@ -132,7 +132,7 @@
                                                         Content="{Binding}">
                                                     <i:Interaction.Triggers>
                                                         <i:EventTrigger EventName="Click">
-                                                            <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.OpenDialogCommand }"
+                                                            <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.OpenDialogCommand}"
                                                                                        CommandParameter="{Binding}" />
                                                         </i:EventTrigger>
                                                     </i:Interaction.Triggers>
