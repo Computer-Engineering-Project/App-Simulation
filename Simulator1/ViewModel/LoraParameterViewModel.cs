@@ -1,4 +1,5 @@
-﻿using Simulator1.Model;
+﻿
+using Environment.Model.Module;
 using Simulator1.State_Management;
 using Simulator1.Store;
 using System;
@@ -90,7 +91,7 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement.UpdateLoraParams += OnUpdateLoraParamter;
             this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;
 
-            ListPower = new ObservableCollection<string>() { "1000", "500", "250", "125" };
+            ListPower = new ObservableCollection<string>() { "20", "17", "14", "10" };
             ListAirRate = new ObservableCollection<string>() { "0.3", "1.2", "2.4", "4.8","9.6","19.2" };
             ListUartRate = new ObservableCollection<string>() { "1200", "2400", "4800", "9600","19200","38400","57600","115200" };
             ListWORTime = new ObservableCollection<string>() { "250", "500", "750", "1000","1250","1500","1750","2000" };

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Simulator1.Model
+namespace Environment.Model.Module
 {
     public class LoraParameterObject
     {

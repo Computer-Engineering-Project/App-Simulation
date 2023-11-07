@@ -132,7 +132,7 @@
                                 Style="{StaticResource MaterialDesignPaperDarkButton}"
                                 Background="White"
                                 Content="Active"
-                                Command="{Binding}"
+                                Command="{Binding ActiveCommand}"
                                 FontSize="10"
                                 Padding="0 0 0 0">
                         </Button>

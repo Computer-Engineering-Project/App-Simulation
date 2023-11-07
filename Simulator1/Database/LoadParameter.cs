@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Simulator1.Model;
+﻿using Environment.Model.Module;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +13,7 @@ namespace Simulator1.Database
     public class LoadParameter
     {
         string path = "\\\\Mac\\Home\\Downloads\\DATN\\model.json";
+        
         public List<ModuleObject> listInModules = new List<ModuleObject>();
         public LoadParameter()
         {

@@ -1,4 +1,6 @@
 ﻿using Environment.Base;
+using Environment.Model.Module;
+using Environment.Model.Packet;
 using Environment.Service.Interface;
 using System;
 using System.Collections.Generic;
@@ -12,9 +14,9 @@ namespace Environment.Service
     public class EnvironmentService : IEnvironmentService
     {
         private readonly BaseEnvironment environment;
-        public EnvironmentService()
+        public EnvironmentService(ICommunication communication)
         {
-            environment = new BaseEnvironment(); 
+            environment = new BaseEnvironment(communication); 
         }
 
         public void ActiveHardware(string port)
@@ -22,7 +24,7 @@ namespace Environment.Service
             environment.ActiveHardwareDevice(port);
         }
 
-        public string getIdTypeFromHardware(string portName)
+        public PacketTransmit getIdTypeFromHardware(string portName)
         {
             return environment.ExecuteReadConfigFromHardware(portName);
         }
@@ -39,6 +41,21 @@ namespace Environment.Service
         public void closePort(string portName)
         {
             environment.ClosePort(portName);
+        }
+
+        public void passModuleObjects(List<ModuleObject> moduleObjects)
+        {
+            environment.ModuleObjects = moduleObjects;
+        }
+
+        public void Run()
+        {
+            environment.Run();
+        }
+
+        public void changeModeDevice(string portName, string mode)
+        {
+            //environment.ChangeMode(portName, mode);
         }
     }
 }

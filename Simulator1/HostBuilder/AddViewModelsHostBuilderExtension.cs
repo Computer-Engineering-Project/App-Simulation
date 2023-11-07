@@ -31,15 +31,15 @@ namespace Simulator1.HostBuilder
                     var moduleParamStore = serviceProvider.GetRequiredService<ModuleParameterViewStore>();
                     moduleParamStore.CurrentViewModel = serviceProvider.GetRequiredService<LoraParameterViewModel>();
                     return new ModuleParameterViewModel(moduleParamStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(),
-                        serviceProvider.GetRequiredService<IEnvironmentService>(),
+                        serviceProvider,
                         CreateLoraParamNavigateService(serviceProvider, moduleParamStore), CreateZigbeeParamNavigateService(serviceProvider, moduleParamStore));
                 });
-                services.AddTransient<MainViewModel>((IServiceProvider serviceProvider) =>
+                services.AddSingleton<MainViewModel>((serviceProvider) =>
                 {
                     var mainStore = serviceProvider.GetRequiredService<MainStore>();
                     mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
-                    return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(), 
-                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider.GetRequiredService<IEnvironmentService>(), serviceProvider.GetRequiredService<testModuleViewModel>());
+                    return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(),
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>());
                 });
             });
             return hostBuilder;
