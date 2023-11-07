@@ -104,10 +104,12 @@ namespace Simulator1.ViewModel
             IsDialogOpen = true;
             var modules = moduleStore.ModuleObjects;
             var matchParams = new LoraParameterObject();
+            var moduleObject = new ModuleObject();
             foreach (var module in modules)
             {
                 if (module.port == port)
                 {
+                    moduleObject = module;
                     matchParams = (LoraParameterObject)module.parameters;
                 }
             }
@@ -116,7 +118,13 @@ namespace Simulator1.ViewModel
                 if(CurrentModuleViewModel is ModuleParameterViewModel)
                 {
                     moduleStateManagement.updateLoraParameter(matchParams);
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
+                    moduleStateManagement.updatePositionAndPort( new
+                    {
+                        port = port,
+                        x = moduleObject.x,
+                        y = moduleObject.y,
+                    });
+                    
                 }
             }
         }
