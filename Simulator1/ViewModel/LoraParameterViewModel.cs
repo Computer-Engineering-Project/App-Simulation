@@ -1,5 +1,7 @@
 ﻿
 using Environment.Model.Module;
+using Environment.Service.Interface;
+using Microsoft.Extensions.DependencyInjection;
 using Simulator1.State_Management;
 using Simulator1.Store;
 using System;
@@ -11,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Simulator1.ViewModel
 {
@@ -40,6 +43,9 @@ namespace Simulator1.ViewModel
 
         private ObservableCollection<string> listFEC;
         public ObservableCollection<string> ListFEC { get => listFEC; set { listFEC = value; OnPropertyChanged(); } }
+
+        private string id;
+        public string Id { get => id; set { id = value; OnPropertyChanged(); } }
 
         private string address;
         public string Address { get => address; set { address = value; OnPropertyChanged(); } }
@@ -81,20 +87,24 @@ namespace Simulator1.ViewModel
 
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly ModuleStore moduleStore;
+        private readonly IServiceProvider serviceProvider;
 
-        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore)
+        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider)
         {
             this.moduleStateManagement = moduleStateManagement;
             this.moduleStore = moduleStore;
+            this.serviceProvider = serviceProvider;
 
             this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
-            this.moduleStateManagement.UpdateLoraParams += OnUpdateLoraParamter;
+            this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter;
+            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;
             this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;
+            /*            this.moduleStateManagement.ConfigParams += OnConfigParameterToHardware;*/
 
             ListPower = new ObservableCollection<string>() { "20", "17", "14", "10" };
-            ListAirRate = new ObservableCollection<string>() { "0.3", "1.2", "2.4", "4.8","9.6","19.2" };
-            ListUartRate = new ObservableCollection<string>() { "1200", "2400", "4800", "9600","19200","38400","57600","115200" };
-            ListWORTime = new ObservableCollection<string>() { "250", "500", "750", "1000","1250","1500","1750","2000" };
+            ListAirRate = new ObservableCollection<string>() { "0.3", "1.2", "2.4", "4.8", "9.6", "19.2" };
+            ListUartRate = new ObservableCollection<string>() { "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200" };
+            ListWORTime = new ObservableCollection<string>() { "250", "500", "750", "1000", "1250", "1500", "1750", "2000" };
             ListParity = new ObservableCollection<string>() { "8N1", "8O1", "8E1" };
             ListFixedMode = ListIOMode = ListFEC = new ObservableCollection<string>() { "0", "1" };
 
@@ -106,6 +116,15 @@ namespace Simulator1.ViewModel
 
         private LoraParameterObject createLoraParamsObject()
         {
+            UartRate = UartRate == null ? "9600" : UartRate;
+            AirRate = AirRate == null ? "2.4" : AirRate;
+            PowerTransmit = PowerTransmit == null ? "20" : PowerTransmit;
+            FixedMode = FixedMode == null ? "0" : FixedMode;
+            WORTime = WORTime == null ? "250" : WORTime;
+            Parity = Parity == null ? "8N1" : Parity;
+            IOMode = IOMode == null ? "1" : IOMode;
+            FEC = FEC == null ? "2.4" : FEC;
+
             return new LoraParameterObject()
             {
                 UartRate = UartRate,
@@ -126,11 +145,48 @@ namespace Simulator1.ViewModel
         {
             var loraParams = createLoraParamsObject();
             module.parameters = loraParams;
-            module.type = "Lora";
+            module.type = "lora";
             moduleStore.ModuleObjects.Add(module);
-            MessageBox.Show("create object success!");
+
+            var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
+            {
+                module = module.type,
+                id = module.id,
+                baudrate = loraParams.UartRate
+            });
+            if (result)
+            {
+                moduleStateManagement.configHardwareSuccess();
+                MessageBox.Show("config object success!");
+            }
+            
         }
-        private void OnUpdateLoraParamter(LoraParameterObject loraParams)
+        private void OnUpdateParamsOfModule(ModuleObject moduleObject)
+        {
+            if (moduleObject.type == "lora")
+            {
+                var loraParams = createLoraParamsObject();
+                moduleObject.parameters = loraParams;
+                foreach (var module in moduleStore.ModuleObjects)
+                {
+                    if (module.port == moduleObject.port)
+                    {
+                        module.parameters = moduleObject.parameters;
+                    }
+                }
+                var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
+                {
+                    module = moduleObject.type,
+                    id = moduleObject.id,
+                    baudrate = loraParams.UartRate
+                });
+                if (result)
+                {
+                    moduleStateManagement.configHardwareSuccess();
+                }
+            }
+        }
+        private void OnOpenUpdateLoraParamter(LoraParameterObject loraParams)
         {
             Address = loraParams.Address;
             Channel = loraParams.Channel;
@@ -141,7 +197,7 @@ namespace Simulator1.ViewModel
             Parity = loraParams.Parity;
             IOMode = loraParams.IOMode;
             FEC = loraParams.FEC;
-            UartRate= loraParams.UartRate;
+            UartRate = loraParams.UartRate;
             DestinationChannel = loraParams.DestinationChannel;
             DestinationAddress = loraParams.DestinationAddress;
         }
@@ -160,8 +216,7 @@ namespace Simulator1.ViewModel
             DestinationAddress = listParams["DestinationAddress"];
             DestinationChannel = listParams["DestinationChannel"];
         }
-
-        private void OnResetParameterModule() 
+        private void OnResetParameterModule()
         {
             Address = null;
             Channel = null;

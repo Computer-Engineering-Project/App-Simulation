@@ -12,8 +12,7 @@ namespace Simulator1.Database
 {
     public class LoadParameter
     {
-        string path = "\\\\Mac\\Home\\Downloads\\DATN\\model.json";
-        
+        string path = "C:\\Users\\Admin\\DAKTMT\\Simulator Software\\Simulator1\\model.json";
         public List<ModuleObject> listInModules = new List<ModuleObject>();
         public LoadParameter()
         {

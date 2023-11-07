@@ -37,7 +37,7 @@
                              Height="30"
                              Padding="5 5 5 0"
                              Text="{Binding Channel}"
-                             materialDesign:HintAssist.Hint="Channel of module (Frequency)"
+                             materialDesign:HintAssist.Hint="0 - 31"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}">
                     </TextBox>
                 </Grid>
@@ -50,20 +50,20 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListAirRate}"
                               SelectedValue="{Binding AirRate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Air rate of module"
+                              materialDesign:HintAssist.Hint="2.4k (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                     </ComboBox>
                 </Grid>
                 <Grid Height="60"
                       Width="180">
                     <TextBlock FontSize="12"
-                               Margin="10,0,22,10"><Run Text="Power Transmit (W)" /></TextBlock>
+                               Margin="10,0,22,10"><Run Text="Power Transmit (dBm)" /></TextBlock>
                     <ComboBox Width="180"
                               Height="30"
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListPower}"
                               SelectedValue="{Binding PowerTransmit,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Transmit power of module"
+                              materialDesign:HintAssist.Hint="20 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                     </ComboBox>
                 </Grid>
@@ -81,7 +81,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListUartRate}"
                               SelectedValue="{Binding UartRate, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Uart rate of module"
+                              materialDesign:HintAssist.Hint="9600 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                         
                     </ComboBox>
@@ -95,7 +95,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListFixedMode}"
                               SelectedValue="{Binding FixedMode, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Fixed mode of module"
+                              materialDesign:HintAssist.Hint="0 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                         
                     </ComboBox>
@@ -109,7 +109,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListWORTime}"
                               SelectedValue="{Binding WORTime, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Wake up time (Mode 1-2)"
+                              materialDesign:HintAssist.Hint="250 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                        
                     </ComboBox>
@@ -123,7 +123,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListParity}"
                               SelectedValue="{Binding Parity,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="Parity bit"
+                              materialDesign:HintAssist.Hint="8N1 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                        
                     </ComboBox>
@@ -142,7 +142,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListIOMode}"
                               SelectedValue="{Binding IOMode,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="IO drive mode"
+                              materialDesign:HintAssist.Hint="1 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                         
                     </ComboBox>
@@ -156,7 +156,7 @@
                               Padding="5 0 5 0"
                               ItemsSource="{Binding ListFEC}"
                               SelectedValue="{Binding FEC, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
-                              materialDesign:HintAssist.Hint="FEC switch"
+                              materialDesign:HintAssist.Hint="1 (default)"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}">
                         
                     </ComboBox>
@@ -181,7 +181,7 @@
                              Height="30"
                              Padding="5 5 5 0"
                              Text="{Binding DestinationChannel}"
-                             materialDesign:HintAssist.Hint="Channel destination module"
+                             materialDesign:HintAssist.Hint="0 - 31"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}">
                     </TextBox>
                 </Grid>

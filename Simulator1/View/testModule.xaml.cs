@@ -37,16 +37,28 @@ namespace Simulator1.View
 
 
 
-        /*public int Id
+        public string ModeModule
         {
-            get { return (int)GetValue(IdProperty); }
-            set { SetValue(IdProperty, value); }
+            get { return (string)GetValue(ModeModuleProperty); }
+            set { SetValue(ModeModuleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ModeModule.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ModeModuleProperty =
+            DependencyProperty.Register("ModeModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
+
+
+
+        public string PortModule
+        {
+            get { return (string)GetValue(PortModuleProperty); }
+            set { SetValue(PortModuleProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for Id.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty IdProperty =
-            DependencyProperty.Register("Id", typeof(int), typeof(testModule), new PropertyMetadata(null));
-*/
+        public static readonly DependencyProperty PortModuleProperty =
+            DependencyProperty.Register("PortModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
+
 
         public ICommand DropModuleCommand
         {
@@ -63,10 +75,10 @@ namespace Simulator1.View
             InitializeComponent();
             this.MouseLeftButtonDown += new MouseButtonEventHandler(Control_MouseLeftButtonDown);
             this.MouseLeftButtonUp += new MouseButtonEventHandler(Control_MouseLeftButtonUp);
-            this.MouseMove += new MouseEventHandler(Control_MouseMove);
-        }
+            this.MouseMove += new MouseEventHandler(Control_MouseMove);        }
         private void Control_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+
             isDragging = true;
             var draggableControl = sender as UserControl;
             if (draggableControl != null)
@@ -100,12 +112,11 @@ namespace Simulator1.View
                 port = port,
             });
         }
-
         private void Control_MouseMove(object sender, MouseEventArgs e)
         {
             var draggableControl = sender as UserControl;
 
-            if (isDragging && draggableControl != null)
+            if (isDragging && draggableControl != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 Point current_position = e.GetPosition(FindAncestor(this) as UIElement);
                 intialElementOffset = e.GetPosition(dragElement);
@@ -117,8 +128,8 @@ namespace Simulator1.View
                     draggableControl.RenderTransform = transform;
                 }
 
-                transform.X = (currentPosition.X - clickPosition.X);
-                transform.Y = (currentPosition.Y - clickPosition.Y);
+                transform.X = (current_position.X - clickPosition.X);
+                transform.Y = (current_position.Y - clickPosition.Y);
                 if (prevX > 0)
                 {
                     transform.X += prevX;

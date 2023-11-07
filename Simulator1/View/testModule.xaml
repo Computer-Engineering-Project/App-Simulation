@@ -1,28 +1,31 @@
 ﻿<UserControl x:Class="Simulator1.View.testModule"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Simulator1.View"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             Name="module"
+             d:DesignWidth="800">
     <Grid>
-        <WrapPanel>
-            
-        </WrapPanel>
-        <Grid Grid.Row="0"
-              Width="80"
-              Margin="20 10 20 10"
-              Height="80"
-              Background="White">
-            <Image Grid.Row="0"
-                   Source="../static/img/lora.png"
-                   Stretch="Uniform"
-                   Cursor="" />
+        <StackPanel>
+            <Grid Width="80"
+                  Margin="20 10 20 10"
+                  Height="80"
+                  Background="White">
+                <Image Grid.Row="0"
+                       Source="../static/img/lora.png"
+                       Stretch="Uniform"
+                       Cursor="" />
+            </Grid>
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding Path=PortModule, ElementName=module}" />
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding Path=ModeModule, ElementName=module}" />
+            </DockPanel>
 
-        </Grid>
-        <Grid>
-            
-        </Grid>
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -2,6 +2,7 @@
 using Environment.Model.Module;
 using Environment.Model.Packet;
 using Environment.Service.Interface;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +17,7 @@ namespace Environment.Service
         private readonly BaseEnvironment environment;
         public EnvironmentService(ICommunication communication)
         {
-            environment = new BaseEnvironment(communication); 
+            environment = new BaseEnvironment(communication);
         }
 
         public void ActiveHardware(string port)
@@ -28,10 +29,15 @@ namespace Environment.Service
         {
             return environment.ExecuteReadConfigFromHardware(portName);
         }
-
-        public List<string> getPorts()
+        public bool configHardware(string portName, object parameters)
         {
-            return environment.Ports;
+            string json = JsonConvert.SerializeObject(parameters);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            if (listParams != null)
+            {
+                return environment.ExecuteConfigToHardware(portName, listParams["module"], listParams["id"], listParams["baudrate"]);
+            }
+            return false;
         }
 
         public void startPort(string portName)
@@ -50,12 +56,17 @@ namespace Environment.Service
 
         public void Run()
         {
-            environment.Run();
+            environment.State = environment.RUN;
+            environment.createSerialPortInitial();
+            while (environment.State == environment.RUN)
+            {
+                environment.Run();
+            }
         }
-
-        public void changeModeDevice(string portName, string mode)
+        public List<string> loadPorts()
         {
-            //environment.ChangeMode(portName, mode);
+            environment.SetUp();
+            return environment.Ports;
         }
     }
 }
