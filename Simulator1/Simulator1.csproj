@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="static\img\logo.png" />
+    <None Remove="static\img\lora.png" />
+    <None Remove="static\img\wifi.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+    <PackageReference Include="Prism.Wpf" Version="8.1.97" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="static\img\logo.png" />
+    <Resource Include="static\img\lora.png" />
+    <Resource Include="static\img\wifi.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UserControlProject\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Environment\Environment.csproj" />
+  </ItemGroup>
+
+</Project>
