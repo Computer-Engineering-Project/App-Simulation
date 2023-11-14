@@ -1,0 +1,44 @@
+[
+  {
+    "Id": "001",
+    "Type": "E32",
+    "UartRate": "9600",
+    "Parity": "8N1",
+    "AirRate": "2.4",
+    "Channel": "23",
+    "Address": "0000",
+    "Power": "1000",
+    "FEC": "1",
+    "FixedMode": "1",
+    "WORTime": "250",
+    "IOMode": "1"
+  },
+  {
+    "Id": "002",
+    "Type": "E32",
+    "UartRate": "9600",
+    "Parity": "8N1",
+    "AirRate": "0.3",
+    "Channel": "23",
+    "Address": "0011",
+    "Power": "250",
+    "FEC": "1",
+    "FixedMode": "1",
+    "WORTime": "500",
+    "IOMode": "1"
+  },
+  {
+    "Id": "003",
+    "Type": "E32",
+    "UartRate": "9600",
+    "Parity": "8N1",
+    "AirRate": "1.2",
+    "Channel": "15",
+    "Address": "1111",
+    "Power": "750",
+    "FEC": "1",
+    "FixedMode": "1",
+    "WORTime": "250",
+    "IOMode": "1"
+  }
+]
