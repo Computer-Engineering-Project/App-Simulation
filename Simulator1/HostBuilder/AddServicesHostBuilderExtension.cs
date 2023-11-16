@@ -32,6 +32,7 @@ namespace Simulator1.HostBuilder
                 services.AddSingleton<LoadParameter>();
                 //Environment
                 services.AddSingleton<IEnvironmentService, EnvironmentService>();
+                services.AddSingleton<ICommunicationService, CommunicationService>();
             });
             return hostBuilder;
         }

@@ -10,10 +10,10 @@ using System.Reflection;
 using System.Collections.ObjectModel;
 using Microsoft.Xaml.Behaviors;
 using Simulator1.State_Management;
-using Simulator1.Model;
 using Simulator1.Store;
 using Environment.Service.Interface;
 using Newtonsoft.Json;
+using Environment.Model.Module;
 
 namespace Simulator1.ViewModel
 {
@@ -23,7 +23,7 @@ namespace Simulator1.ViewModel
         public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
 
         private ObservableCollection<string> ports;
-        public ObservableCollection<string> Ports { get => ports;set { ports = value;OnPropertyChanged(); } }
+        public ObservableCollection<string> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
 
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
@@ -54,7 +54,7 @@ namespace Simulator1.ViewModel
         public ICommand autoSaveCommand { get; set; }
 
         ~MainViewModel() { }
-        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement , ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IEnvironmentService environmentService, testModuleViewModel testModuleVM)
+        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IEnvironmentService environmentService, testModuleViewModel testModuleVM)
         {
             //DI
             this.mainStore = mainStore;
@@ -113,10 +113,10 @@ namespace Simulator1.ViewModel
             }
             if (matchParams != null)
             {
-                if(CurrentModuleViewModel is ModuleParameterViewModel)
+                if (CurrentModuleViewModel is ModuleParameterViewModel)
                 {
                     moduleStateManagement.updateLoraParameter(matchParams);
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
+                    
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace Simulator1.ViewModel
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             foreach (var module in moduleStore.ModuleObjects)
             {
-                if(module.port == listParams["port"])
+                if (module.port == listParams["port"])
                 {
                     module.x = Double.Parse(listParams["x"]);
                     module.y = Double.Parse(listParams["y"]);

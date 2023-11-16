@@ -11,10 +11,12 @@ namespace Environment.Service
 {
     public class EnvironmentService : IEnvironmentService
     {
+        private readonly ICommunicationService communicationService;
         private readonly BaseEnvironment environment;
-        public EnvironmentService()
+        public EnvironmentService(ICommunicationService communicationService)
         {
-            environment = new BaseEnvironment(); 
+            this.communicationService = communicationService;
+            environment = new BaseEnvironment(communicationService); 
         }
 
         public void ActiveHardware(string port)

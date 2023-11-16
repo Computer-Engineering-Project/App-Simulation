@@ -1,4 +1,5 @@
 ﻿using Environment.Model;
+using Environment.Model.Packet;
 using Environment.Service.Interface;
 using System;
 using System.Collections.Generic;
@@ -76,7 +77,7 @@ namespace Environment.Base
                     serialport.Open();
                     var objectIn = new ObjectGoIn()
                     {
-                        serialport = serialport,
+                        serialport = serialport
                     };
                     HardwareGoIn.Add(objectIn);
                 }
@@ -88,8 +89,23 @@ namespace Environment.Base
         }
         private void addToQueue(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] buffer;
+            byte[] buffer = new byte[58];
             var numOfBytes = ((SerialPort)sender).Read(buffer, 0, 58);
+            if (numOfBytes > 0)
+            {
+                //execute buffer here
+                foreach(var hw in HardwareGoIn)
+                {
+                    if (hw.serialport.PortName == ((SerialPort)sender).PortName)
+                    {
+                        lock (hw.lockObject)
+                        {
+                            hw.packetQueue.Enqueue(new PacketTransmit());
+                        }
+                        return;
+                    }
+                }
+            }
         }
         public void Run()
         {

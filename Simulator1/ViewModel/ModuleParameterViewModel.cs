@@ -1,7 +1,7 @@
-﻿using Environment.Service.Interface;
+﻿using Environment.Model.Module;
+using Environment.Service.Interface;
 using Microsoft.Xaml.Behaviors;
 using Newtonsoft.Json;
-using Simulator1.Model;
 using Simulator1.Service;
 using Simulator1.State_Management;
 using Simulator1.Store;
@@ -97,6 +97,7 @@ namespace Simulator1.ViewModel
                 moduleStateManagement.createLoraParameter(module);
                 moduleStateManagement.createModuleObject();
             }
+
         }
 
         private void ExecuteActiveHardware()
@@ -119,5 +120,6 @@ namespace Simulator1.ViewModel
         {
             base.Dispose();
         }
+        
     }
 }
