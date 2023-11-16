@@ -243,7 +243,6 @@
                                 Style="{StaticResource MaterialDesignRaisedDarkButton}">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="Click">
-                                    <prism:InvokeCommandAction Command="{Binding CloseDialogCommand}" />
                                     <prism:InvokeCommandAction Command="{Binding generateModuleCommand}" />
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>

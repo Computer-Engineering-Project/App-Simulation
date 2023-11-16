@@ -98,6 +98,10 @@ namespace Simulator1.ViewModel
             ListParity = new ObservableCollection<string>() { "8N1", "8O1", "8E1" };
             ListFixedMode = ListIOMode = ListFEC = new ObservableCollection<string>() { "0", "1" };
 
+            //Event Delegate
+
+            this.moduleStateManagement.ResetParameterModule += OnResetParameterModule;
+
         }
 
         private LoraParameterObject createLoraParamsObject()
@@ -155,6 +159,22 @@ namespace Simulator1.ViewModel
             UartRate = listParams["UartRate"];
             DestinationAddress = listParams["DestinationAddress"];
             DestinationChannel = listParams["DestinationChannel"];
+        }
+
+        private void OnResetParameterModule() 
+        {
+            Address = null;
+            Channel = null;
+            AirRate = null;
+            PowerTransmit = null;
+            FixedMode = null;
+            WORTime = null;
+            Parity = null;
+            IOMode = null;
+            FEC = null;
+            UartRate = null;
+            DestinationChannel = null;
+            DestinationAddress = null;
         }
     }
 }

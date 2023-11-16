@@ -73,20 +73,21 @@ namespace Simulator1.ViewModel
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
             //UI/UX
             generateModuleCommand = new RelayCommand(() => GenerateModule());
-            CloseDialogCommand = new RelayCommand(() => Save?.Invoke(Port));
+            CloseDialogCommand = new RelayCommand(() => CloseModule());
             //Environment
             ActiveCommand = new RelayCommand(() => ExecuteActiveHardware());
             ReadConfigCommand = new RelayCommand(() => ExecuteReadConfigFromHardware());
 
             //Event delegate
             this.moduleParamViewStore.CurrentModuleViewModelChanged += OnCurrentViewModelChanged;
+            this.moduleStateManagement.UpdatePositionAndPort += OnUpdatePositionAndPort;
         }
         private void GenerateModule()
         {
             if (!string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
             {
-                var x = Convert.ToInt32(HorizontalX);
-                var y = Convert.ToInt32(VerticalY);
+                var x = Double.Parse(HorizontalX);
+                var y = Double.Parse(VerticalY);
                 var numOfModule = moduleStore.ModuleObjects.Count;
                 var module = new ModuleObject()
                 {
@@ -98,6 +99,15 @@ namespace Simulator1.ViewModel
                 moduleStateManagement.createModuleObject();
             }
 
+            CloseModule();
+        }
+
+        private void CloseModule()
+        {
+            Save?.Invoke(Port);
+            this.HorizontalX = null;
+            this.VerticalY = null;
+            this.moduleStateManagement.resetParameterModule();
         }
 
         private void ExecuteActiveHardware()
@@ -115,6 +125,15 @@ namespace Simulator1.ViewModel
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentModuleViewModel));
+        }
+
+        private void OnUpdatePositionAndPort(object moduleObject)
+        {
+            string json = JsonConvert.SerializeObject(moduleObject);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            HorizontalX = listParams["x"];
+            VerticalY = listParams["y"];
+            Port = listParams["port"];
         }
         public override void Dispose()
         {
