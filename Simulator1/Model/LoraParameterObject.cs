@@ -8,6 +8,7 @@ namespace Simulator1.Model
 {
     public class LoraParameterObject
     {
+        public string Id { get; set; }
         public string UartRate { get; set; }
         public string Parity { get; set; }
         public string AirRate { get; set; }
@@ -18,5 +19,7 @@ namespace Simulator1.Model
         public string FixedMode { get; set; }
         public string WORTime { get; set; }
         public string IOMode { get; set; }
+        public string DestinationAddress { get; set; }
+        public string DestinationChannel { get; set; }
     }
 }

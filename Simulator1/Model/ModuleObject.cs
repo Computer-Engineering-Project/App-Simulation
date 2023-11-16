@@ -8,6 +8,7 @@ namespace Simulator1.Model
 {
     public class ModuleObject
     {
+        public string id { get; set; }
         public string port { get; set; }
         public double  x { get; set; }
         public double y { get; set; }

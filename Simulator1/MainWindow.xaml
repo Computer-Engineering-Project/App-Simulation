@@ -56,7 +56,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"></ColumnDefinition>
                             <ColumnDefinition Width="10*"></ColumnDefinition>
-                            <ColumnDefinition Width="2*"></ColumnDefinition>
+                            <ColumnDefinition Width="4*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
                             <Image Source="./static/img/logo.png"
@@ -67,7 +67,15 @@
                         </Grid>
                         <Grid Grid.Column="2">
                             <StackPanel Orientation="Horizontal"
-                                        Margin="10 0 10 0">
+                                        Margin="5 0 5 0">
+                                <Button Width="100"
+                                        Content="HISTORY"
+                                        Background="Wheat"
+                                        IsEnabled="True"
+                                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                                        Margin="0 0 20 0"
+                                        Command="{Binding LoadHistoryCommand}"
+                                        ToolTip="MaterialDesignFlatLightButton" />
                                 <Button Width="70"
                                         Content="STOP"
                                         Background="OrangeRed"
@@ -146,10 +154,10 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <view:testModule>
+                                            <view:testModule DropModuleCommand="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.autoSaveCommand}">
                                                 <i:Interaction.Triggers>
                                                     <i:EventTrigger EventName="MouseRightButtonDown">
-                                                        <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.SavePositionCommand }"
+                                                        <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.UpdateModuleCommand }"
                                                                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ContentPresenter}, Path=Tag}" />
                                                     </i:EventTrigger>
                                                 </i:Interaction.Triggers>
@@ -171,7 +179,7 @@
                             <GridSplitter Grid.Row="1"
                                           HorizontalAlignment="Stretch"></GridSplitter>
                             <Grid Grid.Row="2">
-                                <TextBlock Text="{Binding TestText}"/>
+
                             </Grid>
                         </Grid>
                     </Grid>

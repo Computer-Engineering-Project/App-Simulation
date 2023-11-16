@@ -1,4 +1,6 @@
-﻿using Microsoft.Xaml.Behaviors;
+﻿using Environment.Service.Interface;
+using Microsoft.Xaml.Behaviors;
+using Newtonsoft.Json;
 using Simulator1.Model;
 using Simulator1.Service;
 using Simulator1.State_Management;
@@ -18,7 +20,7 @@ namespace Simulator1.ViewModel
 {
     public class ModuleParameterViewModel : BaseViewModel
     {
-        public event Action Save;
+        public event Action<string> Save;
 
         #region variable
 
@@ -29,7 +31,7 @@ namespace Simulator1.ViewModel
         public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); } }
 
         private string port;
-        public string Port { get => port;set { port = value; OnPropertyChanged(); } }
+        public string Port { get => port; set { port = value; OnPropertyChanged(); } }
 
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
 
@@ -41,6 +43,10 @@ namespace Simulator1.ViewModel
         public ICommand LoraParamCommand { get; set; }
         public ICommand ZigbeeParamCommand { get; set; }
 
+        public ICommand ActiveCommand { get; set; }
+        public ICommand ReadConfigCommand { get; set; }
+        public ICommand ConfigCommand { get; set; }
+
         #endregion
 
         private readonly ModuleParameterViewStore moduleParamViewStore;
@@ -48,23 +54,31 @@ namespace Simulator1.ViewModel
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly INavigateService loraParameterNavigateService;
         private readonly INavigateService zigbeeParameterNavigateService;
+        private readonly IEnvironmentService environmentService;
 
         ~ModuleParameterViewModel() { }
-        public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, 
+        public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore,
+            IEnvironmentService environmentService,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
+            //DI
             this.moduleParamViewStore = moduleParamViewStore;
             this.moduleStore = moduleStore;
             this.moduleStateManagement = moduleStateManagement;
             this.loraParameterNavigateService = loraParameterNavigateService;
             this.zigbeeParameterNavigateService = zigbeeParameterNavigateService;
-
-
-            generateModuleCommand = new RelayCommand(() => GenerateModule());
-            CloseDialogCommand = new RelayCommand(() => Save?.Invoke());
+            this.environmentService = environmentService;
+            //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
+            //UI/UX
+            generateModuleCommand = new RelayCommand(() => GenerateModule());
+            CloseDialogCommand = new RelayCommand(() => Save?.Invoke(Port));
+            //Environment
+            ActiveCommand = new RelayCommand(() => ExecuteActiveHardware());
+            ReadConfigCommand = new RelayCommand(() => ExecuteReadConfigFromHardware());
 
+            //Event delegate
             this.moduleParamViewStore.CurrentModuleViewModelChanged += OnCurrentViewModelChanged;
         }
         private void GenerateModule()
@@ -84,6 +98,19 @@ namespace Simulator1.ViewModel
                 moduleStateManagement.createModuleObject();
             }
         }
+
+        private void ExecuteActiveHardware()
+        {
+            environmentService.ActiveHardware(Port);
+        }
+        private void ExecuteReadConfigFromHardware()
+        {
+            var parameters = moduleStore.LoadParametersFromHardware(Port);
+            string json = JsonConvert.SerializeObject(parameters);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            moduleStateManagement.readLoraConfigParameter(listParams);
+        }
+
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentModuleViewModel));

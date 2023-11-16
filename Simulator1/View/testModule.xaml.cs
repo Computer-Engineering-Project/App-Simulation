@@ -1,4 +1,5 @@
 ﻿using Simulator1.Model;
+using Simulator1.State_Management;
 using Simulator1.Store;
 using Simulator1.ViewModel;
 using System;
@@ -26,10 +27,12 @@ namespace Simulator1.View
     {
         public testModuleViewModel test { get; set; }
         protected bool isDragging;
+        private FrameworkElement dragElement;
         private Point clickPosition;
+        private Double baseX, baseY = 0;
+        private Point intialElementOffset;
         private Point currentPosition;
         private Double prevX, prevY;
-        private readonly ModuleStore moduleStore;
 
 
 
@@ -58,7 +61,6 @@ namespace Simulator1.View
         public testModule()
         {
             InitializeComponent();
-            this.DataContext = test = new testModuleViewModel();
             this.MouseLeftButtonDown += new MouseButtonEventHandler(Control_MouseLeftButtonDown);
             this.MouseLeftButtonUp += new MouseButtonEventHandler(Control_MouseLeftButtonUp);
             this.MouseMove += new MouseEventHandler(Control_MouseMove);
@@ -67,7 +69,13 @@ namespace Simulator1.View
         {
             isDragging = true;
             var draggableControl = sender as UserControl;
+            if (draggableControl != null)
+            {
+                dragElement = (FrameworkElement)sender;
+            }
             clickPosition = e.GetPosition(FindAncestor(this) as UIElement);
+            intialElementOffset = e.GetPosition(dragElement);
+
             draggableControl.CaptureMouse();
         }
 
@@ -82,8 +90,15 @@ namespace Simulator1.View
                 prevY = transform.Y;
             }
             draggable.ReleaseMouseCapture();
-            var position = currentPosition;
-            DropModuleCommand?.Execute(this);
+            baseX = currentPosition.X - intialElementOffset.X;
+            baseY = currentPosition.Y - intialElementOffset.Y;
+            var port = ((ContentPresenter)draggable.TemplatedParent).Tag;
+            DropModuleCommand?.Execute(new
+            {
+                x = baseX,
+                y = baseY,
+                port = port,
+            });
         }
 
         private void Control_MouseMove(object sender, MouseEventArgs e)
@@ -93,6 +108,7 @@ namespace Simulator1.View
             if (isDragging && draggableControl != null)
             {
                 Point current_position = e.GetPosition(FindAncestor(this) as UIElement);
+                intialElementOffset = e.GetPosition(dragElement);
 
                 var transform = draggableControl.RenderTransform as TranslateTransform;
                 if (transform == null)

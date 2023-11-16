@@ -11,6 +11,8 @@ namespace Simulator1.State_Management
     {
         public event Action ModuleObjectCreated;
         public event Action<ModuleObject> LoraParamsCreated;
+        public event Action<LoraParameterObject> UpdateLoraParams;
+        public event Action<Dictionary<string, string>> ReadLoraConfigParams;
         public void createModuleObject()
         {
             ModuleObjectCreated?.Invoke();
@@ -19,5 +21,14 @@ namespace Simulator1.State_Management
         {
             LoraParamsCreated?.Invoke(module);
         }
+        public void updateLoraParameter(LoraParameterObject loraParameter)
+        {
+            UpdateLoraParams?.Invoke(loraParameter);
+        }
+        public void readLoraConfigParameter(Dictionary<string,string> listParams)
+        {
+            ReadLoraConfigParams?.Invoke(listParams);
+        }
+       
     }
 }

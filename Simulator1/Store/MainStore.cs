@@ -20,6 +20,19 @@ namespace Simulator1.Store
                 OnCurrentViewModelChanged();
             }
         }
+
+        private BaseViewModel currentModuleObjectViewModel;
+        public BaseViewModel CurrentModuleObjectViewModel
+        {
+            get => currentModuleObjectViewModel;
+            set
+            {
+                currentModuleObjectViewModel?.Dispose();
+                currentModuleObjectViewModel = value;
+
+            }
+        }
+
         public event Action MainCurrentModuleViewModelChanged;
         public override void OnCurrentViewModelChanged()
         {

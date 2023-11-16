@@ -1,4 +1,5 @@
-﻿using Environment.Service.Interface;
+﻿using Environment.Service;
+using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Prism.Regions;
@@ -23,19 +24,22 @@ namespace Simulator1.HostBuilder
             hostBuilder.ConfigureServices(services =>
             {
                 services.AddTransient<ZigbeeParameterViewModel>();
+                services.AddTransient<testModuleViewModel>();
                 services.AddTransient<LoraParameterViewModel>();
                 services.AddTransient<ModuleParameterViewModel>((serviceProvider) =>
                 {
                     var moduleParamStore = serviceProvider.GetRequiredService<ModuleParameterViewStore>();
                     moduleParamStore.CurrentViewModel = serviceProvider.GetRequiredService<LoraParameterViewModel>();
-                    return new ModuleParameterViewModel(moduleParamStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(), 
+                    return new ModuleParameterViewModel(moduleParamStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(),
+                        serviceProvider.GetRequiredService<IEnvironmentService>(),
                         CreateLoraParamNavigateService(serviceProvider, moduleParamStore), CreateZigbeeParamNavigateService(serviceProvider, moduleParamStore));
                 });
                 services.AddTransient<MainViewModel>((IServiceProvider serviceProvider) =>
                 {
                     var mainStore = serviceProvider.GetRequiredService<MainStore>();
                     mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
-                    return new MainViewModel(mainStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider.GetRequiredService<IEnvironmentService>());
+                    return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(), 
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider.GetRequiredService<IEnvironmentService>(), serviceProvider.GetRequiredService<testModuleViewModel>());
                 });
             });
             return hostBuilder;

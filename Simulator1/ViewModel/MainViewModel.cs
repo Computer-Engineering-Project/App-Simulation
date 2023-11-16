@@ -13,6 +13,7 @@ using Simulator1.State_Management;
 using Simulator1.Model;
 using Simulator1.Store;
 using Environment.Service.Interface;
+using Newtonsoft.Json;
 
 namespace Simulator1.ViewModel
 {
@@ -27,8 +28,8 @@ namespace Simulator1.ViewModel
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
 
-        private string testText;
-        public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }
+        /*private string testText;
+        public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
 
         private List<string> testports = new List<string>() { "COM5", "COM6" };
 
@@ -37,29 +38,46 @@ namespace Simulator1.ViewModel
         private readonly ModuleStore moduleStore;
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly IEnvironmentService enviromentService;
+        private readonly MainStateManagement mainStateManagement;
+        private readonly testModuleViewModel testModuleVM;
 
         public BaseViewModel CurrentModuleViewModel => mainStore.CurrentViewModel;
+        public BaseViewModel CurrentModuleObjectViewModel = new testModuleViewModel();
         /*public ModuleParameterViewModel ModuleParameterViewModel { get => moduleParameterViewModel; set { moduleParameterViewModel = value; OnPropertyChanged(); } }*/
         /*private ModuleParameterStore moduleParameterStore = new ModuleParameterStore();*/
         /*public ModuleParameterStore ModuleParameterStore { get => moduleParameterStore; set { moduleParameterStore = value; OnPropertyChanged(); } }*/
         public ICommand OpenDialogCommand { get; set; }
-        public ICommand SavePositionCommand { get; set; }
+        public ICommand UpdateModuleCommand { get; set; }
+        public ICommand LoadHistoryCommand { get; set; }
+
+        public ICommand testCommand { get; set; }
+        public ICommand autoSaveCommand { get; set; }
 
         ~MainViewModel() { }
-        public MainViewModel(MainStore mainStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IEnvironmentService environmentService)
+        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement , ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IEnvironmentService environmentService, testModuleViewModel testModuleVM)
         {
+            //DI
             this.mainStore = mainStore;
             this.moduleStore = moduleStore;
             this.moduleStateManagement = moduleStateManagement;
             this.enviromentService = environmentService;
+            this.mainStateManagement = mainStateManagement;
+            this.testModuleVM = testModuleVM;
+            //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
-            this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             ports = new ObservableCollection<string>(/**/ testports);
-
+            //Event delegate
+            this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
+            //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => OpenDialog(port));
-            SavePositionCommand = new ParameterRelayCommand<string>((port) => { return true; }, (port) =>
+            UpdateModuleCommand = new ParameterRelayCommand<string>((port) => { return true; }, (port) =>
             {
-                ExecuteTest(port);
+                ExecuteUpdateModule(port);
+            });
+            LoadHistoryCommand = new RelayCommand(() => ExecuteLoadHistory());
+            autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
+            {
+                ExecuteAutoSavePosition(o);
             });
         }
 
@@ -75,13 +93,14 @@ namespace Simulator1.ViewModel
             ModuleParameterViewModel.Save += CloseDialog;*/
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
+                enviromentService.startPort(port);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
         }
-        private void ExecuteTest(string port)
+        private void ExecuteUpdateModule(string port)
         {
-            TestText= port;
+            /*TestText= port;*/
             IsDialogOpen = true;
             var modules = moduleStore.ModuleObjects;
             var matchParams = new LoraParameterObject();
@@ -96,22 +115,33 @@ namespace Simulator1.ViewModel
             {
                 if(CurrentModuleViewModel is ModuleParameterViewModel)
                 {
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).UartRate = matchParams.UartRate;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).PowerTransmit = matchParams.Power;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).IOMode = matchParams.IOMode;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).FixedMode = matchParams.FixedMode;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).WORTime = matchParams.WORTime;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).Address = matchParams.Address;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).AirRate = matchParams.AirRate;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).Channel = matchParams.Channel;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).FEC = matchParams.FEC;
-                    ((LoraParameterViewModel)((ModuleParameterViewModel)CurrentModuleViewModel).CurrentModuleViewModel).Parity = matchParams.Parity;
+                    moduleStateManagement.updateLoraParameter(matchParams);
+                    ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
                 }
             }
         }
-        private void CloseDialog()
+        private void ExecuteLoadHistory()
+        {
+            mainStateManagement.loadHistoryFromDB();
+            ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+        }
+        private void ExecuteAutoSavePosition(object positionObject)
+        {
+            string json = JsonConvert.SerializeObject(positionObject);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            foreach (var module in moduleStore.ModuleObjects)
+            {
+                if(module.port == listParams["port"])
+                {
+                    module.x = Double.Parse(listParams["x"]);
+                    module.y = Double.Parse(listParams["y"]);
+                }
+            }
+        }
+        private void CloseDialog(string port)
         {
             IsDialogOpen = false;
+            enviromentService.closePort(port);
         }
         public override void Dispose()
         {

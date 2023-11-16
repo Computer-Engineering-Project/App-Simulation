@@ -2,6 +2,7 @@
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Simulator1.Database;
 using Simulator1.State_Management;
 using Simulator1.Store;
 using System;
@@ -21,11 +22,14 @@ namespace Simulator1.HostBuilder
             {
                 //State Management
                 services.AddSingleton<ModuleStateManagement>();
+                services.AddSingleton<MainStateManagement>();
                 //Store
                 services.AddSingleton<ModuleStore>();
                 services.AddSingleton<NavigationStore>();
                 services.AddSingleton<MainStore>();
                 services.AddSingleton<ModuleParameterViewStore>();
+                //Database
+                services.AddSingleton<LoadParameter>();
                 //Environment
                 services.AddSingleton<IEnvironmentService, EnvironmentService>();
             });
