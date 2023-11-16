@@ -88,9 +88,9 @@ namespace Environment.Base
         }
         private void addToQueue(object sender, SerialDataReceivedEventArgs e)
         {
-            /*byte[] buffer;
+            byte[] buffer;
             var numOfBytes = ((SerialPort)sender).Read(buffer, 0, 58);
-        }*/
+        }
         public void Run()
         {
             createSerialPortInitial();
