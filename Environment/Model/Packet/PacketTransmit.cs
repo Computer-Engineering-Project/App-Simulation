@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Environment.Base.Packet
+namespace Environment.Model.Packet
 {
-    public class Packet
+    public class PacketTransmit
     {
         public string module;
         public string cmdWord;

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
 namespace Environment.Base
 {
     public static class Helper
@@ -12,7 +14,11 @@ namespace Environment.Base
         {
             return new byte[0];
         }
-        public static string getConfigFromHardware()
+        public static string getConfigFromHardware(SerialPort serialPort)
+        {
+            return "";
+        }
+        public static string decodeMessage(byte[] input)
         {
             return "";
         }

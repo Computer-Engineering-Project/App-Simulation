@@ -16,9 +16,29 @@ namespace Environment.Service
         {
             environment = new BaseEnvironment(); 
         }
+
+        public void ActiveHardware(string port)
+        {
+            environment.ActiveHardwareDevice(port);
+        }
+
+        public string getIdTypeFromHardware(string portName)
+        {
+            return environment.ExecuteReadConfigFromHardware(portName);
+        }
+
         public List<string> getPorts()
         {
             return environment.Ports;
+        }
+
+        public void startPort(string portName)
+        {
+            environment.StartPort(portName);
+        }
+        public void closePort(string portName)
+        {
+            environment.ClosePort(portName);
         }
     }
 }
