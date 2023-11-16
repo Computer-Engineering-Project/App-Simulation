@@ -9,6 +9,5 @@ namespace Environment.Service.Interface
 {
     public interface ICommunicationService
     {
-        public  listenToHardwareAsync(object sender);
     }
 }
