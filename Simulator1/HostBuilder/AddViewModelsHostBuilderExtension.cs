@@ -34,7 +34,13 @@ namespace Simulator1.HostBuilder
                         serviceProvider,
                         CreateLoraParamNavigateService(serviceProvider, moduleParamStore), CreateZigbeeParamNavigateService(serviceProvider, moduleParamStore));
                 });
-                services.AddSingleton<MainViewModel>();
+                services.AddSingleton<MainViewModel>((serviceProvider) =>
+                {
+                    var mainStore = serviceProvider.GetRequiredService<MainStore>();
+                    mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
+                    return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(),
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>());
+                });
             });
             return hostBuilder;
         }
