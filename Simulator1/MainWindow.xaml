@@ -88,6 +88,7 @@
                                         Content="RUN"
                                         IsEnabled="True"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                                        Command="{Binding RunEnvironmentCommand}"
                                         ToolTip="MaterialDesignFlatDarkButton" />
                             </StackPanel>
                         </Grid>

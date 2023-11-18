@@ -14,10 +14,12 @@ using Simulator1.Store;
 using Environment.Service.Interface;
 using Newtonsoft.Json;
 using Environment.Model.Module;
+using Microsoft.Extensions.DependencyInjection;
+using Environment.Model.Packet;
 
 namespace Simulator1.ViewModel
 {
-    public class MainViewModel : BaseViewModel
+    public class MainViewModel : BaseViewModel, ICommunication
     {
         private ObservableCollection<ModuleObject> moduleObjects;
         public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
@@ -37,7 +39,7 @@ namespace Simulator1.ViewModel
         private readonly MainStore mainStore;
         private readonly ModuleStore moduleStore;
         private readonly ModuleStateManagement moduleStateManagement;
-        private readonly IEnvironmentService enviromentService;
+        private readonly IServiceProvider serviceProvider;
         private readonly MainStateManagement mainStateManagement;
         private readonly testModuleViewModel testModuleVM;
 
@@ -49,18 +51,19 @@ namespace Simulator1.ViewModel
         public ICommand OpenDialogCommand { get; set; }
         public ICommand UpdateModuleCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
+        public ICommand RunEnvironmentCommand { get; set; }
 
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
 
         ~MainViewModel() { }
-        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IEnvironmentService environmentService, testModuleViewModel testModuleVM)
+        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM)
         {
             //DI
             this.mainStore = mainStore;
             this.moduleStore = moduleStore;
             this.moduleStateManagement = moduleStateManagement;
-            this.enviromentService = environmentService;
+            this.serviceProvider = serviceProvider;
             this.mainStateManagement = mainStateManagement;
             this.testModuleVM = testModuleVM;
             //Variable
@@ -79,12 +82,14 @@ namespace Simulator1.ViewModel
             {
                 ExecuteAutoSavePosition(o);
             });
+            RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
         }
-
+        //Delegate handler
         private void OnModuleObjectCreated()
         {
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
         }
+        //Command handler
         private void OpenDialog(string port)
         {
             IsDialogOpen = true;
@@ -93,7 +98,7 @@ namespace Simulator1.ViewModel
             ModuleParameterViewModel.Save += CloseDialog;*/
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                enviromentService.startPort(port);
+                serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
@@ -124,7 +129,7 @@ namespace Simulator1.ViewModel
                         x = moduleObject.x,
                         y = moduleObject.y,
                     });
-                    
+
                 }
             }
         }
@@ -149,13 +154,28 @@ namespace Simulator1.ViewModel
         private void CloseDialog(string port)
         {
             IsDialogOpen = false;
-            enviromentService.closePort(port);
+            serviceProvider.GetRequiredService<IEnvironmentService>().closePort(port);
         }
+        private void ExecuteRunEnvironment()
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().Run();
+        }
+        private void ExecuteChangeMode(string port, string mode)
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().changeModeDevice(port, mode);
+        }
+
+        //Dispose
         public override void Dispose()
         {
             moduleStateManagement.ModuleObjectCreated -= OnModuleObjectCreated;
             base.Dispose();
         }
 
+        //Received Data from Environment
+        public void showQueueReceivedFromHardware(PacketTransferToView listTransferedPacket)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

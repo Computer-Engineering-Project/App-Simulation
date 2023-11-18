@@ -1,0 +1,28 @@
+﻿using Environment.Model.Packet;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO.Ports;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Environment.Model
+{
+    public class NodeDeviceIn
+    {
+        public SerialPort serialport { get; set; }
+        public object lockObject { get; set; }
+        public string mode { get; set; }
+        public Thread transferData { get; set; }
+        public ConcurrentQueue<PacketTransmit> packetQueue = new ConcurrentQueue<PacketTransmit>(); 
+    }
+    public class NodeDeviceOut
+    {
+        public SerialPort serialport { get; set; }
+        public object lockObject { get; set; }
+        public string mode { get; set; }
+        public Thread transferData { get; set; }
+        public ConcurrentQueue<InternalPacket> packetQueue = new ConcurrentQueue<InternalPacket>();
+    }
+}
