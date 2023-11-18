@@ -1,4 +1,5 @@
 ﻿using Environment.Model.Module;
+using Environment.Model.Packet;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Simulator1.Database;
@@ -30,9 +31,9 @@ namespace Simulator1.Store
         }
         public object LoadParametersFromHardware(string portName)
         {
-            var id_type = serviceProvider.GetRequiredService<IEnvironmentService>().getIdTypeFromHardware(portName).Split(":");
-            var id = id_type[0];
-            var type = id_type[1];
+            PacketTransmit packet = serviceProvider.GetRequiredService<IEnvironmentService>().getIdTypeFromHardware(portName);
+            var id = packet.data[0].ToString();
+            var type = packet.module.ToString();
 
             var listParams = loadParameter.listInModules;
             foreach ( var module in listParams )

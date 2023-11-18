@@ -49,7 +49,7 @@ namespace Environment.Base
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
             if (serialport != null)
             {
-                var stringActive = Helper.createStringActiveHardware();
+                byte [] stringActive = Helper.CmdActiveHardware();
                 if (stringActive != null)
                 {
                     serialport.Write(stringActive, 0, stringActive.Length);
@@ -57,31 +57,36 @@ namespace Environment.Base
                 return;
             }
         }
-        public string ExecuteReadConfigFromHardware(string port)
+/*
+ * Description: read config from hardware
+ * Output: id: string + module type: string
+*/
+        public PacketTransmit ExecuteReadConfigFromHardware(string port)
+        {
+            var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
+            if (serialport != null)
+            {
+                return Helper.SendCmdGetConfigFromHardware(serialport);
+            }
+
+            return null;
+        }
+
+        public bool ExecuteConfigFromHardware(string port)
         {
             //return id : string + module type: string
-            var type = ModuleObjects.FirstOrDefault(x => x.port == port)?.type;
-            foreach (var serialport in SerialPorts)
+            var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
+            byte module = 0x01;
+            // data is id module
+            byte[] data = { 0x00 };
+            if (serialport != null)
             {
-                if (serialport.PortName == port)
-                {
-                    /*var stringActive = Helper.createStringReadConfigHardware(); // tạo hàm này trong helper hoặc chỗ nào tùy mi 
-                    if (stringActive != null)
-                    {
-                        serialport.Write(stringActive, 0, stringActive.Length);
-                    }
-                    byte[] buffer = new byte[58];
-                    var numofByte = 0;
-                    while (numofByte == 0)
-                    {
-                        numofByte = serialport.Read(buffer, 0, buffer.Length);
-                    }
-                    // execute the buffer,
-                    return "";*/
-                }
+                return Helper.SendCmdConfigToHardware(serialport, module, data);
+
             }
-            return "001:E32";
+            return false;
         }
+
         public void ClosePort(string port)
         {
             foreach (var serialport in SerialPorts)
@@ -130,20 +135,20 @@ namespace Environment.Base
         }
         private void addToQueue(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] buffer = new byte[58];
-            var numOfBytes = ((SerialPort)sender).Read(buffer, 0, 58);
-            if (numOfBytes > 0)
+            byte[] buffer = Helper.GetDataFromHardware((SerialPort)sender);
+            if (buffer.Length > 0)
             {
-                //execute buffer here
-                foreach (var hw in DeviceGoOut)
+                var packet = Helper.HandleMessFromHardware(buffer);
+                if (packet != null)
                 {
-                    if (hw.serialport.PortName == ((SerialPort)sender).PortName && hw.mode != "2" && hw.mode != "3")
+                    DataProcessed dataProcessed = new DataProcessed(packet.data);
+
+                    foreach (var hardware in DeviceGoOut)
                     {
-                        hw.packetQueue.Enqueue(new PacketTransmit()
+                        if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
                         {
-                            
-                        }) ;
-                        return;
+                            hardware.packetQueue.Enqueue(dataProcessed);
+                        }
                     }
                 }
             }
@@ -195,11 +200,11 @@ namespace Environment.Base
             }
             
         }*/
-        private void transferDataToAvailableDevice(string mode, SerialPort serialPort, ConcurrentQueue<PacketTransmit> packetQueue, ModuleObject moduleObject)
+        private void transferDataToAvailableDevice(string mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
         {
             if (mode != "2" && mode != "3")
             {
-                if (packetQueue.TryDequeue(out PacketTransmit packet))
+                if (packetQueue.TryDequeue(out DataProcessed packet))
                 {
                     communication.showQueueReceivedFromHardware(new PacketTransferToView()
                     {
@@ -214,7 +219,7 @@ namespace Environment.Base
                 }
             }
         }
-        private InternalPacket ExecuteTransferData(string mode, PacketTransmit packet, ModuleObject moduleObject)
+        private InternalPacket ExecuteTransferData(string mode, DataProcessed packet, ModuleObject moduleObject)
         {
             if (moduleObject.type == "lora")
             {
@@ -225,13 +230,13 @@ namespace Environment.Base
                         return new InternalPacket()
                         {
                             packet = packet,
-                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.dataLength),
+                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.data),
                         };
                     case "1":
                         return new InternalPacket()
                         {
                             packet = packet,
-                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.dataLength),
+                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.data),
                             PreambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime))
                         };
                     default:

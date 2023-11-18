@@ -15,7 +15,7 @@ namespace Environment.Model
         public object lockObject { get; set; }
         public string mode { get; set; }
         public Thread transferData { get; set; }
-        public ConcurrentQueue<PacketTransmit> packetQueue = new ConcurrentQueue<PacketTransmit>(); 
+        public ConcurrentQueue<DataProcessed> packetQueue = new ConcurrentQueue<DataProcessed>(); 
     }
     public class NodeDeviceOut
     {
