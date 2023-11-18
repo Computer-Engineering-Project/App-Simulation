@@ -1,4 +1,5 @@
 ﻿using Environment.Model.Module;
+using Environment.Model.Packet;
 using Environment.Service.Interface;
 using Simulator1.Database;
 using Simulator1.State_Management;
@@ -27,9 +28,9 @@ namespace Simulator1.Store
         }
         public object LoadParametersFromHardware(string portName)
         {
-            var id_type = environmentService.getIdTypeFromHardware(portName).Split(":");
-            var id = id_type[0];
-            var type = id_type[1];
+            PacketTransmit packet = environmentService.getIdTypeFromHardware(portName);
+            var id = packet.data[0].ToString();
+            var type = packet.module.ToString();
 
             var listParams = loadParameter.listInModules;
             foreach ( var module in listParams )

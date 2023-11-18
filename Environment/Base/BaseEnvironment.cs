@@ -15,7 +15,7 @@ namespace Environment.Base
     {
         public List<string> Ports = new List<string>();
         public List<SerialPort> SerialPorts = new List<SerialPort>();
-        public List<ObjectGoIn> HardwareGoIn = new List<ObjectGoIn>();
+        public List<NodeDeviceIn> DeviceGoOut = new List<NodeDeviceIn>();
         private readonly ICommunicationService communicationService;
 
         public BaseEnvironment(ICommunicationService communicationService)
@@ -39,7 +39,7 @@ namespace Environment.Base
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
             if (serialport != null)
             {
-                var stringActive = Helper.createStringActiveHardware();
+                byte [] stringActive = Helper.CmdActiveHardware();
                 if (stringActive != null)
                 {
                     serialport.Write(stringActive, 0, stringActive.Length);
@@ -47,17 +47,36 @@ namespace Environment.Base
                 return;
             }
         }
-        public string ExecuteReadConfigFromHardware(string port)
+/*
+ * Description: read config from hardware
+ * Output: id: string + module type: string
+*/
+        public PacketTransmit ExecuteReadConfigFromHardware(string port)
         {
-            //return id : string + module type: string
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             if (serialport != null)
             {
-                return Helper.getConfigFromHardware(serialport);
+                return Helper.SendCmdGetConfigFromHardware(serialport);
+            }
+
+            return null;
+        }
+
+        public bool ExecuteConfigFromHardware(string port)
+        {
+            //return id : string + module type: string
+            var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
+            byte module = 0x01;
+            // data is id module
+            byte[] data = { 0x00 };
+            if (serialport != null)
+            {
+                return Helper.SendCmdConfigToHardware(serialport, module, data);
 
             }
-            return "001:E32";
+            return false;
         }
+
         public void ClosePort(string port)
         {
             foreach (var serialport in SerialPorts)
@@ -75,34 +94,34 @@ namespace Environment.Base
                 if (!serialport.IsOpen)
                 {
                     serialport.Open();
-                    var objectIn = new ObjectGoIn()
+                    var objectIn = new NodeDeviceIn()
                     {
                         serialport = serialport
                     };
-                    HardwareGoIn.Add(objectIn);
+                    DeviceGoOut.Add(objectIn);
                 }
             }
-            foreach (var packet in HardwareGoIn)
+            foreach (var packet in DeviceGoOut)
             {
                 packet.serialport.DataReceived += new SerialDataReceivedEventHandler(addToQueue);
             }
         }
         private void addToQueue(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] buffer = new byte[58];
-            var numOfBytes = ((SerialPort)sender).Read(buffer, 0, 58);
-            if (numOfBytes > 0)
+            byte[] buffer = Helper.GetDataFromHardware((SerialPort)sender);
+            if (buffer.Length > 0)
             {
-                //execute buffer here
-                foreach(var hw in HardwareGoIn)
+                var packet = Helper.HandleMessFromHardware(buffer);
+                if (packet != null)
                 {
-                    if (hw.serialport.PortName == ((SerialPort)sender).PortName)
+                    DataProcessed dataProcessed = new DataProcessed(packet.data);
+
+                    foreach (var hardware in DeviceGoOut)
                     {
-                        lock (hw.lockObject)
+                        if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
                         {
-                            hw.packetQueue.Enqueue(new PacketTransmit());
+                            hardware.packetQueue.Enqueue(dataProcessed);
                         }
-                        return;
                     }
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using Environment.Base;
+using Environment.Model.Packet;
 using Environment.Service.Interface;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace Environment.Service
             environment.ActiveHardwareDevice(port);
         }
 
-        public string getIdTypeFromHardware(string portName)
+        public PacketTransmit getIdTypeFromHardware(string portName)
         {
             return environment.ExecuteReadConfigFromHardware(portName);
         }

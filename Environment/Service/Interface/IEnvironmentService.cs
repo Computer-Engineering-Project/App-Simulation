@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Environment.Model.Packet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Environment.Service.Interface
         public List<string> getPorts();
         public void startPort(string portName);
         public void ActiveHardware(string portName);
-        public string getIdTypeFromHardware(string portName);
+        public PacketTransmit getIdTypeFromHardware(string portName);
         public void closePort(string portName);
     }
 }
