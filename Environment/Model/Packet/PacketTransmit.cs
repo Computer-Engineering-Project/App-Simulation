@@ -13,4 +13,15 @@ namespace Environment.Model.Packet
         public string dataLength;
         public string data;
     }
+    public class PacketTransferToView
+    {
+        public string portName { get; set; }
+        public PacketTransmit packet { get; set; }
+    }
+    public class InternalPacket
+    {
+        public PacketTransmit packet { get; set;}
+        public double DelayTime { get; set;}
+        public string? PreambleCode { get; set;}
+    }
 }

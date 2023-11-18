@@ -1,10 +1,12 @@
-﻿using Environment.Service;
+﻿using Environment.Base;
+using Environment.Service;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Simulator1.Database;
 using Simulator1.State_Management;
 using Simulator1.Store;
+using Simulator1.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +34,9 @@ namespace Simulator1.HostBuilder
                 services.AddSingleton<LoadParameter>();
                 //Environment
                 services.AddSingleton<IEnvironmentService, EnvironmentService>();
-                services.AddSingleton<ICommunicationService, CommunicationService>();
+                services.AddSingleton<ICommunication, MainViewModel>();
+
+                services.AddSingleton<BaseEnvironment>();
             });
             return hostBuilder;
         }

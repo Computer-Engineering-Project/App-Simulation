@@ -16,11 +16,7 @@ namespace Simulator1.HostBuilder
         {
             hostBuilder.ConfigureServices(services =>
             {
-                services.AddSingleton<MainWindow>(s => new MainWindow()
-                {
-                    DataContext = s.GetRequiredService<MainViewModel>()
-                });
-                
+                services.AddSingleton<MainWindow>();
             });
             return hostBuilder;
         }

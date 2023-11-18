@@ -1,5 +1,6 @@
 ﻿using Environment.Model.Module;
 using Environment.Service.Interface;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xaml.Behaviors;
 using Newtonsoft.Json;
 using Simulator1.Service;
@@ -54,11 +55,11 @@ namespace Simulator1.ViewModel
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly INavigateService loraParameterNavigateService;
         private readonly INavigateService zigbeeParameterNavigateService;
-        private readonly IEnvironmentService environmentService;
+        private readonly IServiceProvider serviceProvider;
 
         ~ModuleParameterViewModel() { }
         public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore,
-            IEnvironmentService environmentService,
+            IServiceProvider serviceProvider,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
             //DI
@@ -67,7 +68,7 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement = moduleStateManagement;
             this.loraParameterNavigateService = loraParameterNavigateService;
             this.zigbeeParameterNavigateService = zigbeeParameterNavigateService;
-            this.environmentService = environmentService;
+            this.serviceProvider = serviceProvider;
             //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
@@ -112,7 +113,7 @@ namespace Simulator1.ViewModel
 
         private void ExecuteActiveHardware()
         {
-            environmentService.ActiveHardware(Port);
+            serviceProvider.GetRequiredService<IEnvironmentService>().ActiveHardware(Port);
         }
         private void ExecuteReadConfigFromHardware()
         {

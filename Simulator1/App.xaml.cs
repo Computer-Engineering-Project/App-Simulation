@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Simulator1.HostBuilder;
+using Simulator1.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -33,9 +34,11 @@ namespace Simulator1
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            _host.Start();
-            MainWindow window = _host.Services.GetRequiredService<MainWindow>();
-            window.Show();
+                _host.Start();
+                MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
+                MainWindow window = _host.Services.GetRequiredService<MainWindow>();
+                window.DataContext = mainViewModel;
+                window.Show();
             base.OnStartup(e);
         }
 
