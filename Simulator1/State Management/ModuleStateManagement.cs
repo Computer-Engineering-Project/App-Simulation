@@ -9,15 +9,15 @@ namespace Simulator1.State_Management
 {
     public class ModuleStateManagement
     {
-        public event Action ModuleObjectCreated;
+        public event Action<string> ModuleObjectCreated;
         public event Action<ModuleObject> LoraParamsCreated;
         public event Action<LoraParameterObject> UpdateLoraParams;
         public event Action<Dictionary<string, string>> ReadLoraConfigParams;
         public event Action<Object> UpdatePositionAndPort;
         public event Action ResetParameterModule;
-        public void createModuleObject()
+        public void createModuleObject(string portName)
         {
-            ModuleObjectCreated?.Invoke();
+            ModuleObjectCreated?.Invoke(portName);
         }
         public void createLoraParameter(ModuleObject module)
         {

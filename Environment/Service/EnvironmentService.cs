@@ -29,11 +29,6 @@ namespace Environment.Service
             return environment.ExecuteReadConfigFromHardware(portName);
         }
 
-        public List<string> getPorts()
-        {
-            return environment.Ports;
-        }
-
         public void startPort(string portName)
         {
             environment.StartPort(portName);
@@ -52,10 +47,10 @@ namespace Environment.Service
         {
             environment.Run();
         }
-
-        public void changeModeDevice(string portName, string mode)
+        public List<string> loadPorts()
         {
-            environment.ChangeMode(portName, mode);
+            environment.SetUp();
+            return environment.Ports;
         }
     }
 }

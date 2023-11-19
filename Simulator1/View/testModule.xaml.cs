@@ -63,10 +63,10 @@ namespace Simulator1.View
             InitializeComponent();
             this.MouseLeftButtonDown += new MouseButtonEventHandler(Control_MouseLeftButtonDown);
             this.MouseLeftButtonUp += new MouseButtonEventHandler(Control_MouseLeftButtonUp);
-            this.MouseMove += new MouseEventHandler(Control_MouseMove);
-        }
+            this.MouseMove += new MouseEventHandler(Control_MouseMove);        }
         private void Control_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+
             isDragging = true;
             var draggableControl = sender as UserControl;
             if (draggableControl != null)
@@ -100,12 +100,11 @@ namespace Simulator1.View
                 port = port,
             });
         }
-
         private void Control_MouseMove(object sender, MouseEventArgs e)
         {
             var draggableControl = sender as UserControl;
 
-            if (isDragging && draggableControl != null)
+            if (isDragging && draggableControl != null && e.LeftButton == MouseButtonState.Pressed)
             {
                 Point current_position = e.GetPosition(FindAncestor(this) as UIElement);
                 intialElementOffset = e.GetPosition(dragElement);
@@ -117,8 +116,8 @@ namespace Simulator1.View
                     draggableControl.RenderTransform = transform;
                 }
 
-                transform.X = (currentPosition.X - clickPosition.X);
-                transform.Y = (currentPosition.Y - clickPosition.Y);
+                transform.X = (current_position.X - clickPosition.X);
+                transform.Y = (current_position.Y - clickPosition.Y);
                 if (prevX > 0)
                 {
                     transform.X += prevX;
