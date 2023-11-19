@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Environment.Model.Module;
 using Microsoft.Extensions.DependencyInjection;
 using Environment.Model.Packet;
+using Environment.Model.ButtonPort;
 using Environment.Model.History;
 
 namespace Simulator1.ViewModel
@@ -25,8 +26,8 @@ namespace Simulator1.ViewModel
         private ObservableCollection<ModuleObject> moduleObjects;
         public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
 
-        private ObservableCollection<string> ports;
-        public ObservableCollection<string> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
+        private ObservableCollection<ButtonPort> ports;
+        public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
 
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
@@ -50,7 +51,6 @@ namespace Simulator1.ViewModel
         private readonly testModuleViewModel testModuleVM;
 
         public BaseViewModel CurrentModuleViewModel => mainStore.CurrentViewModel;
-        public BaseViewModel CurrentModuleObjectViewModel = new testModuleViewModel();
         /*public ModuleParameterViewModel ModuleParameterViewModel { get => moduleParameterViewModel; set { moduleParameterViewModel = value; OnPropertyChanged(); } }*/
         /*private ModuleParameterStore moduleParameterStore = new ModuleParameterStore();*/
         /*public ModuleParameterStore ModuleParameterStore { get => moduleParameterStore; set { moduleParameterStore = value; OnPropertyChanged(); } }*/
@@ -58,6 +58,7 @@ namespace Simulator1.ViewModel
         public ICommand UpdateModuleCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
+        public ICommand LoadPorts { get; set; }
 
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
@@ -76,7 +77,7 @@ namespace Simulator1.ViewModel
             this.testModuleVM = testModuleVM;
             //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
-            ports = new ObservableCollection<string>(/**/ testports);
+            Ports = new ObservableCollection<ButtonPort>();
             HistoryObjects = new ObservableCollection<HistoryObject>()
             {
                 new HistoryObject()
@@ -202,7 +203,7 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
             //Command
-            OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => OpenDialog(port));
+            OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<string>((port) => { return true; }, (port) =>
             {   
                 moduleStateManagement.isActionUpdate(new { 
@@ -219,14 +220,39 @@ namespace Simulator1.ViewModel
             SelectionChangedCommand = new RelayCommand(() => DectectActionSelectedColumn());
 
             RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
+            LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
         }
         //Delegate handler
-        private void OnModuleObjectCreated()
+        private void OnModuleObjectCreated(string portName)
         {
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+            var ports = Ports;
+            foreach (var p in ports)
+            {
+                if (p.portName == portName)
+                {
+                    p.color = "LightGreen";
+                }
+            }
+            Ports = new ObservableCollection<ButtonPort>(ports);
         }
         //Command handler
-        private void OpenDialog(string port)
+        private void ExecuteClickPort(string portName)
+        {
+            var portObject = Ports.FirstOrDefault(x=>x.portName== portName);
+            if (portObject != null)
+            {
+                if (portObject.color == "Wheat")
+                {
+                    OpenDialog(portName);
+                }
+                else
+                {
+                    MessageBox.Show("Is already config. Now it will trigger the history table");
+                }
+            }
+        }
+        private void OpenDialog(string portName)
         {
             IsDialogOpen = true;
             /*ModuleParameterViewModel = new ModuleParameterViewModel(moduleParamStore, moduleStateManagement, moduleStorePosition);
@@ -234,8 +260,8 @@ namespace Simulator1.ViewModel
             ModuleParameterViewModel.Save += CloseDialog;*/
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);
-                ((ModuleParameterViewModel)CurrentModuleViewModel).Port = port;
+                /*serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);*/
+                ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
         }
@@ -298,9 +324,33 @@ namespace Simulator1.ViewModel
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().Run();
         }
-        private void ExecuteChangeMode(string port, string mode)
+        private void ExecuteLoadPorts()
         {
-            serviceProvider.GetRequiredService<IEnvironmentService>().changeModeDevice(port, mode);
+            var ports = serviceProvider.GetRequiredService<IEnvironmentService>().loadPorts();
+            var previousPorts = Ports.Select(x=>x.portName).ToList();
+            var tmpPorts = Ports;
+            if (ports != null)
+            {
+                var addPorts = ports.Except(previousPorts);
+                var removePorts = previousPorts.Except(ports);
+                foreach(var port in addPorts)
+                {
+                    tmpPorts.Add(new ButtonPort()
+                    {
+                        color = "Wheat",
+                        portName = port
+                    });
+                }
+                foreach(var port in removePorts)
+                {
+                    var _object = tmpPorts.Where(x=>x.portName==port).FirstOrDefault();
+                    if (_object != null)
+                    {
+                        tmpPorts.Remove(_object);
+                    }
+                }
+                Ports= tmpPorts;
+            }
         }
 
         private void DectectActionSelectedColumn()

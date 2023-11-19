@@ -102,7 +102,7 @@ namespace Simulator1.ViewModel
                     y = y,
                 };
                 moduleStateManagement.createLoraParameter(module);
-                moduleStateManagement.createModuleObject();
+                moduleStateManagement.createModuleObject(Port);
             } else
             {
                 var x = Double.Parse(HorizontalX);

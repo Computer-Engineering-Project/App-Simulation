@@ -35,14 +35,14 @@ namespace Environment.Base
             SetUp();
         }
 
-        private void SetUp()
+        public void SetUp()
         {
             var ports = SerialPort.GetPortNames();
-            Ports.AddRange(ports);
+            Ports = ports.ToList();
         }
         public void StartPort(string port)
         {
-            var serialPort = new SerialPort(port, 115200);
+            SerialPort serialPort = new SerialPort(port, 115200);
             if (!serialPort.IsOpen)
             {
                 serialPort.Open();
@@ -55,7 +55,7 @@ namespace Environment.Base
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
             if (serialport != null)
             {
-                byte [] stringActive = Helper.CmdActiveHardware();
+                byte[] stringActive = Helper.CmdActiveHardware();
                 if (stringActive != null)
                 {
                     serialport.Write(stringActive, 0, stringActive.Length);
@@ -63,10 +63,10 @@ namespace Environment.Base
                 return;
             }
         }
-/*
- * Description: read config from hardware
- * Output: id: string + module type: string
-*/
+        /*
+         * Description: read config from hardware
+         * Output: id: string + module type: string
+        */
         public PacketTransmit ExecuteReadConfigFromHardware(string port)
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);

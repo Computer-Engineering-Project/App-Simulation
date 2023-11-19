@@ -34,11 +34,12 @@ namespace Simulator1
 
         protected override void OnStartup(StartupEventArgs e)
         {
-                _host.Start();
-                MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
-                MainWindow window = _host.Services.GetRequiredService<MainWindow>();
-                window.DataContext = mainViewModel;
-                window.Show();
+            _host.Start();
+            MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
+            MainWindow window = _host.Services.GetRequiredService<MainWindow>();
+            window.DataContext = mainViewModel;
+
+            window.Show();
             base.OnStartup(e);
         }
 
