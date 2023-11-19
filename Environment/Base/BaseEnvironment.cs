@@ -17,11 +17,9 @@ namespace Environment.Base
     {
         public List<string> Ports = new List<string>();
         public List<SerialPort> SerialPorts = new List<SerialPort>();
-        public List<NodeDeviceIn> DeviceGoOut = new List<NodeDeviceIn>();
-        public List<NodeDeviceOut> GoInDevice = new List<NodeDeviceOut>();
+        public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
 
-        Thread transferDataToView;
         private readonly ICommunication communication;
 
         public BaseEnvironment(ICommunication communication)
@@ -78,7 +76,7 @@ namespace Environment.Base
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             byte module = 0x01;
             // data is id module
-            byte[] data = { 0x00 };
+            byte[] data = { 0x00, 0x07 }; // id = 0, baudrate = 0x07
             if (serialport != null)
             {
                 return Helper.SendCmdConfigToHardware(serialport, module, data);
@@ -101,22 +99,28 @@ namespace Environment.Base
         {
             foreach (var serialport in SerialPorts)
             {
+
                 if (!serialport.IsOpen)
                 {
                     serialport.Open();
-                    var objectIn = new NodeDeviceIn()
+                    var device = new NodeDevice()
                     {
-                        serialport = serialport
+                        serialport = serialport,
+                        mode = NodeDevice.MODE_SLEEP,
+
                     };
-                    var objectOut = new NodeDeviceOut()
+                    foreach (var module in ModuleObjects)
                     {
-                        serialport = serialport
-                    };
-                    DeviceGoOut.Add(objectIn);
-                    GoInDevice.Add(objectOut);
+                        if (module.port == serialport.PortName)
+                        {
+                            device.moduleObject = module;
+                        }
+                    }
+
+                    Devices.Add(device);
                 }
             }
-            foreach (var packet in DeviceGoOut)
+            foreach (var packet in Devices)
             {
                 packet.serialport.DataReceived += new SerialDataReceivedEventHandler(addToQueue);
             }
@@ -143,42 +147,29 @@ namespace Environment.Base
                 {
                     DataProcessed dataProcessed = new DataProcessed(packet.data);
 
-                    foreach (var hardware in DeviceGoOut)
+                    foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
                         {
-                            hardware.packetQueue.Enqueue(dataProcessed);
+                            hardware.packetQueueIn.Enqueue(dataProcessed);
                         }
                     }
                 }
             }
         }
         //Run program =====
-        public void ChangeMode(string portName, string mode)
-        {
-            foreach (var hw in DeviceGoOut)
-            {
-                if (hw.serialport.PortName == portName)
-                {
-                    lock (hw.lockObject)
-                    {
-                        hw.mode = mode;
-                    }
-                }
-            }
-        }
         public void Run()
         {
             createSerialPortInitial();
             /*transferDataToView = new Thread(transferInPacketToView);
             transferDataToView.Start();*/
-            foreach (var hw in DeviceGoOut)
+            foreach (var hw in Devices)
             {
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
-                    hw.transferData = new Thread(() => transferDataToAvailableDevice(hw.mode, hw.serialport, hw.packetQueue, moduleObject));
-                    hw.transferData.Start();
+                    hw.transferDataIn = new Thread(() => transferDataToAvailableDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
+                    hw.transferDataIn.Start();
                 }
             }
         }
@@ -200,9 +191,9 @@ namespace Environment.Base
             }
             
         }*/
-        private void transferDataToAvailableDevice(string mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
+        private void transferDataToAvailableDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
         {
-            if (mode != "2" && mode != "3")
+            if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
             {
                 if (packetQueue.TryDequeue(out DataProcessed packet))
                 {
@@ -219,20 +210,20 @@ namespace Environment.Base
                 }
             }
         }
-        private InternalPacket ExecuteTransferData(string mode, DataProcessed packet, ModuleObject moduleObject)
+        private InternalPacket ExecuteTransferData(int mode, DataProcessed packet, ModuleObject moduleObject)
         {
             if (moduleObject.type == "lora")
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
                 switch (mode)
                 {
-                    case "0":
+                    case NodeDevice.MODE_NORMAL:
                         return new InternalPacket()
                         {
                             packet = packet,
                             DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.data),
                         };
-                    case "1":
+                    case NodeDevice.MODE_WAKEUP:
                         return new InternalPacket()
                         {
                             packet = packet,
@@ -255,8 +246,71 @@ namespace Environment.Base
                 var loraParameters = (LoraParameterObject)moduleObject.parameters;
                 var destinationAddress = loraParameters.DestinationAddress;
                 var destinationChannel = loraParameters.DestinationChannel;
-                
+                foreach(var hw in Devices)
+                {
+                    if (hw.moduleObject.type == "lora")
+                    {
+                        if(loraParameters.FixedMode == "0") // broadcast
+                        {
+                            if (hw.moduleObject.parameters is LoraParameterObject)
+                            {
+                                var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
+                                if (hw_loraParameters.DestinationChannel == destinationChannel)
+                                {
+                                    hw.packetQueueOut.Enqueue(packet);
+                                }
+                            }
+                        }
+                        else // fixed
+                        {
+                            if (hw.moduleObject.parameters is LoraParameterObject)
+                            {
+                                var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
+                                if (hw_loraParameters.DestinationAddress == destinationAddress && hw_loraParameters.DestinationChannel == destinationChannel)
+                                {
+                                    hw.packetQueueOut.Enqueue(packet);
+                                }
+                            }
+                        }
+                    }
+                }
+            } 
+            else if (moduleObject.type == "zigbee")
+            {
+/*                var zigbeeParameters = (ZigbeeParameterObject)moduleObject.parameters;
+                var destinationAddress = zigbeeParameters.DestinationAddress;
+                var destinationChannel = zigbeeParameters.DestinationChannel;
+                foreach (var hw in Devices)
+                {
+                    if (hw.moduleObject.type == "zigbee")
+                    {
+                        if (zigbeeParameters.FixedMode == "0") // broadcast
+                        {
+                            if (hw.moduleObject.parameters is ZigbeeParameterObject)
+                            {
+                                var hw_zigbeeParameters = (ZigbeeParameterObject)hw.moduleObject.parameters;
+                                if (hw_zigbeeParameters.DestinationChannel == destinationChannel)
+                                {
+                                    hw.packetQueueOut.Enqueue(packet);
+                                }
+                            }
+                        }
+                        else // fixed
+                        {
+                            if (hw.moduleObject.parameters is ZigbeeParameterObject)
+                            {
+                                var hw_zigbeeParameters = (ZigbeeParameterObject)hw.moduleObject.parameters;
+                                if (hw_zigbeeParameters.DestinationAddress == destinationAddress && hw_zigbeeParameters.DestinationChannel == destinationChannel)
+                                {
+                                    hw.packetQueueOut.Enqueue(packet);
+                                }
+                            }
+                        }
+                    }
+                }*/
             }
         }
+
+
     }
 }

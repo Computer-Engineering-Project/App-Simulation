@@ -33,7 +33,7 @@ namespace Simulator1.ViewModel
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
 
-        private List<string> testports = new List<string>() { "COM5", "COM6" };
+        private List<string> testports = new List<string>() {"COM6" };
 
 
         private readonly MainStore mainStore;

@@ -55,7 +55,7 @@ namespace Environment.Service
 
         public void changeModeDevice(string portName, string mode)
         {
-            environment.ChangeMode(portName, mode);
+            //environment.ChangeMode(portName, mode);
         }
     }
 }
