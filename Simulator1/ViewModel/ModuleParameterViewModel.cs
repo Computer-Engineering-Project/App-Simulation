@@ -34,6 +34,10 @@ namespace Simulator1.ViewModel
         private string port;
         public string Port { get => port; set { port = value; OnPropertyChanged(); } }
 
+        private string isUpdate;
+
+        public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); } }
+
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
 
         #endregion
@@ -82,10 +86,11 @@ namespace Simulator1.ViewModel
             //Event delegate
             this.moduleParamViewStore.CurrentModuleViewModelChanged += OnCurrentViewModelChanged;
             this.moduleStateManagement.UpdatePositionAndPort += OnUpdatePositionAndPort;
+            this.moduleStateManagement.IsActionUpdate += OnIsActionUpdate;
         }
         private void GenerateModule()
         {
-            if (!string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
+            if (IsUpdate != "true" && !string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
             {
                 var x = Double.Parse(HorizontalX);
                 var y = Double.Parse(VerticalY);
@@ -98,8 +103,18 @@ namespace Simulator1.ViewModel
                 };
                 moduleStateManagement.createLoraParameter(module);
                 moduleStateManagement.createModuleObject();
+            } else
+            {
+                var x = Double.Parse(HorizontalX);
+                var y = Double.Parse(VerticalY);
+                var module = new ModuleObject()
+                {
+                    port = Port,
+                    x = x,
+                    y = y,
+                };
+                moduleStateManagement.changePositionAndPort(module); 
             }
-
             CloseModule();
         }
 
@@ -136,6 +151,13 @@ namespace Simulator1.ViewModel
             VerticalY = listParams["y"];
             Port = listParams["port"];
         }
+        private void OnIsActionUpdate(object isUpdate)
+        {
+            string json = JsonConvert.SerializeObject(isUpdate);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            IsUpdate = listParams["value"];
+        }
+
         public override void Dispose()
         {
             base.Dispose();
