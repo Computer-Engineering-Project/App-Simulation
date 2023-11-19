@@ -13,8 +13,11 @@ namespace Simulator1.State_Management
         public event Action<ModuleObject> LoraParamsCreated;
         public event Action<LoraParameterObject> UpdateLoraParams;
         public event Action<Dictionary<string, string>> ReadLoraConfigParams;
-        public event Action<Object> UpdatePositionAndPort;
+        public event Action<object> UpdatePositionAndPort;
         public event Action ResetParameterModule;
+
+        public event Action<object> IsActionUpdate;
+        public event Action<object> ChangePositionAndPort;
         public void createModuleObject(string portName)
         {
             ModuleObjectCreated?.Invoke(portName);
@@ -32,7 +35,7 @@ namespace Simulator1.State_Management
             ReadLoraConfigParams?.Invoke(listParams);
         }
 
-        public void updatePositionAndPort(Object moduleParams)
+        public void updatePositionAndPort(object moduleParams)
         {
             UpdatePositionAndPort?.Invoke(moduleParams);
         }
@@ -41,5 +44,15 @@ namespace Simulator1.State_Management
         { 
             ResetParameterModule?.Invoke();
         } 
+
+        public void isActionUpdate(object isUpdated)
+        {
+            IsActionUpdate?.Invoke(isUpdated);
+        }
+
+        public void changePositionAndPort(object moduleParams)
+        {
+            ChangePositionAndPort?.Invoke(moduleParams);
+        }
     }
 }

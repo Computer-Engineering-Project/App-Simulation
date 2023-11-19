@@ -15,7 +15,7 @@ namespace Environment.Base
     {
         public static byte[] CmdActiveHardware()
         {
-            byte module = 0x01;
+            byte module = 0xff;
             byte cmdWord = PacketTransmit.ACTIVE;
             byte[] dataLength = { 0x00, 0x00 };
             byte[] data = { PacketTransmit.ENDBYTE};
@@ -101,6 +101,7 @@ namespace Environment.Base
                 serialPort.Read(temp, 0, 1);
                 if (temp[0] == PacketTransmit.ENDBYTE)
                 {
+                    data[i] = temp[0];
                     break;
                 }
                 data[i] = temp[0];
@@ -139,41 +140,25 @@ namespace Environment.Base
 
             return new string(preambleArray);
         }
-        public static double caculateDelayTime(string airRate, string data)
+        public static PacketTransmit formatDataFollowProtocol(byte protocol, string data)
         {
-            return Double.Parse(airRate) / data.Length;
-        }
-        public static double computeRange(string transmissionPower)
-        {
-            double max_sensitivity = -110.225; // by measuring device in reality
-            // parameters taken from paper "Do LoRa Low-Power Wide-Area Networks Scale?"
-            double d0 = 40; 
-            double PL_d0_db = 127.41;
-            double gamma = 2.08;
-            // Caculate distance
-            double transmissionPower_dbm = Double.Parse(transmissionPower);
-            double rhs = (transmissionPower_dbm - PL_d0_db - max_sensitivity) / (10 * gamma);
-            double distance = d0 * Math.Pow(10, rhs);
-            return distance;
-        }
-        public static double computePathLoss(double src_x, double src_y, double des_x, double des_y)
-        {
-            var distance = Math.Sqrt(Math.Pow(des_x - src_x, 2) + Math.Pow(des_y - src_y, 2));
-            // parameters taken from paper "Do LoRa Low-Power Wide-Area Networks Scale?"
-            double d0 = 40;
-            double PL_d0_db = 127.41;
-            double gamma = 2.08;
-            double sigma = 3.57;
-            double PL_db = PL_d0_db + 10 * gamma * Math.Log10(distance / d0) + Normal(0.0, sigma);
-            return Math.Pow(10, -PL_db / 10);
-        }
-        private static double Normal(double mean, double stdDev)
-        {
-            // Create a normal distribution with mean and standard deviation
-            Normal normalDistribution = new Normal(mean, stdDev);
+            byte module = 0x01;
+            byte cmdWord = protocol;
+            byte[] dataLength = { 0x00, 0x00 };
+            byte[] dataRaw = new byte[data.Length];
+            int dataLengthRaw = data.Length;
+            for (int i = 0; i < dataLengthRaw; i++)
+            {
+                dataRaw[i] = (byte)data[i];
+            }
 
-            // Generate a random sample from the normal distribution
-            return normalDistribution.Sample();
+            dataLength[0] = (byte)(data.Length >> 8);
+            dataLength[1] = (byte)(data.Length & 0xFF);
+            PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, dataRaw);
+            return packetTransmit;
         }
+
+
+        
     }
 }
