@@ -15,15 +15,22 @@ namespace Environment.Base
 {
     public class BaseEnvironment
     {
+        public readonly int IDLE = 0;
+        public readonly int RUN = 1;
+        public readonly int STOP = 2;
+        public int State;
+
         public List<string> Ports = new List<string>();
         public List<SerialPort> SerialPorts = new List<SerialPort>();
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
+        //public Thread Collision { get; set; }
 
         private readonly ICommunication communication;
 
         public BaseEnvironment(ICommunication communication)
         {
+            State = IDLE;
             this.communication = communication;
             SetUp();
         }
@@ -42,6 +49,7 @@ namespace Environment.Base
             }
             SerialPorts.Add(serialPort);
         }
+        // Description: connect hardware
         public void ActiveHardwareDevice(string port)
         {
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
@@ -69,14 +77,11 @@ namespace Environment.Base
 
             return null;
         }
-
-        public bool ExecuteConfigFromHardware(string port)
+        // Description: send config to hardware
+        public bool ExecuteConfigToHardware(string port, byte module, byte[] data)
         {
-            //return id : string + module type: string
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
-            byte module = 0x01;
             // data is id module
-            byte[] data = { 0x00, 0x07 }; // id = 0, baudrate = 0x07
             if (serialport != null)
             {
                 return Helper.SendCmdConfigToHardware(serialport, module, data);
@@ -95,7 +100,8 @@ namespace Environment.Base
                 }
             }
         }
-        private void createSerialPortInitial()
+        // Init serial port and add to list serial port
+        public void createSerialPortInitial()
         {
             foreach (var serialport in SerialPorts)
             {
@@ -122,7 +128,7 @@ namespace Environment.Base
             }
             foreach (var packet in Devices)
             {
-                packet.serialport.DataReceived += new SerialDataReceivedEventHandler(addToQueue);
+                packet.serialport.DataReceived += new SerialDataReceivedEventHandler(addToQueueIn);
             }
         }
         //Function listen from hardware
@@ -137,42 +143,65 @@ namespace Environment.Base
             }
             return "";
         }
-        private void addToQueue(object sender, SerialDataReceivedEventArgs e)
+        //Function add packet from hardware to queue in
+        private void addToQueueIn(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] buffer = Helper.GetDataFromHardware((SerialPort)sender);
-            if (buffer.Length > 0)
+            if(State == RUN)
             {
-                var packet = Helper.HandleMessFromHardware(buffer);
-                if (packet != null)
+                byte[] buffer = Helper.GetDataFromHardware((SerialPort)sender);
+                if (buffer.Length > 0)
                 {
-                    DataProcessed dataProcessed = new DataProcessed(packet.data);
-
-                    foreach (var hardware in Devices)
+                    var packet = Helper.HandleMessFromHardware(buffer);
+                    if (packet != null)
                     {
-                        if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
+                        // check type of packet, if it is data packet, then add to queue in, else if it is change mode packet, then change mode
+
+                        if(packet.cmdWord == PacketTransmit.SENDDATA)
                         {
-                            hardware.packetQueueIn.Enqueue(dataProcessed);
+                            var dataProcessed = new DataProcessed(packet.data);
+                            foreach (var hardware in Devices)
+                            {
+                                if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
+                                {
+                                    hardware.packetQueueIn.Enqueue(dataProcessed);
+                                }
+                            }
                         }
+                        else if (packet.cmdWord == PacketTransmit.CHANGEMODE)
+                        {
+                            foreach (var hardware in Devices)
+                            {
+                                if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
+                                {
+                                    hardware.mode = packet.data[0];
+                                }
+                            }
+                        }
+
+/*                        DataProcessed dataProcessed = new DataProcessed(packet.data);
+
+                        foreach (var hardware in Devices)
+                        {
+                            if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
+                            {
+                                hardware.packetQueueIn.Enqueue(dataProcessed);
+                            }
+                        }*/
                     }
                 }
             }
+
         }
-        //Run program =====
-        public void Run()
+        //Function add packet from queue out to hardware
+        private void addToQueueOut(object sender, SerialDataReceivedEventArgs e)
         {
-            createSerialPortInitial();
-            /*transferDataToView = new Thread(transferInPacketToView);
-            transferDataToView.Start();*/
-            foreach (var hw in Devices)
+            if (State == RUN)
             {
-                var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
-                if (moduleObject != null)
-                {
-                    hw.transferDataIn = new Thread(() => transferDataToAvailableDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
-                    hw.transferDataIn.Start();
-                }
+
             }
+
         }
+
         /*private void transferInPacketToView()
         {
             var listTransferedPacket = new List<PacketTransferToView>();
@@ -191,7 +220,9 @@ namespace Environment.Base
             }
             
         }*/
-        private void transferDataToAvailableDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
+
+        // transfer data from queue in to destination device
+        private void transferDataToDestinationDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
         {
             if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
             {
@@ -202,17 +233,37 @@ namespace Environment.Base
                         portName = serialPort.PortName,
                         packet = packet,
                     });
-                    var inter_packet = ExecuteTransferData(mode, packet, moduleObject);
+                    var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
                     if (inter_packet != null)
                     {
-                        PushPackageIntoAvailableDevice(inter_packet, moduleObject);
+                        PushPackageIntoDestinationDevice(inter_packet, moduleObject);
                     }
                 }
             }
         }
-        private InternalPacket ExecuteTransferData(int mode, DataProcessed packet, ModuleObject moduleObject)
+        // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
+        private void transferDataToHardware(int mode, SerialPort serialPort, ConcurrentQueue<InternalPacket> packetQueue, ModuleObject moduleObject)
         {
-            if (moduleObject.type == "lora")
+            if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
+            {
+                if (packetQueue.TryDequeue(out InternalPacket packet))
+                {
+
+                    /*create task to delay time and after that send packet to hardware
+                     * To do: caculate delay time
+                     */
+
+                    // format packet before send, follow protocol
+                    PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
+                    serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
+
+                }
+            }
+        }
+        // Execute service transfer data from queue in( caculated delay time, preamble code, packet loss, conlision,...) then add to queue out
+        private InternalPacket ExecuteTransferDataToQueueOut(int mode, DataProcessed packet, ModuleObject moduleObject)
+        {
+            if (moduleObject.type == ModuleObject.LORA)
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
                 switch (mode)
@@ -221,13 +272,13 @@ namespace Environment.Base
                         return new InternalPacket()
                         {
                             packet = packet,
-                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.data),
+                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                         };
                     case NodeDevice.MODE_WAKEUP:
                         return new InternalPacket()
                         {
                             packet = packet,
-                            DelayTime = Helper.caculateDelayTime(parameter.AirRate, packet.data),
+                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                             PreambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime))
                         };
                     default:
@@ -239,25 +290,38 @@ namespace Environment.Base
                 return null;
             }
         }
-        private void PushPackageIntoAvailableDevice(InternalPacket packet, ModuleObject moduleObject)
+        // Push package into destination device
+        private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
         {
-            if (moduleObject.type == "lora")
+            if (moduleObject.type == ModuleObject.LORA)
             {
                 var loraParameters = (LoraParameterObject)moduleObject.parameters;
                 var destinationAddress = loraParameters.DestinationAddress;
                 var destinationChannel = loraParameters.DestinationChannel;
                 foreach(var hw in Devices)
                 {
-                    if (hw.moduleObject.type == "lora")
+                    if (hw.moduleObject.type == ModuleObject.LORA)
                     {
-                        if(loraParameters.FixedMode == "0") // broadcast
+                        if(loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
                                 if (hw_loraParameters.DestinationChannel == destinationChannel)
                                 {
-                                    hw.packetQueueOut.Enqueue(packet);
+                                    // check mode of destination device
+                                    if (hw.mode == NodeDevice.MODE_NORMAL)
+                                    {
+                                        hw.packetQueueOut.Enqueue(packet);
+                                    }
+                                    else if (hw.mode == NodeDevice.MODE_WAKEUP)
+                                    {
+                                        // check preamble code
+                                        if (packet.PreambleCode != null)
+                                        {
+                                            hw.packetQueueOut.Enqueue(packet);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -268,7 +332,19 @@ namespace Environment.Base
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
                                 if (hw_loraParameters.DestinationAddress == destinationAddress && hw_loraParameters.DestinationChannel == destinationChannel)
                                 {
-                                    hw.packetQueueOut.Enqueue(packet);
+                                    // check mode of destination device
+                                    if (hw.mode == NodeDevice.MODE_NORMAL)
+                                    {
+                                        hw.packetQueueOut.Enqueue(packet);
+                                    }
+                                    else if (hw.mode == NodeDevice.MODE_WAKEUP)
+                                    {
+                                        // check preamble code
+                                        if (packet.PreambleCode != null)
+                                        {
+                                            hw.packetQueueOut.Enqueue(packet);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -310,6 +386,33 @@ namespace Environment.Base
                 }*/
             }
         }
+        //Run program =====
+        public void Run()
+        {
+            /*transferDataToView = new Thread(transferInPacketToView);
+            transferDataToView.Start();*/
+            foreach (var hw in Devices)
+            {
+                var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
+                if (moduleObject != null)
+                {
+                    hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
+                    hw.transferDataIn.Start();
+                    hw.transferDataOut = new Thread(() => transferDataToHardware(hw.mode, hw.serialport, hw.packetQueueOut, moduleObject));
+                    hw.transferDataOut.Start();
+                }
+            }
+        }
+        // Stop program =====
+/*        public void Stop()
+        {
+            foreach (var hw in Devices)
+            {
+                hw.serialport.Close();
+                hw.transferDataIn.Abort();
+                hw.transferDataOut.Abort();
+            }
+        }*/
 
 
     }

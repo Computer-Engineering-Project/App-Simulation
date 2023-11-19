@@ -28,6 +28,10 @@ namespace Environment.Service
         {
             return environment.ExecuteReadConfigFromHardware(portName);
         }
+        public void configHardware(string portName, byte module, byte[] data)
+        {
+            environment.ExecuteConfigToHardware(portName, module, data);
+        }
 
         public List<string> getPorts()
         {
@@ -50,7 +54,12 @@ namespace Environment.Service
 
         public void Run()
         {
-            environment.Run();
+            environment.State = environment.RUN;
+            environment.createSerialPortInitial();
+            while (environment.State == environment.RUN)
+            {
+                environment.Run();
+            }
         }
 
         public void changeModeDevice(string portName, string mode)
