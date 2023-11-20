@@ -106,6 +106,15 @@ namespace Simulator1.ViewModel
 
         private LoraParameterObject createLoraParamsObject()
         {
+            UartRate = UartRate == null ? "9600" : UartRate;
+            AirRate = AirRate == null ? "2.4" : AirRate;
+            PowerTransmit = PowerTransmit == null? "20" : PowerTransmit;
+            FixedMode = FixedMode == null ? "0" : FixedMode;
+            WORTime = WORTime == null ? "250" : WORTime;
+            Parity = Parity == null ? "8N1" : Parity;
+            IOMode = IOMode == null ? "1" : IOMode;
+            FEC = FEC == null ? "2.4" : FEC;
+
             return new LoraParameterObject()
             {
                 UartRate = UartRate,

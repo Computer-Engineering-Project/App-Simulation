@@ -164,6 +164,7 @@ namespace Environment.Base
                                 if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
                                 {
                                     hardware.packetQueueIn.Enqueue(dataProcessed);
+                                    return;
                                 }
                             }
                         }
@@ -174,6 +175,8 @@ namespace Environment.Base
                                 if (hardware.serialport.PortName == ((SerialPort)sender).PortName)
                                 {
                                     hardware.mode = packet.data[0];
+                                    communication.deviceChangeMode(hardware.mode, hardware.serialport.PortName);
+                                    return;
                                 }
                             }
                         }

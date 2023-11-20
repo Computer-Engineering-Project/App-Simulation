@@ -370,5 +370,10 @@ namespace Simulator1.ViewModel
         {
             throw new NotImplementedException();
         }
+
+        public void deviceChangeMode(int mode, string port)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

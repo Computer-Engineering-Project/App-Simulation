@@ -37,16 +37,28 @@ namespace Simulator1.View
 
 
 
-        /*public int Id
+        public string ModeModule
         {
-            get { return (int)GetValue(IdProperty); }
-            set { SetValue(IdProperty, value); }
+            get { return (string)GetValue(ModeModuleProperty); }
+            set { SetValue(ModeModuleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ModeModule.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ModeModuleProperty =
+            DependencyProperty.Register("ModeModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
+
+
+
+        public string PortModule
+        {
+            get { return (string)GetValue(PortModuleProperty); }
+            set { SetValue(PortModuleProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for Id.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty IdProperty =
-            DependencyProperty.Register("Id", typeof(int), typeof(testModule), new PropertyMetadata(null));
-*/
+        public static readonly DependencyProperty PortModuleProperty =
+            DependencyProperty.Register("PortModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
+
 
         public ICommand DropModuleCommand
         {

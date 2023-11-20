@@ -100,6 +100,7 @@ namespace Simulator1.ViewModel
                     port = Port,
                     x = x,
                     y = y,
+                    mode = "MODE 3"
                 };
                 moduleStateManagement.createLoraParameter(module);
                 moduleStateManagement.createModuleObject(Port);
