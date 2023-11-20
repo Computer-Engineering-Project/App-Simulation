@@ -34,6 +34,13 @@ namespace Simulator1.ViewModel
 
         private HistoryObject selectedItemHistory;
         public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+        //handle get value from object
+        private string sourceHistory;
+        public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
+        private string dataHistory;
+        public string DataHistory { get => dataHistory; set { dataHistory = value; OnPropertyChanged(); } }
+        private string delayTimeHistory;
+        public string DelayTimeHistory { get => delayTimeHistory; set { delayTimeHistory = value; OnPropertyChanged(); } }
 
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
@@ -83,120 +90,23 @@ namespace Simulator1.ViewModel
                 new HistoryObject()
                 {
                     Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
+                    Source = "1234567890",
+                    Data = "0xxxxxxxxxxx",
+                    DelayTime = "0x101010"
                 },
                 new HistoryObject()
                 {
                     Id = 2,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
+                    Source = "0987654321",
+                    Data = "0xxxxxxxxx",
+                    DelayTime = "0x56767"
                 },
                 new HistoryObject()
                 {
                     Id = 3,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
-                },
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "Hoang Dep Traiii",
-                    Data = "0xxxxxxxxxxxxxxxxx",
-                    DelayTime = "0xccccc"
+                    Source = "1232132",
+                    Data = "0xxxxxxx",
+                    DelayTime = "0xbgbgdb"
                 },
             };
             //Event delegate
@@ -349,6 +259,10 @@ namespace Simulator1.ViewModel
         private void DectectActionSelectedColumn()
         {
             //todo
+
+            SourceHistory = SelectedItemHistory.Source;
+            DataHistory = SelectedItemHistory.Data;
+            DelayTimeHistory = SelectedItemHistory.DelayTime;
         }
 
         //Dispose
