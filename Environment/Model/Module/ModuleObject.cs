@@ -12,6 +12,7 @@ namespace Environment.Model.Module
         public const string WIFI = "wifi";
         public string id { get; set; }
         public string port { get; set; }
+        public string mode { get; set; }
         public double  x { get; set; }
         public double y { get; set; }
         public string type { get; set; }
