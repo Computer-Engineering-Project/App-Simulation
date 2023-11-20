@@ -41,8 +41,13 @@
                                     Background="LightGray"
                                     Content="Lora"
                                     FontSize="10"
-                                    Command="{Binding LoraParamCommand}"
                                     Padding="0 0 0 0">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <prism:InvokeCommandAction  Command="{Binding LoraParamCommand}" />
+                                        <prism:InvokeCommandAction  Command="{Binding LoraModuleCommand}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
                             </Button>
                             <Button Margin="15 5 5 0"
                                     Width="100"
@@ -53,6 +58,12 @@
                                     Command="{Binding ZigbeeParamCommand}"
                                     FontSize="10"
                                     Padding="0 0 0 0">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <prism:InvokeCommandAction  Command="{Binding ZigbeeModuleCommand}" />
+                                        <prism:InvokeCommandAction  Command="{Binding ZigbeeParamCommand}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
                             </Button>
                         </StackPanel>
                     </Grid>
@@ -77,7 +88,7 @@
                                         </DataTemplate>
                                     </ContentControl.Resources>
                                 </ContentControl>
-                               
+
                             </Viewbox>
                         </Grid>
                         <Grid Grid.Row="1">
@@ -171,7 +182,7 @@
                                 Background="LightGreen"
                                 Content="Config"
                                 FontSize="10"
-                                Command="{Binding testCommand}"
+                                Command="{Binding ConfigCommand}"
                                 CommandParameter="{Binding ElementName=moduleParam}"
                                 Padding="0 0 0 0">
                         </Button>
@@ -240,12 +251,9 @@
                                 Height="30"
                                 Content="Save"
                                 FontSize="10"
+                                Command="{Binding generateModuleCommand}"
+                                IsEnabled="{Binding IsEnableSave}"
                                 Style="{StaticResource MaterialDesignRaisedDarkButton}">
-                            <i:Interaction.Triggers>
-                                <i:EventTrigger EventName="Click">
-                                    <prism:InvokeCommandAction Command="{Binding generateModuleCommand}" />
-                                </i:EventTrigger>
-                            </i:Interaction.Triggers>
                         </Button>
                     </StackPanel>
                 </Grid>

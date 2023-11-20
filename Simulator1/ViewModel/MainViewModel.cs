@@ -38,7 +38,7 @@ namespace Simulator1.ViewModel
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
 
-        private List<string> testports = new List<string>() {"COM6" };
+        private List<string> testports = new List<string>() { "COM6" };
 
         private ObservableCollection<HistoryObject> historyObjects;
         public ObservableCollection<HistoryObject> HistoryObjects { get => historyObjects; set { historyObjects = value; OnPropertyChanged(); } }
@@ -204,12 +204,13 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
-            UpdateModuleCommand = new ParameterRelayCommand<string>((port) => { return true; }, (port) =>
-            {   
-                moduleStateManagement.isActionUpdate(new { 
+            UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
+            {
+                moduleStateManagement.isActionUpdate(new
+                {
                     value = true
                 });
-                ExecuteUpdateModule(port);
+                ExecuteOpenUpdateModule(module);
             });
             LoadHistoryCommand = new RelayCommand(() => ExecuteLoadHistory());
             autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
@@ -239,7 +240,7 @@ namespace Simulator1.ViewModel
         //Command handler
         private void ExecuteClickPort(string portName)
         {
-            var portObject = Ports.FirstOrDefault(x=>x.portName== portName);
+            var portObject = Ports.FirstOrDefault(x => x.portName == portName);
             if (portObject != null)
             {
                 if (portObject.color == "Wheat")
@@ -265,33 +266,25 @@ namespace Simulator1.ViewModel
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
         }
-        private void ExecuteUpdateModule(string port)
+        private void ExecuteOpenUpdateModule(ModuleObject module)
         {
             /*TestText= port;*/
             IsDialogOpen = true;
-            var modules = moduleStore.ModuleObjects;
-            var matchParams = new LoraParameterObject();
-            var moduleObject = new ModuleObject();
-            foreach (var module in modules)
+            if(module.parameters!= null)
             {
-                if (module.port == port)
+                if (module.type == "lora")
                 {
-                    moduleObject = module;
-                    matchParams = (LoraParameterObject)module.parameters;
-                }
-            }
-            if (matchParams != null)
-            {
-                if (CurrentModuleViewModel is ModuleParameterViewModel)
-                {
-                    moduleStateManagement.updateLoraParameter(matchParams);
-                    moduleStateManagement.updatePositionAndPort(new
+                    if (CurrentModuleViewModel is ModuleParameterViewModel)
                     {
-                        port = port,
-                        x = moduleObject.x,
-                        y = moduleObject.y,
+                        moduleStateManagement.openUpdateLoraParameter((LoraParameterObject)module.parameters);
+                        moduleStateManagement.updatePositionAndPort(new
+                        {
+                            port = module.port,
+                            x = module.x,
+                            y = module.y,
 
-                    });
+                        });
+                    }
                 }
             }
         }
@@ -327,13 +320,13 @@ namespace Simulator1.ViewModel
         private void ExecuteLoadPorts()
         {
             var ports = serviceProvider.GetRequiredService<IEnvironmentService>().loadPorts();
-            var previousPorts = Ports.Select(x=>x.portName).ToList();
+            var previousPorts = Ports.Select(x => x.portName).ToList();
             var tmpPorts = Ports;
             if (ports != null)
             {
                 var addPorts = ports.Except(previousPorts);
                 var removePorts = previousPorts.Except(ports);
-                foreach(var port in addPorts)
+                foreach (var port in addPorts)
                 {
                     tmpPorts.Add(new ButtonPort()
                     {
@@ -341,15 +334,15 @@ namespace Simulator1.ViewModel
                         portName = port
                     });
                 }
-                foreach(var port in removePorts)
+                foreach (var port in removePorts)
                 {
-                    var _object = tmpPorts.Where(x=>x.portName==port).FirstOrDefault();
+                    var _object = tmpPorts.Where(x => x.portName == port).FirstOrDefault();
                     if (_object != null)
                     {
                         tmpPorts.Remove(_object);
                     }
                 }
-                Ports= tmpPorts;
+                Ports = tmpPorts;
             }
         }
 

@@ -206,7 +206,7 @@
                                                 <i:Interaction.Triggers>
                                                     <i:EventTrigger EventName="MouseRightButtonDown">
                                                         <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.UpdateModuleCommand }"
-                                                                                   CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ContentPresenter}, Path=Tag}" />
+                                                                                   CommandParameter="{Binding}" />
                                                     </i:EventTrigger>
                                                 </i:Interaction.Triggers>
                                             </view:testModule>
