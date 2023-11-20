@@ -52,6 +52,7 @@ namespace Environment.Base
         // Description: connect hardware
         public void ActiveHardwareDevice(string port)
         {
+
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
             if (serialport != null)
             {
@@ -84,7 +85,21 @@ namespace Environment.Base
             // data is id module
             if (serialport != null)
             {
-                //return Helper.SendCmdConfigToHardware(serialport, module, data);
+                if(module == ModuleObject.LORA)
+                {
+                    byte moduleType = 0x01;
+                    byte[] data = new byte[3];
+                    data[0] = Convert.ToByte(id);
+                    data[1] = Helper.ConvertSpeedrate(baudrate);
+                    data[2] = PacketTransmit.ENDBYTE;
+
+                    return Helper.SendCmdConfigToHardware(serialport, moduleType, data);
+                }
+                else if(module == ModuleObject.ZIGBEE)
+                {
+/*                    var data = Helper.GenerateDataConfigZigbee(id, baudrate);
+                    return Helper.SendCmdConfigToHardware(serialport, module, data);*/
+                }
             }
             return false;
         }
