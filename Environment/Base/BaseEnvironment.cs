@@ -78,14 +78,13 @@ namespace Environment.Base
             return null;
         }
         // Description: send config to hardware
-        public bool ExecuteConfigToHardware(string port, byte module, byte[] data)
+        public bool ExecuteConfigToHardware(string port, string module, string id, string baudrate)
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
             if (serialport != null)
             {
-                return Helper.SendCmdConfigToHardware(serialport, module, data);
-
+                //return Helper.SendCmdConfigToHardware(serialport, module, data);
             }
             return false;
         }

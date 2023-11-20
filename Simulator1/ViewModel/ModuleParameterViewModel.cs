@@ -35,8 +35,13 @@ namespace Simulator1.ViewModel
         public string Port { get => port; set { port = value; OnPropertyChanged(); } }
 
         private string isUpdate;
-
         public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); } }
+
+        private string moduleType;
+        public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); } }
+
+        private bool isEnableSave;
+        public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
 
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
 
@@ -47,6 +52,8 @@ namespace Simulator1.ViewModel
         public ICommand CloseDialogCommand { get; set; }
         public ICommand LoraParamCommand { get; set; }
         public ICommand ZigbeeParamCommand { get; set; }
+        public ICommand LoraModuleCommand { get; set; }
+        public ICommand ZigbeeModuleCommand { get; set; }
 
         public ICommand ActiveCommand { get; set; }
         public ICommand ReadConfigCommand { get; set; }
@@ -66,6 +73,7 @@ namespace Simulator1.ViewModel
             IServiceProvider serviceProvider,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
+            IsEnableSave = false;
             //DI
             this.moduleParamViewStore = moduleParamViewStore;
             this.moduleStore = moduleStore;
@@ -76,17 +84,25 @@ namespace Simulator1.ViewModel
             //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
+            LoraModuleCommand = new RelayCommand(() => ExecuteChangeModuleType("lora"));
+            ZigbeeModuleCommand = new RelayCommand(() => ExecuteChangeModuleType("zigbee"));
             //UI/UX
             generateModuleCommand = new RelayCommand(() => GenerateModule());
             CloseDialogCommand = new RelayCommand(() => CloseModule());
             //Environment
             ActiveCommand = new RelayCommand(() => ExecuteActiveHardware());
             ReadConfigCommand = new RelayCommand(() => ExecuteReadConfigFromHardware());
+            ConfigCommand = new RelayCommand(() => ExecuteConfigHardware());
 
             //Event delegate
             this.moduleParamViewStore.CurrentModuleViewModelChanged += OnCurrentViewModelChanged;
             this.moduleStateManagement.UpdatePositionAndPort += OnUpdatePositionAndPort;
             this.moduleStateManagement.IsActionUpdate += OnIsActionUpdate;
+            this.moduleStateManagement.ConfigHardwareSuccess += OnConfigHardwareSuccess;
+        }
+        private void ExecuteChangeModuleType(string type)
+        {
+            ModuleType = type;
         }
         private void GenerateModule()
         {
@@ -94,17 +110,17 @@ namespace Simulator1.ViewModel
             {
                 var x = Double.Parse(HorizontalX);
                 var y = Double.Parse(VerticalY);
-                var numOfModule = moduleStore.ModuleObjects.Count;
-                var module = new ModuleObject()
+                foreach (var module in moduleStore.ModuleObjects)
                 {
-                    port = Port,
-                    x = x,
-                    y = y,
-                    mode = "MODE 3"
-                };
-                moduleStateManagement.createLoraParameter(module);
+                    if (module.port == Port)
+                    {
+                        module.x = x;
+                        module.y = y;
+                    }
+                }
                 moduleStateManagement.createModuleObject(Port);
-            } else
+            }
+            else
             {
                 var x = Double.Parse(HorizontalX);
                 var y = Double.Parse(VerticalY);
@@ -114,7 +130,7 @@ namespace Simulator1.ViewModel
                     x = x,
                     y = y,
                 };
-                moduleStateManagement.changePositionAndPort(module); 
+                moduleStateManagement.changePositionAndPort(module);
             }
             CloseModule();
         }
@@ -126,7 +142,6 @@ namespace Simulator1.ViewModel
             this.VerticalY = null;
             this.moduleStateManagement.resetParameterModule();
         }
-
         private void ExecuteActiveHardware()
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().ActiveHardware(Port);
@@ -138,7 +153,31 @@ namespace Simulator1.ViewModel
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             moduleStateManagement.readLoraConfigParameter(listParams);
         }
-
+        private void ExecuteConfigHardware()
+        {
+            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.port == Port);
+            if (moduleObject != null)
+            {
+                moduleStateManagement.updateParamsOfModule(moduleObject);
+            }
+            else
+            {
+                var id = moduleStore.ModuleObjects.Count + 1;
+                var module = new ModuleObject()
+                {
+                    port = Port,
+                    id = id.ToString(),
+                    mode = "MODE 3"
+                };
+                moduleStateManagement.createLoraParameter(module);
+                /*                moduleStateManagement.configParameter(ModuleType);
+                */
+            }
+        }
+        private void OnConfigHardwareSuccess()
+        {
+            IsEnableSave = true;
+        }
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentModuleViewModel));
@@ -163,6 +202,6 @@ namespace Simulator1.ViewModel
         {
             base.Dispose();
         }
-        
+
     }
 }

@@ -13,6 +13,7 @@ namespace Environment.Service.Interface
         public void startPort(string portName);
         public void ActiveHardware(string portName);
         public PacketTransmit getIdTypeFromHardware(string portName);
+        public bool configHardware(string portName, object parameters);
         public void closePort(string portName);
         public void passModuleObjects(List<ModuleObject> moduleObjects);
         public List<string> loadPorts();

@@ -11,13 +11,16 @@ namespace Simulator1.State_Management
     {
         public event Action<string> ModuleObjectCreated;
         public event Action<ModuleObject> LoraParamsCreated;
-        public event Action<LoraParameterObject> UpdateLoraParams;
+        public event Action<ModuleObject> UpdateParamsOfModule;
+        public event Action<LoraParameterObject> OpenUpdateLoraParams;
         public event Action<Dictionary<string, string>> ReadLoraConfigParams;
+        public event Action<string> ConfigParams;
         public event Action<object> UpdatePositionAndPort;
         public event Action ResetParameterModule;
 
         public event Action<object> IsActionUpdate;
         public event Action<object> ChangePositionAndPort;
+        public event Action ConfigHardwareSuccess;
         public void createModuleObject(string portName)
         {
             ModuleObjectCreated?.Invoke(portName);
@@ -26,15 +29,23 @@ namespace Simulator1.State_Management
         {
             LoraParamsCreated?.Invoke(module);
         }
-        public void updateLoraParameter(LoraParameterObject loraParameter)
+        public void openUpdateLoraParameter(LoraParameterObject loraParameter)
         {
-            UpdateLoraParams?.Invoke(loraParameter);
+            OpenUpdateLoraParams?.Invoke(loraParameter);
         }
+        public void updateParamsOfModule(ModuleObject module)
+        {
+            UpdateParamsOfModule?.Invoke(module);
+        }
+
         public void readLoraConfigParameter(Dictionary<string, string> listParams)
         {
             ReadLoraConfigParams?.Invoke(listParams);
         }
-
+        public void configParameter(string moduleType)
+        {
+            ConfigParams?.Invoke(moduleType);
+        }
         public void updatePositionAndPort(object moduleParams)
         {
             UpdatePositionAndPort?.Invoke(moduleParams);
@@ -53,6 +64,10 @@ namespace Simulator1.State_Management
         public void changePositionAndPort(object moduleParams)
         {
             ChangePositionAndPort?.Invoke(moduleParams);
+        }
+        public void configHardwareSuccess()
+        {
+            ConfigHardwareSuccess?.Invoke();
         }
     }
 }
