@@ -114,7 +114,7 @@ namespace Environment.Base
             byte[] data = new byte[1024];
             // read data from hardware until end byte
             int i = 0;
-            while (true)
+            /*while (true)
             {
                 byte[] temp = new byte[1];
                 serialPort.Read(temp, 0, 1);
@@ -125,7 +125,7 @@ namespace Environment.Base
                 }
                 data[i] = temp[0];
                 i++;
-            }
+            }*/
             return data;
         }
 

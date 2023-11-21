@@ -21,6 +21,7 @@ namespace Environment.Model
         public SerialPort serialport { get; set; }
         public object lockObject { get; set; }
         public int mode { get; set; }
+        public Thread readDataFromHardware { get; set; }
         public Thread transferDataIn { get; set; }
         public Thread transferDataOut { get; set; }
         public ModuleObject moduleObject { get; set; }

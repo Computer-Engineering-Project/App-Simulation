@@ -32,8 +32,8 @@ namespace Simulator1.ViewModel
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
 
-        private HistoryObject selectedItemHistory;
-        public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+        private HistoryObjectIn selectedItemHistory;
+        public HistoryObjectIn SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
         //handle get value from object
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
@@ -47,15 +47,19 @@ namespace Simulator1.ViewModel
 
         private List<string> testports = new List<string>() { "COM6" };
 
-        private ObservableCollection<HistoryObject> historyObjects;
-        public ObservableCollection<HistoryObject> HistoryObjects { get => historyObjects; set { historyObjects = value; OnPropertyChanged(); } }
+        private ObservableCollection<HistoryObjectIn> historyObjectIns;
+        public ObservableCollection<HistoryObjectIn> HistoryObjectIns { get => historyObjectIns; set { historyObjectIns = value; OnPropertyChanged(); } }
 
-        private readonly MainStore mainStore;
+        private ObservableCollection<HistoryObjectOut> historyObjectOuts;
+        public ObservableCollection<HistoryObjectOut> HistoryObjectOuts { get => historyObjectOuts; set { historyObjectOuts = value; OnPropertyChanged(); } }
+
+        private readonly MainViewStore mainStore;
         private readonly ModuleStore moduleStore;
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly IServiceProvider serviceProvider;
         private readonly MainStateManagement mainStateManagement;
         private readonly testModuleViewModel testModuleVM;
+        private readonly HistoryDataStore historyDataStore;
 
         public BaseViewModel CurrentModuleViewModel => mainStore.CurrentViewModel;
         /*public ModuleParameterViewModel ModuleParameterViewModel { get => moduleParameterViewModel; set { moduleParameterViewModel = value; OnPropertyChanged(); } }*/
@@ -65,6 +69,7 @@ namespace Simulator1.ViewModel
         public ICommand UpdateModuleCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
+        public ICommand StopEnvironmentCommand { get; set; }
         public ICommand LoadPorts { get; set; }
 
         public ICommand testCommand { get; set; }
@@ -73,7 +78,8 @@ namespace Simulator1.ViewModel
 
 
         ~MainViewModel() { }
-        public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM)
+        public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
+            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore)
         {
 
             //DI
@@ -83,33 +89,12 @@ namespace Simulator1.ViewModel
             this.serviceProvider = serviceProvider;
             this.mainStateManagement = mainStateManagement;
             this.testModuleVM = testModuleVM;
+            this.historyDataStore = historyDataStore;
             //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
             Ports = new ObservableCollection<ButtonPort>();
-            HistoryObjects = new ObservableCollection<HistoryObject>()
-            /*{
-                new HistoryObject()
-                {
-                    Id = 1,
-                    Source = "1234567890",
-                    Data = "0xxxxxxxxxxx",
-                    DelayTime = "0x101010"
-                },
-                new HistoryObject()
-                {
-                    Id = 2,
-                    Source = "0987654321",
-                    Data = "0xxxxxxxxx",
-                    DelayTime = "0x56767"
-                },
-                new HistoryObject()
-                {
-                    Id = 3,
-                    Source = "1232132",
-                    Data = "0xxxxxxx",
-                    DelayTime = "0xbgbgdb"
-                },
-            }*/;
+            HistoryObjectIns = new ObservableCollection<HistoryObjectIn>();
+            HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>();
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
@@ -133,6 +118,7 @@ namespace Simulator1.ViewModel
             SelectionChangedCommand = new RelayCommand(() => DectectActionSelectedColumn());
 
             RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
+            StopEnvironmentCommand = new RelayCommand(() => ExecuteStopEnvironment());
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
         }
         //Delegate handler
@@ -207,7 +193,11 @@ namespace Simulator1.ViewModel
                 else
                 {
                     //Binding history data to history table
-                    
+                    var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.portName == portName);
+                    if (moduleHistory != null)
+                    {
+                       /* HistoryObjectIns = moduleHistory.historyObjectIns;*/
+                    }
                 }
             }
         }
@@ -227,7 +217,7 @@ namespace Simulator1.ViewModel
             }
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                //serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
+                serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
@@ -253,7 +243,7 @@ namespace Simulator1.ViewModel
                 ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = true;
                 if (module.port != null)
                 {
-                    //serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
+                    serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
                     ((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
                     ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
                 }
@@ -293,7 +283,7 @@ namespace Simulator1.ViewModel
         {
             IsDialogOpen = false;
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
-            if(port!= null)
+            if (port != null)
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().closePort(port);
             }
@@ -333,7 +323,6 @@ namespace Simulator1.ViewModel
         private void DectectActionSelectedColumn()
         {
             //todo
-
             SourceHistory = SelectedItemHistory.Source;
             DataHistory = SelectedItemHistory.Data;
             DelayTimeHistory = SelectedItemHistory.DelayTime;
@@ -345,15 +334,20 @@ namespace Simulator1.ViewModel
             moduleStateManagement.ModuleObjectCreated -= OnModuleObjectCreated;
             base.Dispose();
         }
+        //Invoke to Environment
         private void ExecuteRunEnvironment()
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().passModuleObjects(new List<ModuleObject>(ModuleObjects));
             serviceProvider.GetRequiredService<IEnvironmentService>().Run();
         }
+        private void ExecuteStopEnvironment()
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().Stop();
+        }
         //Received Data from Environment
         public void showQueueReceivedFromHardware(PacketTransferToView listTransferedPacket)
         {
-            throw new NotImplementedException();
+            MessageBox.Show(listTransferedPacket.packet.data);
         }
 
         public void deviceChangeMode(int mode, string port)
