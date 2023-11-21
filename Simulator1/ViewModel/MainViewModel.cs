@@ -180,7 +180,7 @@ namespace Simulator1.ViewModel
             }
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                /*serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);*/
+                serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;

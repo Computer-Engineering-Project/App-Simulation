@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using MathNet.Numerics.Distributions;
 using Newtonsoft.Json;
 using Environment.Model.Packet;
+using MathNet.Numerics.LinearAlgebra.Factorization;
+using System.Diagnostics.Metrics;
+using System.Diagnostics;
 
 namespace Environment.Base
 {
@@ -34,60 +37,76 @@ namespace Environment.Base
             PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, data);
             // send cmd to hardware
             int count = 0;
-            while (true)
+            /*read data from hardware until end byte, timeout 1s, if after 5s no response, send again. if send again 3 times, return false*/
+            while (count < 2)
             {
-                count++;
                 serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
-                // read data from hardware until end byte, if after 1s no response, send again
-                byte[] dataFromHardware = GetDataFromHardware(serialPort);
-                if (dataFromHardware.Length > 0)
-                {
-                    packetTransmit = HandleMessFromHardware(dataFromHardware);
-                    return packetTransmit;
-                }
+                byte[] bytes = new byte[7];
 
-                if (count == 10000)
+                bool check = ExecuteWithTimeout(() =>
                 {
-                    break;
+                    bytes = GetDataFromHardware(serialPort);
+                }, TimeSpan.FromSeconds(1));
+
+                if (check)
+                {
+                    if (bytes.Length > 0)
+                    {
+                        PacketTransmit packetTransmit1 = HandleMessFromHardware(bytes);
+                        if (packetTransmit1.cmdWord == PacketTransmit.READCONFIG)
+                        {
+                            return packetTransmit1;
+                        }
+                    }
                 }
+                count++;
+
             }
 
-            return packetTransmit;
+            return null;
 
         }
         public static bool SendCmdConfigToHardware(SerialPort serialPort, byte module, byte[] data)
         {
+            bool success = false;
             byte cmdWord = PacketTransmit.CONFIG;
             byte[] dataLength = { 0x00, 0x00 };
-            dataLength[0] = (byte)(data.Length >> 8);
-            dataLength[1] = (byte)(data.Length & 0xFF);
+            int dataLengthRaw = data.Length -1;
+            dataLength[0] = (byte)(dataLengthRaw >> 8);
+            dataLength[1] = (byte)(dataLengthRaw & 0xFF);
 
             PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, data);
 
-            // send cmd to hardware and read data from hardware until end byte, if after 1s no response, send again
-
             int count = 0;
-            while (true)
-            {
-                count++;
-                serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
-                byte[] dataFromHardware = GetDataFromHardware(serialPort);
-                if (dataFromHardware.Length > 0)
-                {
-                    packetTransmit = HandleMessFromHardware(dataFromHardware);
-                    if (packetTransmit.cmdWord == PacketTransmit.CONFIG)
-                    {
-                        return true;
-                    }
-                }
+            /*read data from hardware until end byte, timeout 1s, if after 5s no response, send again. if send again 3 times, return false*/
 
-                if (count == 10000)
+            while(count < 2)
+            { 
+                serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
+                byte[] bytes = new byte[7];
+
+                bool check = ExecuteWithTimeout(() =>
                 {
-                    break;
-                }
+                    bytes = GetDataFromHardware(serialPort);
+                }, TimeSpan.FromSeconds(1));
+
+                if (check)
+                {
+                    if (bytes.Length > 0)
+                    {
+                        PacketTransmit packetTransmit1 = HandleMessFromHardware(bytes);
+                        if (packetTransmit1.cmdWord == PacketTransmit.CONFIG)
+                        {
+                            return true;
+                        }
+                    }
+                }   
+                count++;
+
             }
 
-            return false;
+            return success;
+
         }
 
         public static byte[] GetDataFromHardware(SerialPort serialPort)
@@ -114,7 +133,7 @@ namespace Environment.Base
         {
             byte module = data[0];
             byte cmdWord = data[1];
-            byte[] dataLength = { data[2], data[3] };
+            byte[] dataLength = { data[3], data[2] };
             byte[] dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
             for (int i = 0; i < dataRaw.Length; i++)
             {
@@ -158,7 +177,59 @@ namespace Environment.Base
             return packetTransmit;
         }
 
+        public static byte ConvertSpeedrate(string baudrate)
+        {
+              switch (baudrate)
+            {
+                case "300":
+                    return 0x00;
+                case "1200":
+                    return 0x01;
+                case "2400":
+                    return 0x02;
+                case "4800":
+                    return 0x03;
+                case "9600":
+                    return 0x04;
+                case "19200":
+                    return 0x05;
+                case "38400":
+                    return 0x06;
+                case "57600":
+                    return 0x07;
+                case "115200":
+                    return 0x08;
+                default:
+                    return 0x00;
+            }
+        }
 
-        
+        static bool ExecuteWithTimeout(Action action, TimeSpan timeout)
+        {
+            var task = Task.Run(() =>
+            {
+                // Sử dụng ManualResetEventSlim để đồng bộ hóa giữa luồng chính và luồng thực thi hàm B
+                var completedEvent = new ManualResetEventSlim();
+
+                // Thực thi hàm B trong một luồng mới
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    try
+                    {
+                        action.Invoke();
+                    }
+                    finally
+                    {
+                        completedEvent.Set();
+                    }
+                });
+
+                // Chờ đến khi hàm B hoàn thành hoặc đã quá thời gian chờ
+                return completedEvent.Wait(timeout);
+            });
+
+            return task.Result;
+        }
+
     }
 }
