@@ -176,6 +176,7 @@ namespace Environment.Base
                 {
                     addToQueueIn(buffer, sender);
                 }
+                
             }
         }
         private void addToQueueIn(byte[] buffer, SerialPort sender)
@@ -187,13 +188,18 @@ namespace Environment.Base
 
                 if (packet.cmdWord == PacketTransmit.SENDDATA)
                 {
-                    var data = new DataProcessed(packet.data);
+                    
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            hardware.packetQueueIn.Enqueue(data);
-                            return;
+                            if(hardware.moduleObject.type == ModuleObject.LORA)
+                            {
+                                var loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
+                                DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
+                                hardware.packetQueueIn.Enqueue(data);
+                            }
+
                         }
                     }
                 }
@@ -416,7 +422,6 @@ namespace Environment.Base
                         // format packet before send, follow protocol
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
                         serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
-
                     }
                 }
             }
