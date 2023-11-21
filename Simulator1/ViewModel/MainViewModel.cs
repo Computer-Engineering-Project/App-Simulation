@@ -203,7 +203,7 @@ namespace Simulator1.ViewModel
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
                 if (module.port != null)
                 {
-                    serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);
+                    serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
                     ((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
                     ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
                 }
@@ -272,6 +272,7 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteRunEnvironment()
         {
+            serviceProvider.GetRequiredService<IEnvironmentService>().passModuleObjects(new List<ModuleObject>(ModuleObjects));
             serviceProvider.GetRequiredService<IEnvironmentService>().Run();
         }
         private void ExecuteLoadPorts()
