@@ -203,7 +203,7 @@ namespace Simulator1.ViewModel
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
                 if (module.port != null)
                 {
-                    /*serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);*/
+                    serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);
                     ((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
                     ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
                 }
