@@ -16,6 +16,7 @@ namespace Simulator1.Store
         private readonly MainStateManagement mainStateManagement;
 
         public List<ModuleObject> ModuleObjects { get; set; }
+        public List<ModuleObject> ModuleObjectDBs { get; set; }
         public List<string> Ports { get; set; }
         public ModuleStore(IServiceProvider serviceProvider, LoadParameter loadParameter, MainStateManagement mainStateManagement)
         {
@@ -26,6 +27,8 @@ namespace Simulator1.Store
             this.mainStateManagement.LoadHistory += OnLoadHistory;
 
             ModuleObjects = new List<ModuleObject>();
+            ModuleObjectDBs= new List<ModuleObject>(loadParameter.listInModules);
+            Ports= new List<string>();
             /*var enviromentService = serviceProvider.GetRequiredService<IEnvironmentService>();
             Ports = new List<string>(enviromentService.getPorts());*/
         }
@@ -34,9 +37,15 @@ namespace Simulator1.Store
             PacketTransmit packet = serviceProvider.GetRequiredService<IEnvironmentService>().getIdTypeFromHardware(portName);
             var id = packet.data[0].ToString();
             var type = packet.module.ToString();
-
-            var listParams = loadParameter.listInModules;
-            foreach ( var module in listParams )
+            /*foreach (var module in ModuleObjects)
+            {
+                if (module.port == portName)
+                {
+                    module.id = id;
+                    module.type = type;
+                }
+            }*/
+            foreach (var module in ModuleObjectDBs)
             {
                 if (module.id == id && module.type == type)
                 {
@@ -47,7 +56,7 @@ namespace Simulator1.Store
         }
         private void OnLoadHistory()
         {
-            ModuleObjects = loadParameter.listInModules;
+            ModuleObjects = ModuleObjectDBs;
         }
     }
 }

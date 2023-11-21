@@ -190,8 +190,7 @@
                                 <RowDefinition Height="150"></RowDefinition>
                             </Grid.RowDefinitions>
                             <Grid Grid.Row="0">
-                                <ItemsControl ItemsSource="{Binding ModuleObjects}"
-                                              Margin="10,0,-10,0">
+                                <ItemsControl ItemsSource="{Binding ModuleObjects}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <Canvas AllowDrop="True"
@@ -202,6 +201,7 @@
                                         <DataTemplate>
                                             <view:testModule PortModule="{Binding port}"
                                                              ModeModule="{Binding mode}"
+                                                             Id="{Binding id}"
                                                              DropModuleCommand="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.autoSaveCommand}">
                                                 <i:Interaction.Triggers>
                                                     <i:EventTrigger EventName="MouseRightButtonDown">

@@ -25,7 +25,7 @@ namespace Simulator1.View
     /// </summary>
     public partial class testModule : UserControl
     {
-        public testModuleViewModel test { get; set; }
+/*        public testModuleViewModel test { get; set; }*/
         protected bool isDragging;
         private FrameworkElement dragElement;
         private Point clickPosition;
@@ -34,6 +34,18 @@ namespace Simulator1.View
         private Point currentPosition;
         private Double prevX, prevY;
 
+
+
+
+        public string Id
+        {
+            get { return (string)GetValue(IdProperty); }
+            set { SetValue(IdProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Id.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IdProperty =
+            DependencyProperty.Register("Id", typeof(string), typeof(testModule), new PropertyMetadata(null));
 
 
 
@@ -46,8 +58,6 @@ namespace Simulator1.View
         // Using a DependencyProperty as the backing store for ModeModule.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ModeModuleProperty =
             DependencyProperty.Register("ModeModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
-
-
 
         public string PortModule
         {
@@ -104,12 +114,12 @@ namespace Simulator1.View
             draggable.ReleaseMouseCapture();
             baseX = currentPosition.X - intialElementOffset.X;
             baseY = currentPosition.Y - intialElementOffset.Y;
-            var port = ((ContentPresenter)draggable.TemplatedParent).Tag;
+            var id = ((testModule)draggable).Id;
             DropModuleCommand?.Execute(new
             {
                 x = baseX,
                 y = baseY,
-                port = port,
+                id = id,
             });
         }
         private void Control_MouseMove(object sender, MouseEventArgs e)

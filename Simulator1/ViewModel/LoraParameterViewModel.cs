@@ -156,7 +156,7 @@ namespace Simulator1.ViewModel
             });
             if (result)
             {
-                moduleStateManagement.configHardwareSuccess();
+                moduleStateManagement.configHardwareSuccess(module.port);
                 MessageBox.Show("config object success!");
             }
             
@@ -169,7 +169,7 @@ namespace Simulator1.ViewModel
                 moduleObject.parameters = loraParams;
                 foreach (var module in moduleStore.ModuleObjects)
                 {
-                    if (module.port == moduleObject.port)
+                    if (module.id == moduleObject.id)
                     {
                         module.parameters = moduleObject.parameters;
                     }
@@ -182,7 +182,8 @@ namespace Simulator1.ViewModel
                 });
                 if (result)
                 {
-                    moduleStateManagement.configHardwareSuccess();
+                    moduleStateManagement.configHardwareSuccess(moduleObject.port);
+                    MessageBox.Show("config object success!");
                 }
             }
         }
