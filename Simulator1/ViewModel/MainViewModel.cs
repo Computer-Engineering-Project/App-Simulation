@@ -75,6 +75,7 @@ namespace Simulator1.ViewModel
         ~MainViewModel() { }
         public MainViewModel(MainStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM)
         {
+
             //DI
             this.mainStore = mainStore;
             this.moduleStore = moduleStore;
@@ -169,10 +170,19 @@ namespace Simulator1.ViewModel
             /*ModuleParameterViewModel = new ModuleParameterViewModel(moduleParamStore, moduleStateManagement, moduleStorePosition);
             ModuleParameterViewModel.Port = port;
             ModuleParameterViewModel.Save += CloseDialog;*/
+            var tmp_Ports = Ports.Select(x => x.portName).ToList();
+            foreach (var port in Ports)
+            {
+                if (port.color == "LightGreen")
+                {
+                    tmp_Ports.Remove(port.portName);
+                }
+            }
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
+                ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
         }
@@ -180,16 +190,41 @@ namespace Simulator1.ViewModel
         {
             /*TestText= port;*/
             IsDialogOpen = true;
-            if(module.parameters!= null)
+            var tmp_Ports = Ports.Select(x => x.portName).ToList();
+            foreach (var port in Ports)
             {
+                if (port.color == "LightGreen")
+                {
+                    tmp_Ports.Remove(port.portName);
+                }
+            }
+            if (CurrentModuleViewModel is ModuleParameterViewModel)
+            {
+                ((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
+                if (module.port != null)
+                {
+                    /*serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);*/
+                    ((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
+                    ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
+                }
+                else
+                {
+                    ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = true;
+                }
+                ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
+                ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
+            }
+            if (module.parameters != null)
+            {
+                string jsonParameters = JsonConvert.SerializeObject(module.parameters);
                 if (module.type == "lora")
                 {
+                    var loraParameters = JsonConvert.DeserializeObject<LoraParameterObject>(jsonParameters);
                     if (CurrentModuleViewModel is ModuleParameterViewModel)
                     {
-                        moduleStateManagement.openUpdateLoraParameter((LoraParameterObject)module.parameters);
-                        moduleStateManagement.updatePositionAndPort(new
+                        moduleStateManagement.openUpdateLoraParameter(loraParameters);
+                        moduleStateManagement.updatePosition(new
                         {
-                            port = module.port,
                             x = module.x,
                             y = module.y,
 
@@ -209,11 +244,23 @@ namespace Simulator1.ViewModel
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             foreach (var module in moduleStore.ModuleObjects)
             {
-                if (module.port == listParams["port"])
+                if (listParams["id"] != null)
                 {
-                    module.x = Double.Parse(listParams["x"]);
-                    module.y = Double.Parse(listParams["y"]);
+                    if (module.id == listParams["id"])
+                    {
+                        module.x = Double.Parse(listParams["x"]);
+                        module.y = Double.Parse(listParams["y"]);
+                    }
                 }
+                else
+                {
+                    if (module.port == listParams["port"])
+                    {
+                        module.x = Double.Parse(listParams["x"]);
+                        module.y = Double.Parse(listParams["y"]);
+                    }
+                }
+
             }
 
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
@@ -243,6 +290,7 @@ namespace Simulator1.ViewModel
                         color = "Wheat",
                         portName = port
                     });
+                    moduleStore.Ports.Add(port);
                 }
                 foreach (var port in removePorts)
                 {
@@ -250,9 +298,11 @@ namespace Simulator1.ViewModel
                     if (_object != null)
                     {
                         tmpPorts.Remove(_object);
+                        moduleStore.Ports.Remove(port);
                     }
                 }
                 Ports = tmpPorts;
+
             }
         }
 

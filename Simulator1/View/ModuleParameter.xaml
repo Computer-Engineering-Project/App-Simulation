@@ -121,14 +121,14 @@
                                       Width="150">
                                     <TextBlock FontSize="12"
                                                Margin="15,0,50,0"><Run Text="Port" /></TextBlock>
-                                    <TextBox Padding="5 5 5 5"
-                                             AcceptsReturn="True"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                             TextWrapping="Wrap"
-                                             Margin="12,20,0,10"
-                                             Text="{Binding Port}"
-                                             HorizontalAlignment="Left"
-                                             Width="138" />
+                                    <ComboBox Height="30"
+                                              Padding="5 5 5 5"
+                                              Margin="12,20,0,0"
+                                              IsEnabled="{Binding IsEnablePortSelect}"
+                                              ItemsSource="{Binding ListPort}"
+                                              SelectedValue="{Binding Port, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                              VerticalAlignment="Top" />
                                 </Grid>
                             </StackPanel>
                         </Grid>

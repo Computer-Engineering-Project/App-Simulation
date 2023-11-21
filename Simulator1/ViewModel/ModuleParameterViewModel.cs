@@ -31,8 +31,14 @@ namespace Simulator1.ViewModel
         private string vertical_y;
         public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); } }
 
+        private ObservableCollection<string> listPort;
+        public ObservableCollection<string> ListPort { get => listPort; set { listPort = value; OnPropertyChanged(); } }
+
         private string port;
         public string Port { get => port; set { port = value; OnPropertyChanged(); } }
+
+        private string id;
+        public string Id { get => id; set { id = value; OnPropertyChanged(); } }
 
         private string isUpdate;
         public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); } }
@@ -42,6 +48,8 @@ namespace Simulator1.ViewModel
 
         private bool isEnableSave;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
+        private bool isEnablePortSelect;
+        public bool IsEnablePortSelect { get => isEnablePortSelect; set { isEnablePortSelect = value; OnPropertyChanged(); } }
 
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
 
@@ -73,7 +81,9 @@ namespace Simulator1.ViewModel
             IServiceProvider serviceProvider,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
+            //Variable
             IsEnableSave = false;
+
             //DI
             this.moduleParamViewStore = moduleParamViewStore;
             this.moduleStore = moduleStore;
@@ -96,7 +106,7 @@ namespace Simulator1.ViewModel
 
             //Event delegate
             this.moduleParamViewStore.CurrentModuleViewModelChanged += OnCurrentViewModelChanged;
-            this.moduleStateManagement.UpdatePositionAndPort += OnUpdatePositionAndPort;
+            this.moduleStateManagement.UpdatePosition += OnUpdatePosition;
             this.moduleStateManagement.IsActionUpdate += OnIsActionUpdate;
             this.moduleStateManagement.ConfigHardwareSuccess += OnConfigHardwareSuccess;
         }
@@ -131,6 +141,7 @@ namespace Simulator1.ViewModel
                     y = y,
                 };
                 moduleStateManagement.changePositionAndPort(module);
+                moduleStateManagement.createModuleObject(Port);
             }
             CloseModule();
         }
@@ -140,6 +151,7 @@ namespace Simulator1.ViewModel
             Save?.Invoke(Port);
             this.HorizontalX = null;
             this.VerticalY = null;
+            Id = null;
             this.moduleStateManagement.resetParameterModule();
         }
         private void ExecuteActiveHardware()
@@ -155,9 +167,11 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteConfigHardware()
         {
-            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.port == Port);
+            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
             if (moduleObject != null)
             {
+                moduleObject.mode = "MODE 3";
+                moduleObject.port = Port;
                 moduleStateManagement.updateParamsOfModule(moduleObject);
             }
             else
@@ -174,28 +188,31 @@ namespace Simulator1.ViewModel
                 */
             }
         }
-        private void OnConfigHardwareSuccess()
+        private void OnConfigHardwareSuccess(string portName)
         {
             IsEnableSave = true;
+           /* var tmp_listPort = ListPort;
+            tmp_listPort.Remove(portName);
+            ListPort= tmp_listPort;*/
         }
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentModuleViewModel));
         }
 
-        private void OnUpdatePositionAndPort(object moduleObject)
+        private void OnUpdatePosition(object moduleObject)
         {
             string json = JsonConvert.SerializeObject(moduleObject);
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             HorizontalX = listParams["x"];
             VerticalY = listParams["y"];
-            Port = listParams["port"];
         }
         private void OnIsActionUpdate(object isUpdate)
         {
             string json = JsonConvert.SerializeObject(isUpdate);
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             IsUpdate = listParams["value"];
+            IsEnableSave = false;
         }
 
         public override void Dispose()
