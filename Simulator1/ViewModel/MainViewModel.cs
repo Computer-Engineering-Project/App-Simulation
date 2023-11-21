@@ -196,7 +196,8 @@ namespace Simulator1.ViewModel
                     var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.portName == portName);
                     if (moduleHistory != null)
                     {
-                       /* HistoryObjectIns = moduleHistory.historyObjectIns;*/
+                        HistoryObjectIns = new ObservableCollection<HistoryObjectIn>(moduleHistory.historyObjectIns);
+                        HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>(moduleHistory.historyObjectOuts);
                     }
                 }
             }
@@ -345,9 +346,22 @@ namespace Simulator1.ViewModel
             serviceProvider.GetRequiredService<IEnvironmentService>().Stop();
         }
         //Received Data from Environment
-        public void showQueueReceivedFromHardware(PacketTransferToView listTransferedPacket)
+        public void showQueueReceivedFromHardware(PacketTransferToView transferedPacket)
         {
-            MessageBox.Show(listTransferedPacket.packet.data);
+            var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.portName == transferedPacket.portName);
+            if (moduleHistory != null)
+            {
+                if (transferedPacket.type == "out")
+                {
+                    var length = moduleHistory.historyObjectOuts.Count;
+                    moduleHistory.historyObjectOuts.Enqueue(new HistoryObjectOut()
+                    {
+                        Id = length + 1,
+                        Data = transferedPacket.packet.data
+                    });
+                }
+                HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>(moduleHistory.historyObjectOuts);
+            }
         }
 
         public void deviceChangeMode(int mode, string port)

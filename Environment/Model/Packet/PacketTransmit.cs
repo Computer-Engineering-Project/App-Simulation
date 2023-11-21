@@ -67,6 +67,7 @@ namespace Environment.Model.Packet
     }
     public class PacketTransferToView
     {
+        public string type { get; set; }
         public string portName { get; set; }
         public DataProcessed packet { get; set; }
     }

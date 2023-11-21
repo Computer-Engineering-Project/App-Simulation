@@ -160,6 +160,12 @@ namespace Environment.Base
                     Devices.Add(device);
                 }
             }
+            foreach (var hw in Devices)
+            {
+                hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
+                hw.readDataFromHardware.Name = "readData";
+                hw.readDataFromHardware.Start();
+            }
         }
         private void readData(SerialPort sender)
         {
@@ -233,11 +239,11 @@ namespace Environment.Base
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
-                    hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
-                    hw.readDataFromHardware.Start();
                     hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
+                    hw.transferDataIn.Name = "datain";
                     hw.transferDataIn.Start();
                     hw.transferDataOut = new Thread(() => transferDataToHardware(hw.mode, hw.serialport, hw.packetQueueOut, moduleObject));
+                    hw.transferDataOut.Name = "dataout";
                     hw.transferDataOut.Start();
                 }
             }
@@ -253,6 +259,7 @@ namespace Environment.Base
                     {
                         communication.showQueueReceivedFromHardware(new PacketTransferToView()
                         {
+                            type = "out",
                             portName = serialPort.PortName,
                             packet = packet,
                         });
@@ -460,8 +467,8 @@ namespace Environment.Base
         }*/
 
 
-        
-        
+
+
         /*public void createThreadRunning()
         {
         }*/
