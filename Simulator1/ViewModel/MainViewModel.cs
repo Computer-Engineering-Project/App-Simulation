@@ -171,7 +171,7 @@ namespace Simulator1.ViewModel
             ModuleParameterViewModel.Save += CloseDialog;*/
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                /*serviceProvider.GetRequiredService<IEnvironmentService>().startPort(port);*/
+                serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
             }
