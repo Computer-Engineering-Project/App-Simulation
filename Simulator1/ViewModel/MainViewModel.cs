@@ -87,7 +87,7 @@ namespace Simulator1.ViewModel
             moduleObjects = new ObservableCollection<ModuleObject>();
             Ports = new ObservableCollection<ButtonPort>();
             HistoryObjects = new ObservableCollection<HistoryObject>()
-            {
+            /*{
                 new HistoryObject()
                 {
                     Id = 1,
@@ -109,10 +109,11 @@ namespace Simulator1.ViewModel
                     Data = "0xxxxxxx",
                     DelayTime = "0xbgbgdb"
                 },
-            };
+            }*/;
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
+            this.moduleStateManagement.DeleteModule += OnDeleteModule;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -148,6 +149,51 @@ namespace Simulator1.ViewModel
             }
             Ports = new ObservableCollection<ButtonPort>(ports);
         }
+        private void ExecuteAutoSavePosition(object positionObject)
+        {
+            string json = JsonConvert.SerializeObject(positionObject);
+            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            foreach (var module in moduleStore.ModuleObjects)
+            {
+                if (listParams["id"] != null)
+                {
+                    if (module.id == listParams["id"])
+                    {
+                        var x = Double.Parse(listParams["x"]);
+                        if (x < 0) x = 0;
+                        module.x = x;
+                        var y = Double.Parse(listParams["y"]);
+                        if (y < 0) y = 0;
+                        module.y = y;
+                    }
+                }
+                else
+                {
+                    if (module.port == listParams["port"])
+                    {
+                        var x = Double.Parse(listParams["x"]);
+                        if (x < 0) x = 0;
+                        module.x = x;
+                        var y = Double.Parse(listParams["y"]);
+                        if (y < 0) y = 0;
+                        module.y = y;
+                    }
+                }
+
+            }
+
+            ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+        }
+        private void OnDeleteModule(string portName)
+        {
+            var tmp_ports = Ports;
+            var p = tmp_ports.FirstOrDefault(x => x.portName == portName);
+            if (p != null)
+            {
+                p.color = "Wheat";
+            }
+            Ports = tmp_ports;
+        }
         //Command handler
         private void ExecuteClickPort(string portName)
         {
@@ -160,7 +206,8 @@ namespace Simulator1.ViewModel
                 }
                 else
                 {
-                    MessageBox.Show("Is already config. Now it will trigger the history table");
+                    //Binding history data to history table
+                    
                 }
             }
         }
@@ -184,6 +231,8 @@ namespace Simulator1.ViewModel
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
                 ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
+                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = false;
+                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
             }
         }
         private void ExecuteOpenUpdateModule(ModuleObject module)
@@ -201,6 +250,7 @@ namespace Simulator1.ViewModel
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
+                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = true;
                 if (module.port != null)
                 {
                     serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
@@ -238,42 +288,15 @@ namespace Simulator1.ViewModel
             mainStateManagement.loadHistoryFromDB();
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
         }
-        private void ExecuteAutoSavePosition(object positionObject)
-        {
-            string json = JsonConvert.SerializeObject(positionObject);
-            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            foreach (var module in moduleStore.ModuleObjects)
-            {
-                if (listParams["id"] != null)
-                {
-                    if (module.id == listParams["id"])
-                    {
-                        module.x = Double.Parse(listParams["x"]);
-                        module.y = Double.Parse(listParams["y"]);
-                    }
-                }
-                else
-                {
-                    if (module.port == listParams["port"])
-                    {
-                        module.x = Double.Parse(listParams["x"]);
-                        module.y = Double.Parse(listParams["y"]);
-                    }
-                }
 
-            }
-
-            ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
-        }
         private void CloseDialog(string port)
         {
             IsDialogOpen = false;
-            serviceProvider.GetRequiredService<IEnvironmentService>().closePort(port);
-        }
-        private void ExecuteRunEnvironment()
-        {
-            serviceProvider.GetRequiredService<IEnvironmentService>().passModuleObjects(new List<ModuleObject>(ModuleObjects));
-            serviceProvider.GetRequiredService<IEnvironmentService>().Run();
+            ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+            if(port!= null)
+            {
+                serviceProvider.GetRequiredService<IEnvironmentService>().closePort(port);
+            }
         }
         private void ExecuteLoadPorts()
         {
@@ -322,11 +345,15 @@ namespace Simulator1.ViewModel
             moduleStateManagement.ModuleObjectCreated -= OnModuleObjectCreated;
             base.Dispose();
         }
-
+        private void ExecuteRunEnvironment()
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().passModuleObjects(new List<ModuleObject>(ModuleObjects));
+            serviceProvider.GetRequiredService<IEnvironmentService>().Run();
+        }
         //Received Data from Environment
         public void showQueueReceivedFromHardware(PacketTransferToView listTransferedPacket)
         {
-            throw new NotImplementedException();
+            MessageBox.Show(listTransferedPacket.packet.data);
         }
 
         public void deviceChangeMode(int mode, string port)

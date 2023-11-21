@@ -245,19 +245,22 @@ namespace Environment.Base
         // transfer data from queue in to destination device
         private void transferDataToDestinationDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
         {
-            if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
+            while (State == RUN)
             {
-                if (packetQueue.TryDequeue(out DataProcessed packet))
+                if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
                 {
-                    communication.showQueueReceivedFromHardware(new PacketTransferToView()
+                    if (packetQueue.TryDequeue(out DataProcessed packet))
                     {
-                        portName = serialPort.PortName,
-                        packet = packet,
-                    });
-                    var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
-                    if (inter_packet != null)
-                    {
-                        PushPackageIntoDestinationDevice(inter_packet, moduleObject);
+                        communication.showQueueReceivedFromHardware(new PacketTransferToView()
+                        {
+                            portName = serialPort.PortName,
+                            packet = packet,
+                        });
+                        var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
+                        if (inter_packet != null)
+                        {
+                            PushPackageIntoDestinationDevice(inter_packet, moduleObject);
+                        }
                     }
                 }
             }
@@ -265,21 +268,25 @@ namespace Environment.Base
         // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
         private void transferDataToHardware(int mode, SerialPort serialPort, ConcurrentQueue<InternalPacket> packetQueue, ModuleObject moduleObject)
         {
-            if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
+            while (State == RUN)
             {
-                if (packetQueue.TryDequeue(out InternalPacket packet))
+                if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
                 {
+                    if (packetQueue.TryDequeue(out InternalPacket packet))
+                    {
 
-                    /*create task to delay time and after that send packet to hardware
-                     * To do: caculate delay time
-                     */
+                        /*create task to delay time and after that send packet to hardware
+                         * To do: caculate delay time
+                         */
 
-                    // format packet before send, follow protocol
-                    PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
-                    serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
+                        // format packet before send, follow protocol
+                        PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
+                        serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
 
+                    }
                 }
             }
+
         }
         // Execute service transfer data from queue in( caculated delay time, preamble code, packet loss, conlision,...) then add to queue out
         private InternalPacket ExecuteTransferDataToQueueOut(int mode, DataProcessed packet, ModuleObject moduleObject)
@@ -410,8 +417,9 @@ namespace Environment.Base
         //Run program =====
         public void Run()
         {
-            /*transferDataToView = new Thread(transferInPacketToView);
-            transferDataToView.Start();*/
+            
+            // Start thread to transfer data from queue in to destination device
+            // Start thread to transfer data from queue out to hardware
             foreach (var hw in Devices)
             {
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
@@ -424,16 +432,21 @@ namespace Environment.Base
                 }
             }
         }
-        // Stop program =====
-/*        public void Stop()
+
+        public void Execute()
         {
-            foreach (var hw in Devices)
-            {
-                hw.serialport.Close();
-                hw.transferDataIn.Abort();
-                hw.transferDataOut.Abort();
-            }
-        }*/
+            // no do anything
+        }
+        // Stop program =====
+        /*        public void Stop()
+                {
+                    foreach (var hw in Devices)
+                    {
+                        hw.serialport.Close();
+                        hw.transferDataIn.Abort();
+                        hw.transferDataOut.Abort();
+                    }
+                }*/
 
 
     }
