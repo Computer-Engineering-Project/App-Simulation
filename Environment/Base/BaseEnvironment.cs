@@ -42,7 +42,11 @@ namespace Environment.Base
         }
         public void StartPort(string port)
         {
-            SerialPort serialPort = new SerialPort(port, 115200);
+            var serialPort = SerialPorts.FirstOrDefault(x => x.PortName == port);
+            if (serialPort == null)
+            {
+                serialPort = new SerialPort(port, 115200);
+            }
             if (!serialPort.IsOpen)
             {
                 serialPort.Open();
