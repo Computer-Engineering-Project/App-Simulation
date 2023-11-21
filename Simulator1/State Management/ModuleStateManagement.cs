@@ -21,6 +21,11 @@ namespace Simulator1.State_Management
         public event Action<object> IsActionUpdate;
         public event Action<object> ChangePositionAndPort;
         public event Action<string> ConfigHardwareSuccess;
+        public event Action<string> DeleteModule;
+        public void deleteModule(string portName)
+        {
+            DeleteModule?.Invoke(portName);
+        }
         public void createModuleObject(string portName)
         {
             ModuleObjectCreated?.Invoke(portName);

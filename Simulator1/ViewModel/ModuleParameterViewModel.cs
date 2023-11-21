@@ -48,6 +48,10 @@ namespace Simulator1.ViewModel
 
         private bool isEnableSave;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
+
+        private bool isEnableDelete;
+        public bool IsEnableDelete { get => isEnableDelete; set { isEnableDelete = value; OnPropertyChanged(); } }
+
         private bool isEnablePortSelect;
         public bool IsEnablePortSelect { get => isEnablePortSelect; set { isEnablePortSelect = value; OnPropertyChanged(); } }
 
@@ -66,6 +70,7 @@ namespace Simulator1.ViewModel
         public ICommand ActiveCommand { get; set; }
         public ICommand ReadConfigCommand { get; set; }
         public ICommand ConfigCommand { get; set; }
+        public ICommand DeleteDialogCommand { get; set; }
 
         #endregion
 
@@ -99,6 +104,7 @@ namespace Simulator1.ViewModel
             //UI/UX
             generateModuleCommand = new RelayCommand(() => GenerateModule());
             CloseDialogCommand = new RelayCommand(() => CloseModule());
+            DeleteDialogCommand = new RelayCommand(() => DeleteModule());
             //Environment
             ActiveCommand = new RelayCommand(() => ExecuteActiveHardware());
             ReadConfigCommand = new RelayCommand(() => ExecuteReadConfigFromHardware());
@@ -119,7 +125,9 @@ namespace Simulator1.ViewModel
             if (IsUpdate != "true" && !string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
             {
                 var x = Double.Parse(HorizontalX);
+                if(x< 0) x = 0;
                 var y = Double.Parse(VerticalY);
+                if (y < 0) y = 0;
                 foreach (var module in moduleStore.ModuleObjects)
                 {
                     if (module.port == Port)
@@ -133,7 +141,9 @@ namespace Simulator1.ViewModel
             else
             {
                 var x = Double.Parse(HorizontalX);
+                if(x<0) x = 0;
                 var y = Double.Parse(VerticalY);
+                if (y < 0) y = 0;
                 var module = new ModuleObject()
                 {
                     port = Port,
@@ -145,7 +155,16 @@ namespace Simulator1.ViewModel
             }
             CloseModule();
         }
-
+        private void DeleteModule()
+        {
+            var module = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
+            if (module != null)
+            {
+                moduleStateManagement.deleteModule(module.port);
+                moduleStore.ModuleObjects.Remove(module);
+                Save?.Invoke(module.port);
+            }
+        }
         private void CloseModule()
         {
             Save?.Invoke(Port);
