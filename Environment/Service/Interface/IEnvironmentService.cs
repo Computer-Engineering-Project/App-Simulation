@@ -18,5 +18,6 @@ namespace Environment.Service.Interface
         public void passModuleObjects(List<ModuleObject> moduleObjects);
         public List<string> loadPorts();
         public void Run();
+        public void Stop();
     }
 }

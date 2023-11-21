@@ -82,6 +82,7 @@
                                         IsEnabled="True"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
+                                        Command="{Binding StopEnvironmentCommand}"
                                         ToolTip="MaterialDesignFlatLightButton" />
                                 <Button Width="70"
                                         Background="Green"

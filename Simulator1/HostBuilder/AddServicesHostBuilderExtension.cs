@@ -28,8 +28,9 @@ namespace Simulator1.HostBuilder
                 //Store
                 services.AddSingleton<ModuleStore>();
                 services.AddSingleton<NavigationStore>();
-                services.AddSingleton<MainStore>();
+                services.AddSingleton<MainViewStore>();
                 services.AddSingleton<ModuleParameterViewStore>();
+                services.AddSingleton<HistoryDataStore>();
                 //Database
                 services.AddSingleton<LoadParameter>();
                 //Environment

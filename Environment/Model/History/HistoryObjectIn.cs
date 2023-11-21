@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Environment.Model.History
 {
-    public class HistoryObject: BaseModel
+    public class HistoryObjectIn: BaseModel
     {
         private int id;
         public int Id { get => id; set { id = value; OnPropertyChanged(); } }
@@ -24,5 +24,12 @@ namespace Environment.Model.History
         public string DelayTime { get => delayTime; set { delayTime = value; OnPropertyChanged(); } }
 
 
+    }
+    public class HistoryObjectOut: BaseModel
+    {
+        private int id;
+        public int Id { get => id; set { id = value; OnPropertyChanged(); } }
+        public string data;
+        public string Data { get => data; set { data = value; OnPropertyChanged(); } }
     }
 }

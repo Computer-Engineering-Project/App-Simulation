@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Simulator1.Store
 {
-    public class MainStore : NavigationStore
+    public class MainViewStore : NavigationStore
     {
         private BaseViewModel currentViewModel;
         public override BaseViewModel CurrentViewModel

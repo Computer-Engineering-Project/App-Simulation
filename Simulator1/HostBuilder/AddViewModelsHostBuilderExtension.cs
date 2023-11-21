@@ -36,10 +36,10 @@ namespace Simulator1.HostBuilder
                 });
                 services.AddSingleton<MainViewModel>((serviceProvider) =>
                 {
-                    var mainStore = serviceProvider.GetRequiredService<MainStore>();
+                    var mainStore = serviceProvider.GetRequiredService<MainViewStore>();
                     mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
                     return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(),
-                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>());
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>(), serviceProvider.GetRequiredService<HistoryDataStore>());
                 });
             });
             return hostBuilder;

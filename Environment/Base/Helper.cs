@@ -111,22 +111,23 @@ namespace Environment.Base
 
         public static byte[] GetDataFromHardware(SerialPort serialPort)
         {
-            byte[] data = new byte[1024];
             // read data from hardware until end byte
-            int i = 0;
-            while (true)
+            int bytesToRead = serialPort.BytesToRead;
+            if (bytesToRead > 0)
             {
-                byte[] temp = new byte[1];
-                serialPort.Read(temp, 0, 1);
-                if (temp[0] == PacketTransmit.ENDBYTE)
+                byte[] data = new byte[bytesToRead];
+                int count = 0;
+                while (count < bytesToRead)
                 {
-                    data[i] = temp[0];
-                    break;
+                    data[count] = (byte)serialPort.ReadByte();
+                    if (data[count] == PacketTransmit.ENDBYTE)
+                    {
+                        return data;
+                    }
+                    count++;
                 }
-                data[i] = temp[0];
-                i++;
             }
-            return data;
+            return new byte[0];
         }
 
         public static PacketTransmit HandleMessFromHardware(byte[] data)
@@ -134,7 +135,15 @@ namespace Environment.Base
             byte module = data[0];
             byte cmdWord = data[1];
             byte[] dataLength = { data[3], data[2] };
-            byte[] dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
+            byte[] dataRaw;
+            if(cmdWord == PacketTransmit.SENDDATA)
+            {
+               dataRaw  = new byte[dataLength[0] * 256 + dataLength[1]];
+            }
+            else
+            {
+                dataRaw = new byte[dataLength[1] * 256 + dataLength[0]];
+            }
             for (int i = 0; i < dataRaw.Length; i++)
             {
                 dataRaw[i] = data[4 + i];

@@ -58,14 +58,18 @@ namespace Environment.Service
         {
             environment.State = environment.RUN;
             environment.createSerialPortInitial();
-
-            environment.Run();
-
+            environment.RunProgram();
+           
         }
         public List<string> loadPorts()
         {
             environment.SetUp();
             return environment.Ports;
+        }
+
+        public void Stop()
+        {
+            environment.State = environment.STOP;
         }
     }
 }
