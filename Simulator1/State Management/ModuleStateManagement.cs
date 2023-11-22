@@ -1,4 +1,5 @@
 ﻿using Environment.Model.Module;
+using Environment.Model.VMParameter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace Simulator1.State_Management
         public event Action<string> ConfigParams;
         public event Action<object> UpdatePosition;
         public event Action ResetParameterModule;
+        public event Action<ModuleParameterVM> UpdateParamsForModuleParameterVM;
 
         public event Action<object> IsActionUpdate;
         public event Action<object> ChangePositionAndPort;
@@ -73,6 +75,10 @@ namespace Simulator1.State_Management
         public void configHardwareSuccess(ModuleObject moduleObject)
         {
             ConfigHardwareSuccess?.Invoke(moduleObject);
+        }
+        public void updateModuleVMParams(ModuleParameterVM moduleParameterVM)
+        {
+            UpdateParamsForModuleParameterVM?.Invoke(moduleParameterVM);
         }
     }
 }

@@ -69,12 +69,17 @@ namespace Environment.Service
 
         public void Stop()
         {
-            environment.State = environment.STOP;
+            environment.State = environment.IDLE;
         }
 
         public void passPortClicked(string portName)
         {
             environment.portClicked = portName;
+        }
+
+        public void Pause()
+        {
+            environment.State = environment.PAUSE;
         }
     }
 }
