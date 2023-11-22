@@ -37,6 +37,8 @@ namespace Environment.Base
             PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, data);
             // send cmd to hardware
             int count = 0;
+            serialPort.DiscardInBuffer();
+            serialPort.DiscardOutBuffer();
             /*read data from hardware until end byte, timeout 1s, if after 5s no response, send again. if send again 3 times, return false*/
             while (count < 2)
             {
@@ -79,8 +81,9 @@ namespace Environment.Base
 
             int count = 0;
             /*read data from hardware until end byte, timeout 1s, if after 5s no response, send again. if send again 3 times, return false*/
-
-            while(count < 2)
+            serialPort.DiscardInBuffer();
+            serialPort.DiscardOutBuffer();
+            while (count < 2)
             { 
                 serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
                 byte[] bytes = new byte[7];
@@ -149,7 +152,7 @@ namespace Environment.Base
             byte cmdWord = data[1];
             byte[] dataLength = { data[3], data[2] };
             byte[] dataRaw;
-            if(cmdWord == PacketTransmit.SENDDATA)
+            if(cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
             {
                dataRaw  = new byte[dataLength[0] * 256 + dataLength[1]];
             }
