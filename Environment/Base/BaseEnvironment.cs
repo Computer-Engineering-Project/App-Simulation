@@ -27,8 +27,6 @@ namespace Environment.Base
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
         public string portClicked { get; set; }
         //public Thread Collision { get; set; }
-        public Thread readDataFromHw;
-        public Thread runProgram;
 
         private readonly ICommunication communication;
 
@@ -237,14 +235,6 @@ namespace Environment.Base
                                     }
                                 }*/
             }
-        }
-        // After setup done, now Run
-        public void Run()
-        {
-            readDataFromHw = new Thread(createSerialPortInitial);
-            readDataFromHw.Start();
-            runProgram = new Thread(RunProgram);
-            runProgram.Start();
         }
         public void RunProgram()
         {
@@ -480,32 +470,16 @@ namespace Environment.Base
         /*//Function listen from hardware
         private string listenConfigFromHardware(SerialPort serialPort)
         {
-            byte[] buffer = new byte[58];
-            var numOfBytes = serialPort.Read(buffer, 0, 58);
-            if (numOfBytes > 0)
+            State = IDLE;
+            foreach (var hw in Devices)
             {
-                //execute buffer here
-                return "";
+                hw.serialport.Close();
             }
-            return "";
-        }*/
-        //Function add packet from hardware to queue in
-
-
-        //Function add packet from queue out to hardware
-        /*private void addToQueueOut(object sender, SerialDataReceivedEventArgs e)
+        }
+/*        public void Stop()
         {
-            if (State == RUN)
-            {
-
-            }
-
-        }*/
-
-        /*private void transferInPacketToView()
-        {
-            var listTransferedPacket = new List<PacketTransferToView>();
-            foreach (var hw in HardwareGoIn)
+            State = STOP;
+            foreach (var hw in Devices)
             {
                 var cpy_queue = hw.packetQueue;
                 if (cpy_queue.TryDequeue(out PacketTransmit packet))
