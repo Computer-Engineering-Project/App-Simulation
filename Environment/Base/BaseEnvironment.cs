@@ -163,7 +163,7 @@ namespace Environment.Base
         {
             while (State == RUN)
             {
-                sender.DiscardInBuffer();
+                /*sender.DiscardInBuffer();*/
                 byte[] buffer = Helper.GetDataFromHardware(sender);
                 if (buffer.Length > 0)
                 {
@@ -260,7 +260,7 @@ namespace Environment.Base
                     {
                         communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
                         {
-                            type = "out",
+                            type = "in",
                             portName = serialPort.PortName,
                             packet = packet,
                         }, portClicked);
@@ -315,7 +315,7 @@ namespace Environment.Base
             }
         }
         // Push package into destination device
-        private async void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
+        private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
         {
             if (moduleObject.type == ModuleObject.LORA)
             {
@@ -336,7 +336,7 @@ namespace Environment.Base
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
                                     {
-                                        await Task.Run(() =>
+                                        Task task = Task.Run(() =>
                                         {
                                             Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
                                             hw.packetQueueOut.Enqueue(packet);
@@ -347,7 +347,7 @@ namespace Environment.Base
                                         // check preamble code
                                         if (packet.PreambleCode != null)
                                         {
-                                            await Task.Run(() =>
+                                            Task task = Task.Run(() =>
                                             {
                                                 Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
                                                 hw.packetQueueOut.Enqueue(packet);
@@ -431,7 +431,12 @@ namespace Environment.Base
                         /*create task to delay time and after that send packet to hardware
                          * To do: caculate delay time
                          */
-
+                        communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
+                        {
+                            type = "out",
+                            portName = serialPort.PortName,
+                            packet = packet,
+                        }, portClicked);
                         // format packet before send, follow protocol
                         serialPort.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);

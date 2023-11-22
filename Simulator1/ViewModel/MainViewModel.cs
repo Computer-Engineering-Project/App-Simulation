@@ -443,7 +443,7 @@ namespace Simulator1.ViewModel
                 mainStateManagement.updateHistoryOut(portClicked);
             }
         }
-        public void showQueueReceivedFromOtherDevice(PacketSendTransferToView transferedPacket, string portClicked)
+        public void showQueueReceivedFromOtherDevice(PacketReceivedTransferToView transferedPacket, string portClicked)
         {
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.portName);
             if (moduleHistory != null)
@@ -464,7 +464,7 @@ namespace Simulator1.ViewModel
                 {
 
                 }
-                newHistoryObject.Data = transferedPacket.packet.data;
+                newHistoryObject.Data = transferedPacket.packet.packet.data;
                 moduleHistory.historyObjectIns.Enqueue(newHistoryObject);
                 mainStateManagement.updateHistoryIn(portClicked);
             }
@@ -488,7 +488,5 @@ namespace Simulator1.ViewModel
         {
             mainStateManagement.isPauseNow();
         }
-
-        
     }
 }
