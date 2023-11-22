@@ -476,24 +476,6 @@ namespace Environment.Base
                 hw.serialport.Close();
             }
         }
-/*        public void Stop()
-        {
-            State = STOP;
-            foreach (var hw in Devices)
-            {
-                var cpy_queue = hw.packetQueue;
-                if (cpy_queue.TryDequeue(out PacketTransmit packet))
-                {
-                    listTransferedPacket.Add(new PacketTransferToView()
-                    {
-                        portName = hw.serialport.PortName,
-                        packet = packet,
-                    });
-
-                }
-            }
-            
-        }*/
 
 
 
