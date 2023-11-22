@@ -88,7 +88,7 @@ namespace Environment.Base
                 bool check = ExecuteWithTimeout(() =>
                 {
                     bytes = GetDataFromHardware(serialPort);
-                }, TimeSpan.FromSeconds(1));
+                }, TimeSpan.FromSeconds(3));
 
                 if (check)
                 {

@@ -15,5 +15,9 @@ namespace Simulator1.Store
         {
             ModuleHistories= new List<ModuleHistory>();
         }
+        public void ClearHistoryData()
+        {
+            ModuleHistories.Clear();
+        }
     }
 }

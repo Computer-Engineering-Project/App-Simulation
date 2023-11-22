@@ -11,6 +11,8 @@ namespace Simulator1.State_Management
     {
         public event Action LoadHistory;
         public event Action IsRunningNow;
+        public event Action IsIdleNow;
+        public event Action IsStopNow;
         public event Action<string> UpdateHistoryOut;
         public void loadHistoryFromDB()
         {
@@ -19,6 +21,14 @@ namespace Simulator1.State_Management
         public void isRunningNow()
         {
             IsRunningNow?.Invoke();
+        }
+        public void isIdleNow()
+        {
+            IsIdleNow?.Invoke();
+        }
+        public void isStopNow()
+        {
+            IsStopNow?.Invoke();
         }
         public void updateHistoryOut(string portName)
         {

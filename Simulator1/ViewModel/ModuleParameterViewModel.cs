@@ -1,5 +1,6 @@
 ﻿using Environment.Model.History;
 using Environment.Model.Module;
+using Environment.Model.VMParameter;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xaml.Behaviors;
@@ -50,13 +51,13 @@ namespace Simulator1.ViewModel
         private ModuleObject tmp_moduleObject;
         public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); } }
 
-        private bool isEnableSave;
+        private bool isEnableSave = false;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
 
-        private bool isEnableDelete;
+        private bool isEnableDelete = false;
         public bool IsEnableDelete { get => isEnableDelete; set { isEnableDelete = value; OnPropertyChanged(); } }
 
-        private bool isEnablePortSelect;
+        private bool isEnablePortSelect = false;
         public bool IsEnablePortSelect { get => isEnablePortSelect; set { isEnablePortSelect = value; OnPropertyChanged(); } }
 
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
@@ -91,8 +92,6 @@ namespace Simulator1.ViewModel
             IServiceProvider serviceProvider, HistoryDataStore historyDataStore,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
-            //Variable
-            IsEnableSave = false;
 
             //DI
             this.moduleParamViewStore = moduleParamViewStore;
@@ -121,6 +120,24 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement.UpdatePosition += OnUpdatePosition;
             this.moduleStateManagement.IsActionUpdate += OnIsActionUpdate;
             this.moduleStateManagement.ConfigHardwareSuccess += OnConfigHardwareSuccess;
+            this.moduleStateManagement.UpdateParamsForModuleParameterVM += OnUpdateParamterForVM;
+        }
+        private void OnUpdateParamterForVM(ModuleParameterVM moduleParameterVM)
+        {
+            if (moduleParameterVM != null)
+            {
+                HorizontalX = moduleParameterVM.horizontal_x;
+                VerticalY = moduleParameterVM.vertical_y;
+                ListPort = new ObservableCollection<string>(moduleParameterVM.listPort);
+                Port = moduleParameterVM.port;
+                Id = moduleParameterVM.id;
+                IsUpdate = moduleParameterVM.isUpdate;
+                ModuleType = moduleParameterVM.moduleType;
+                tmp_ModuleObject = moduleParameterVM.tmp_moduleObject;
+                IsEnableSave = moduleParameterVM.isEnableSave;
+                IsEnableDelete = moduleParameterVM.isEnableDelete;
+                IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
+            }
         }
         private void ExecuteChangeModuleType(string type)
         {
@@ -141,7 +158,7 @@ namespace Simulator1.ViewModel
                     moduleStore.ModuleObjects.Add(tmp_ModuleObject);
                     historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
-                        moduleObject= tmp_ModuleObject,
+                        moduleObject = tmp_ModuleObject,
                     });
                     moduleStateManagement.createModuleObject(Port);
                 }
@@ -157,7 +174,18 @@ namespace Simulator1.ViewModel
                         x = x,
                         y = y,
                     };
-                    moduleStore.ModuleObjects.Add(tmp_ModuleObject);
+                    foreach (var m in moduleStore.ModuleObjects)
+                    {
+                        if (m.id == tmp_ModuleObject.id)
+                        {
+                            m.port = tmp_ModuleObject.port;
+                            m.y = tmp_ModuleObject.y;
+                            m.x = tmp_ModuleObject.x;
+                            m.mode = tmp_ModuleObject.mode;
+                            m.parameters = tmp_ModuleObject.parameters;
+                            m.type = tmp_ModuleObject.type;
+                        }
+                    }
                     moduleStateManagement.changePositionAndPort(module);
                     moduleStateManagement.createModuleObject(Port);
                 }
@@ -179,7 +207,7 @@ namespace Simulator1.ViewModel
             Save?.Invoke(Port);
             this.HorizontalX = null;
             this.VerticalY = null;
-            Id = null;
+            Reset();
             this.moduleStateManagement.resetParameterModule();
         }
         private void ExecuteActiveHardware()
@@ -195,7 +223,7 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteConfigHardware()
         {
-            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
+            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id || x.id == tmp_moduleObject.id);
             if (moduleObject != null)
             {
                 var tmp_moduleObject = new ModuleObject()
@@ -251,7 +279,18 @@ namespace Simulator1.ViewModel
             IsUpdate = listParams["value"];
             IsEnableSave = false;
         }
-
+        // Helper function ============
+        public void Reset()
+        {
+            Id = null;
+            Port = null;
+            IsUpdate = null;
+            ModuleType = null;
+            tmp_ModuleObject = null;
+            IsEnableSave = false;
+            IsEnableDelete = false;
+            IsEnablePortSelect = false;
+        }
         public override void Dispose()
         {
             base.Dispose();

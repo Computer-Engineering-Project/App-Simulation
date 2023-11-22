@@ -19,6 +19,7 @@ namespace Environment.Service.Interface
         public void passPortClicked(string portName);
         public List<string> loadPorts();
         public void Run();
+        public void Pause();
         public void Stop();
     }
 }

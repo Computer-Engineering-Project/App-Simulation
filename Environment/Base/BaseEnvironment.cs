@@ -107,7 +107,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-/*            return true;*/
+            return true;
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -177,7 +177,17 @@ namespace Environment.Base
                 {
                     addToQueueIn(buffer, sender);
                 }
-                
+
+            }
+            if (State == IDLE)
+            {
+                Pause();
+                communication.sendMessageIsIdle();
+            }
+            else if (State == STOP)
+            {
+                Stop();
+                communication.sendMessageIsStop();
             }
         }
         private void addToQueueIn(byte[] buffer, SerialPort sender)
@@ -189,12 +199,12 @@ namespace Environment.Base
 
                 if (packet.cmdWord == PacketTransmit.SENDDATA)
                 {
-                    
+
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            if(hardware.moduleObject.type == ModuleObject.LORA)
+                            if (hardware.moduleObject.type == ModuleObject.LORA)
                             {
                                 var loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
                                 DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
@@ -279,7 +289,16 @@ namespace Environment.Base
                     }
                 }
             }
-
+            if (State == IDLE)
+            {
+                Pause();
+                communication.sendMessageIsIdle();
+            }
+            else if (State == STOP)
+            {
+                Stop();
+                communication.sendMessageIsStop();
+            }
         }
         // Execute service transfer data from queue in( caculated delay time, preamble code, packet loss, conlision,...) then add to queue out
         private InternalPacket ExecuteTransferDataToQueueOut(int mode, DataProcessed packet, ModuleObject moduleObject)
@@ -427,8 +446,37 @@ namespace Environment.Base
                     }
                 }
             }
+            if (State == IDLE)
+            {
+                Pause();
+                communication.sendMessageIsIdle();
+            }
+            else if (State == STOP)
+            {
+                Stop();
+                communication.sendMessageIsStop();
+            }
+        }
+        //Pause program ======
+        public void Pause()
+        {
+            foreach (var hw in Devices)
+            {
+                hw.serialport.Close();
+            }
         }
 
+        // Stop program =====
+        public void Stop()
+        {
+            foreach (var hw in Devices)
+            {
+                hw.serialport.Close();
+                hw.readDataFromHardware.Join();
+                hw.transferDataIn.Join();
+                hw.transferDataOut.Join();
+            }
+        }
         /*//Function listen from hardware
         private string listenConfigFromHardware(SerialPort serialPort)
         {
@@ -480,16 +528,7 @@ namespace Environment.Base
         {
         }*/
 
-        // Stop program =====
-        /*        public void Stop()
-                {
-                    foreach (var hw in Devices)
-                    {
-                        hw.serialport.Close();
-                        hw.transferDataIn.Abort();
-                        hw.transferDataOut.Abort();
-                    }
-                }*/
+
 
 
     }

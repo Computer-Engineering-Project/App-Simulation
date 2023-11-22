@@ -96,9 +96,9 @@ namespace Simulator1.ViewModel
             this.serviceProvider = serviceProvider;
 
             this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
-            this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter;
-            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;
-            this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;
+            this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter; // load on program
+            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;  
+            this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;// load from database
             /*            this.moduleStateManagement.ConfigParams += OnConfigParameterToHardware;*/
 
             ListPower = new ObservableCollection<string>() { "20", "17", "14", "10" };
@@ -146,6 +146,7 @@ namespace Simulator1.ViewModel
             var loraParams = createLoraParamsObject();
             module.parameters = loraParams;
             module.type = "lora";
+            
 /*            moduleStore.ModuleObjects.Add(module);*/
 
             var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new

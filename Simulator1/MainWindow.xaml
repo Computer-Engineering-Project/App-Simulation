@@ -56,7 +56,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"></ColumnDefinition>
                             <ColumnDefinition Width="10*"></ColumnDefinition>
-                            <ColumnDefinition Width="4*"></ColumnDefinition>
+                            <ColumnDefinition Width="7*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
                             <Image Source="./static/img/logo.png"
@@ -75,6 +75,14 @@
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
                                         Command="{Binding LoadHistoryCommand}"
+                                        ToolTip="MaterialDesignFlatLightButton" />
+                                <Button Width="100"
+                                        Content="PAUSE"
+                                        Background="Yellow"
+                                        IsEnabled="{Binding IsEnableHistory}"
+                                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                                        Margin="0 0 20 0"
+                                        Command="{Binding PauseEnvironmentCommand}"
                                         ToolTip="MaterialDesignFlatLightButton" />
                                 <Button Width="70"
                                         Content="STOP"

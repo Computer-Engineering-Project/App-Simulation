@@ -76,5 +76,10 @@ namespace Environment.Service
         {
             environment.portClicked = portName;
         }
+
+        public void Pause()
+        {
+            environment.State = environment.IDLE;
+        }
     }
 }
