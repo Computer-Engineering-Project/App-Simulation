@@ -20,6 +20,8 @@ using Environment.Model.ButtonPort;
 using Environment.Model.History;
 using Simulator1.Service;
 using System.Windows.Threading;
+using Environment.Model.VMParameter;
+using System.Media;
 
 namespace Simulator1.ViewModel
 {
@@ -37,14 +39,17 @@ namespace Simulator1.ViewModel
         private bool isEnableStop = false;
         public bool IsEnableStop { get => isEnableStop; set { isEnableStop = value; OnPropertyChanged(); } }
 
+        private bool isEnablePause = false;
+        public bool IsEnablePause { get => isEnablePause; set { isEnablePause = value; OnPropertyChanged(); } }
+
         private bool isEnableRun = true;
         public bool IsEnableRun { get => isEnableRun; set { isEnableRun = value; OnPropertyChanged(); } }
 
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
 
-        private HistoryObjectIn selectedItemHistory;
-        public HistoryObjectIn SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+        private HistoryObject selectedItemHistory;
+        public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
         //handle get value from object
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
@@ -58,11 +63,11 @@ namespace Simulator1.ViewModel
 
         private List<string> testports = new List<string>() { "COM6" };
 
-        private ObservableCollection<HistoryObjectIn> historyObjectIns;
-        public ObservableCollection<HistoryObjectIn> HistoryObjectIns { get => historyObjectIns; set { historyObjectIns = value; OnPropertyChanged(); } }
+        private ObservableCollection<HistoryObject> historyObjectIns;
+        public ObservableCollection<HistoryObject> HistoryObjectIns { get => historyObjectIns; set { historyObjectIns = value; OnPropertyChanged(); } }
 
-        private ObservableCollection<HistoryObjectOut> historyObjectOuts;
-        public ObservableCollection<HistoryObjectOut> HistoryObjectOuts { get => historyObjectOuts; set { historyObjectOuts = value; OnPropertyChanged(); } }
+        private ObservableCollection<HistoryObject> historyObjectOuts;
+        public ObservableCollection<HistoryObject> HistoryObjectOuts { get => historyObjectOuts; set { historyObjectOuts = value; OnPropertyChanged(); } }
 
         private readonly MainViewStore mainStore;
         private readonly ModuleStore moduleStore;
@@ -80,6 +85,7 @@ namespace Simulator1.ViewModel
         public ICommand UpdateModuleCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
+        public ICommand PauseEnvironmentCommand { get; set; }
         public ICommand StopEnvironmentCommand { get; set; }
         public ICommand LoadPorts { get; set; }
 
@@ -104,14 +110,16 @@ namespace Simulator1.ViewModel
             //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
             Ports = new ObservableCollection<ButtonPort>();
-            HistoryObjectIns = new ObservableCollection<HistoryObjectIn>();
-            HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>();
+            HistoryObjectIns = new ObservableCollection<HistoryObject>();
+            HistoryObjectOuts = new ObservableCollection<HistoryObject>();
 
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
             this.moduleStateManagement.ChangePositionAndPort += ExecuteAutoSavePosition;
             this.moduleStateManagement.DeleteModule += OnDeleteModule;
             this.mainStateManagement.IsRunningNow += OnIsRunningNow;
+            this.mainStateManagement.IsIdleNow += OnIsIdleNow;
+            this.mainStateManagement.IsPauseNow += OnIsPauseNow;
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
@@ -133,21 +141,34 @@ namespace Simulator1.ViewModel
 
             RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
             StopEnvironmentCommand = new RelayCommand(() => ExecuteStopEnvironment());
+            PauseEnvironmentCommand = new RelayCommand(() => ExecutePauseEnvironment());
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
         }
         //Delegate handler
         private void OnIsRunningNow()
         {
             IsEnableRun = false;
+            IsEnablePause = true;
+            IsEnableStop = true;
+        }
+        private void OnIsIdleNow()
+        {
+            IsEnableRun = true;
+            IsEnablePause = false;
+            IsEnableStop = false;
+        }
+        private void OnIsPauseNow()
+        {
+            IsEnableRun = true;
+            IsEnablePause = false;
             IsEnableStop = true;
         }
         private void OnUpdateHistoryOut(string portName)
         {
-            
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == portName);
             if (moduleHistory != null)
             {
-                HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>(moduleHistory.historyObjectOuts);
+                HistoryObjectOuts = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectOuts);
             }
         }
         private void OnModuleObjectCreated(string portName)
@@ -164,6 +185,17 @@ namespace Simulator1.ViewModel
             Ports = new ObservableCollection<ButtonPort>(ports);
             IsEnableHistory = false;
         }
+        private void OnDeleteModule(string portName)
+        {
+            var tmp_ports = Ports;
+            var p = tmp_ports.FirstOrDefault(x => x.PortName == portName);
+            if (p != null)
+            {
+                p.Color = "Wheat";
+            }
+            Ports = tmp_ports;
+        }
+        //Command handler
         private void ExecuteAutoSavePosition(object positionObject)
         {
             string json = JsonConvert.SerializeObject(positionObject);
@@ -199,17 +231,6 @@ namespace Simulator1.ViewModel
 
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
         }
-        private void OnDeleteModule(string portName)
-        {
-            var tmp_ports = Ports;
-            var p = tmp_ports.FirstOrDefault(x => x.PortName == portName);
-            if (p != null)
-            {
-                p.Color = "Wheat";
-            }
-            Ports = tmp_ports;
-        }
-        //Command handler
         private void ExecuteClickPort(string portName)
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().passPortClicked(portName);
@@ -226,8 +247,8 @@ namespace Simulator1.ViewModel
                     var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == portName);
                     if (moduleHistory != null)
                     {
-                        HistoryObjectIns = new ObservableCollection<HistoryObjectIn>(moduleHistory.historyObjectIns);
-                        HistoryObjectOuts = new ObservableCollection<HistoryObjectOut>(moduleHistory.historyObjectOuts);
+                        HistoryObjectIns = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectIns);
+                        HistoryObjectOuts = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectOuts);
                     }
                 }
             }
@@ -235,9 +256,6 @@ namespace Simulator1.ViewModel
         private void OpenDialog(string portName)
         {
             IsDialogOpen = true;
-            /*ModuleParameterViewModel = new ModuleParameterViewModel(moduleParamStore, moduleStateManagement, moduleStorePosition);
-            ModuleParameterViewModel.Port = port;
-            ModuleParameterViewModel.Save += CloseDialog;*/
             var tmp_Ports = Ports.Select(x => x.PortName).ToList();
             foreach (var port in Ports)
             {
@@ -249,16 +267,18 @@ namespace Simulator1.ViewModel
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
-                ((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = false;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
+                moduleStateManagement.updateModuleVMParams(new ModuleParameterVM()
+                {
+                    port = portName,
+                    listPort = tmp_Ports,
+                    isEnableDelete = false,
+                    isEnablePortSelect = false,
+                });
             }
         }
         private void ExecuteOpenUpdateModule(ModuleObject module)
         {
-            /*TestText= port;*/
             IsDialogOpen = true;
             var tmp_Ports = Ports.Select(x => x.PortName).ToList();
             foreach (var port in Ports)
@@ -270,20 +290,26 @@ namespace Simulator1.ViewModel
             }
             if (CurrentModuleViewModel is ModuleParameterViewModel)
             {
-                ((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = true;
+                var moduleParameterVM = new ModuleParameterVM()
+                {
+                    id = module.id,
+                    isEnableDelete = true,
+                    listPort = tmp_Ports,
+                    isUpdate = "true"
+                };
+
                 if (module.port != null)
                 {
                     serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;
+                    moduleParameterVM.port = module.port;
+                    moduleParameterVM.isEnablePortSelect = false;
                 }
                 else
                 {
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = true;
+                    moduleParameterVM.isEnablePortSelect = true;
                 }
-                ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
+                moduleStateManagement.updateModuleVMParams(moduleParameterVM);
             }
             if (module.parameters != null)
             {
@@ -298,7 +324,6 @@ namespace Simulator1.ViewModel
                         {
                             x = module.x,
                             y = module.y,
-
                         });
                     }
                 }
@@ -355,9 +380,12 @@ namespace Simulator1.ViewModel
         private void DectectActionSelectedColumn()
         {
             //todo
-            SourceHistory = SelectedItemHistory.Source;
-            DataHistory = SelectedItemHistory.Data;
-            DelayTimeHistory = SelectedItemHistory.DelayTime;
+            if (SelectedItemHistory != null)
+            {
+                SourceHistory = SelectedItemHistory.Source;
+                DataHistory = SelectedItemHistory.Data;
+                DelayTimeHistory = SelectedItemHistory.DelayTime == null ? "Na/N" : SelectedItemHistory.DelayTime;
+            }
         }
 
         //Dispose
@@ -372,6 +400,10 @@ namespace Simulator1.ViewModel
             serviceProvider.GetRequiredService<IEnvironmentService>().passModuleObjects(new List<ModuleObject>(ModuleObjects));
             serviceProvider.GetRequiredService<IEnvironmentService>().Run();
         }
+        private void ExecutePauseEnvironment()
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().Pause();
+        }
         private void ExecuteStopEnvironment()
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().Stop();
@@ -382,17 +414,25 @@ namespace Simulator1.ViewModel
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.portName);
             if (moduleHistory != null)
             {
-                if (transferedPacket.type == "out")
+                var newHistoryObject = new HistoryObject();
+                if (moduleHistory.moduleObject.type == ModuleObject.LORA)
                 {
                     var length = moduleHistory.historyObjectOuts.Count;
-                    var newHistoryObject = new HistoryObjectOut()
+                    var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
+
+                    newHistoryObject = new HistoryObject()
                     {
                         Id = length + 1,
-                        Data = transferedPacket.packet.data
+                        Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel
                     };
-                    moduleHistory.historyObjectOuts.Enqueue(newHistoryObject);
-                    mainStateManagement.updateHistoryOut(portClicked);
                 }
+                else if (moduleHistory.moduleObject.type == ModuleObject.ZIGBEE)
+                {
+
+                }
+                newHistoryObject.Data = transferedPacket.packet.data;
+                moduleHistory.historyObjectOuts.Enqueue(newHistoryObject);
+                mainStateManagement.updateHistoryOut(portClicked);
             }
         }
 
@@ -403,8 +443,17 @@ namespace Simulator1.ViewModel
 
         public void sendMessageIsRunning()
         {
-            MessageBox.Show("Is running now");
             mainStateManagement.isRunningNow();
+        }
+
+        public void sendMessageIsIdle()
+        {
+            mainStateManagement.isIdleNow();
+        }
+
+        public void sendMessageIsStop()
+        {
+            mainStateManagement.isPauseNow();
         }
     }
 }

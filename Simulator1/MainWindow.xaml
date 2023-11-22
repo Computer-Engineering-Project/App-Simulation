@@ -56,7 +56,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"></ColumnDefinition>
                             <ColumnDefinition Width="10*"></ColumnDefinition>
-                            <ColumnDefinition Width="4*"></ColumnDefinition>
+                            <ColumnDefinition Width="7*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
                             <Image Source="./static/img/logo.png"
@@ -75,6 +75,14 @@
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
                                         Command="{Binding LoadHistoryCommand}"
+                                        ToolTip="MaterialDesignFlatLightButton" />
+                                <Button Width="100"
+                                        Content="PAUSE"
+                                        Background="Yellow"
+                                        IsEnabled="{Binding IsEnablePause}"
+                                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                                        Margin="0 0 20 0"
+                                        Command="{Binding PauseEnvironmentCommand}"
                                         ToolTip="MaterialDesignFlatLightButton" />
                                 <Button Width="70"
                                         Content="STOP"
@@ -272,9 +280,10 @@
                                                             <GridView>
                                                                 <GridViewColumn Header="Event"
                                                                                 DisplayMemberBinding="{Binding Id}"></GridViewColumn>
-
                                                                 <GridViewColumn Header="Data"
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
+                                                                <GridViewColumn Header="Data"
+                                                                                DisplayMemberBinding="{Binding Source}"></GridViewColumn>
 
                                                             </GridView>
                                                         </ListView.View>
@@ -318,7 +327,7 @@
                                                              Auto">
 
                                                     <ListView x:Name="historyReceived"
-                                                              ItemsSource="{Binding HistoryObjects}"
+                                                              ItemsSource="{Binding HistoryObjectIns}"
                                                               SelectedItem="{Binding SelectedItemHistory, Mode=OneWayToSource}">
                                                         <ListView.View>
                                                             <GridView>

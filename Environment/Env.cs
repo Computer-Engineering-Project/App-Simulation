@@ -8,6 +8,6 @@ namespace Environment
 {
     public class Env
     {
-        public const string path = "C:\\code\\DA\\APP\\App-Simulation\\Simulator1\\model.json";
+        public const string path = "C:\\Users\\Admin\\DAKTMT\\Simulator Software\\Simulator1\\model.json";
     }
 }
