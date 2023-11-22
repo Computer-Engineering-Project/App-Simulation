@@ -90,11 +90,17 @@ namespace Environment.Model.Packet
         }
 
     }
-    public class PacketTransferToView
+    public class PacketSendTransferToView
     {
         public string type { get; set; }
         public string portName { get; set; }
         public DataProcessed packet { get; set; }
+    }
+    public class PacketReceivedTransferToView
+    {
+        public string type { get; set; }
+        public string portName { get; set; }
+        public InternalPacket packet { get; set; }
     }
     public class InternalPacket
     {

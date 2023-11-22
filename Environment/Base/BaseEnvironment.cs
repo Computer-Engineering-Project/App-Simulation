@@ -98,7 +98,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            /*            return true;*/
+            return true;
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -257,7 +257,7 @@ namespace Environment.Base
                 {
                     if (packetQueue.TryDequeue(out DataProcessed packet))
                     {
-                        communication.showQueueReceivedFromHardware(new PacketTransferToView()
+                        communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
                         {
                             type = "out",
                             portName = serialPort.PortName,

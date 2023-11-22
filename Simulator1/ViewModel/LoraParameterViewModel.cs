@@ -97,7 +97,7 @@ namespace Simulator1.ViewModel
 
             this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
             this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter; // load on program
-            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;  
+            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;
             this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;// load from database
             /*            this.moduleStateManagement.ConfigParams += OnConfigParameterToHardware;*/
 
@@ -116,6 +116,8 @@ namespace Simulator1.ViewModel
 
         private LoraParameterObject createLoraParamsObject()
         {
+            Address = Address == null ? "FFFF" : Address;
+            Channel = Channel == null ? "17" : Channel;
             UartRate = UartRate == null ? "9600" : UartRate;
             AirRate = AirRate == null ? "2.4" : AirRate;
             PowerTransmit = PowerTransmit == null ? "20" : PowerTransmit;
@@ -146,8 +148,8 @@ namespace Simulator1.ViewModel
             var loraParams = createLoraParamsObject();
             module.parameters = loraParams;
             module.type = "lora";
-            
-/*            moduleStore.ModuleObjects.Add(module);*/
+
+            /*            moduleStore.ModuleObjects.Add(module);*/
 
             var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
             {
@@ -160,7 +162,7 @@ namespace Simulator1.ViewModel
                 moduleStateManagement.configHardwareSuccess(module);
                 MessageBox.Show("config object success!");
             }
-            
+
         }
         private void OnUpdateParamsOfModule(ModuleObject moduleObject)
         {
@@ -168,7 +170,7 @@ namespace Simulator1.ViewModel
             {
                 var loraParams = createLoraParamsObject();
                 moduleObject.parameters = loraParams;
-                
+
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                 {
                     module = moduleObject.type,

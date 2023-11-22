@@ -61,7 +61,6 @@ namespace Simulator1.ViewModel
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
 
-        private List<string> testports = new List<string>() { "COM6" };
 
         private ObservableCollection<HistoryObject> historyObjectIns;
         public ObservableCollection<HistoryObject> HistoryObjectIns { get => historyObjectIns; set { historyObjectIns = value; OnPropertyChanged(); } }
@@ -121,6 +120,7 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.IsIdleNow += OnIsIdleNow;
             this.mainStateManagement.IsPauseNow += OnIsPauseNow;
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
+            this.mainStateManagement.UpdateHitoryIn+=OnUpdateHistoryIn;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -169,6 +169,14 @@ namespace Simulator1.ViewModel
             if (moduleHistory != null)
             {
                 HistoryObjectOuts = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectOuts);
+            }
+        }
+        private void OnUpdateHistoryIn(string portName)
+        {
+            var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == portName);
+            if (moduleHistory != null)
+            {
+                HistoryObjectIns = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectIns);
             }
         }
         private void OnModuleObjectCreated(string portName)
@@ -409,7 +417,7 @@ namespace Simulator1.ViewModel
             serviceProvider.GetRequiredService<IEnvironmentService>().Stop();
         }
         //Received Data from Environment
-        public void showQueueReceivedFromHardware(PacketTransferToView transferedPacket, string portClicked)
+        public void showQueueReceivedFromHardware(PacketSendTransferToView transferedPacket, string portClicked)
         {
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.portName);
             if (moduleHistory != null)
@@ -435,7 +443,32 @@ namespace Simulator1.ViewModel
                 mainStateManagement.updateHistoryOut(portClicked);
             }
         }
+        public void showQueueReceivedFromOtherDevice(PacketSendTransferToView transferedPacket, string portClicked)
+        {
+            var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.portName);
+            if (moduleHistory != null)
+            {
+                var newHistoryObject = new HistoryObject();
+                if (moduleHistory.moduleObject.type == ModuleObject.LORA)
+                {
+                    var length = moduleHistory.historyObjectIns.Count;
+                    var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
 
+                    newHistoryObject = new HistoryObject()
+                    {
+                        Id = length + 1,
+                        Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel
+                    };
+                }
+                else if (moduleHistory.moduleObject.type == ModuleObject.ZIGBEE)
+                {
+
+                }
+                newHistoryObject.Data = transferedPacket.packet.data;
+                moduleHistory.historyObjectIns.Enqueue(newHistoryObject);
+                mainStateManagement.updateHistoryIn(portClicked);
+            }
+        }
         public void deviceChangeMode(int mode, string port)
         {
             throw new NotImplementedException();
@@ -455,5 +488,7 @@ namespace Simulator1.ViewModel
         {
             mainStateManagement.isPauseNow();
         }
+
+        
     }
 }
