@@ -149,7 +149,7 @@ namespace Environment.Base
             byte cmdWord = data[1];
             byte[] dataLength = { data[3], data[2] };
             byte[] dataRaw;
-            if(cmdWord == PacketTransmit.SENDDATA)
+            if(cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
             {
                dataRaw  = new byte[dataLength[0] * 256 + dataLength[1]];
             }
