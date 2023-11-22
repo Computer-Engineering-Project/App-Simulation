@@ -20,7 +20,7 @@ namespace Simulator1.State_Management
 
         public event Action<object> IsActionUpdate;
         public event Action<object> ChangePositionAndPort;
-        public event Action<string> ConfigHardwareSuccess;
+        public event Action<ModuleObject> ConfigHardwareSuccess;
         public event Action<string> DeleteModule;
         public void deleteModule(string portName)
         {
@@ -70,9 +70,9 @@ namespace Simulator1.State_Management
         {
             ChangePositionAndPort?.Invoke(moduleParams);
         }
-        public void configHardwareSuccess(string portName)
+        public void configHardwareSuccess(ModuleObject moduleObject)
         {
-            ConfigHardwareSuccess?.Invoke(portName);
+            ConfigHardwareSuccess?.Invoke(moduleObject);
         }
     }
 }

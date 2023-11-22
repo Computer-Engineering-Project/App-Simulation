@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace Environment.Model.ButtonPort
 {
-    public class ButtonPort
+    public class ButtonPort : BaseModel
     {
-        public string color { get; set; }
-        public string portName { get; set; }
+        private string color;
+        public string Color { get => color; set { color = value; OnPropertyChanged(); } }
+        private string portName { get; set; }
+        public string PortName { get => portName; set { portName = value; OnPropertyChanged(); } }
     }
 }

@@ -85,22 +85,17 @@ namespace Environment.Base
                 serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
                 byte[] bytes = new byte[7];
 
-                bool check = ExecuteWithTimeout(() =>
-                {
-                    bytes = GetDataFromHardware(serialPort);
-                }, TimeSpan.FromSeconds(1));
+                bytes = GetDataFromHardware(serialPort);
 
-                if (check)
+                if (bytes.Length > 0)
                 {
-                    if (bytes.Length > 0)
+                    PacketTransmit packetTransmit1 = HandleMessFromHardware(bytes);
+                    if (packetTransmit1.cmdWord == PacketTransmit.CONFIG)
                     {
-                        PacketTransmit packetTransmit1 = HandleMessFromHardware(bytes);
-                        if (packetTransmit1.cmdWord == PacketTransmit.CONFIG)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
-                }   
+                }
+
                 count++;
 
             }
@@ -108,26 +103,44 @@ namespace Environment.Base
             return success;
 
         }
-
+        public static bool checkStartByte(byte[] data)
+        {
+            if (data[0] == PacketTransmit.LORA || data[0] == PacketTransmit.ZIGBEE || data[0] == PacketTransmit.UNK)
+            {
+                return true;
+            }
+            return false;
+        }
         public static byte[] GetDataFromHardware(SerialPort serialPort)
         {
             // read data from hardware until end byte
-            int bytesToRead = serialPort.BytesToRead;
-            if (bytesToRead > 0)
+            byte[] data = new byte[1024];
+            bool startByte = false;
+            // read data from hardware until end byte
+            int i = 0;
+            int count = 0;
+            while (true)
             {
-                byte[] data = new byte[bytesToRead];
-                int count = 0;
-                while (count < bytesToRead)
+                byte[] temp = new byte[1];
+                serialPort.Read(temp, 0, 1);
+
+                bool check = checkStartByte(temp);
+                if(startByte == false && check == true)
                 {
-                    data[count] = (byte)serialPort.ReadByte();
-                    if (data[count] == PacketTransmit.ENDBYTE)
-                    {
-                        return data;
-                    }
-                    count++;
+                    startByte = true;
                 }
+                if (startByte == true)
+                {
+                    data[i] = temp[0];
+                    i++;
+                }
+                if (temp[0] == PacketTransmit.ENDBYTE)
+                {
+                    break;
+                }
+                count++;
             }
-            return new byte[0];
+            return data;
         }
 
         public static PacketTransmit HandleMessFromHardware(byte[] data)

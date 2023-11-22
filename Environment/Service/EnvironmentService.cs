@@ -71,5 +71,10 @@ namespace Environment.Service
         {
             environment.State = environment.STOP;
         }
+
+        public void passPortClicked(string portName)
+        {
+            environment.portClicked = portName;
+        }
     }
 }

@@ -25,6 +25,7 @@ namespace Environment.Base
         public List<SerialPort> SerialPorts = new List<SerialPort>();
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
+        public string portClicked { get; set; }
         //public Thread Collision { get; set; }
 
         private readonly ICommunication communication;
@@ -104,7 +105,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            return true;
+/*            return true;*/
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -157,6 +158,12 @@ namespace Environment.Base
 
                     Devices.Add(device);
                 }
+            }
+            foreach (var hw in Devices)
+            {
+                hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
+                hw.readDataFromHardware.Name = "readData";
+                hw.readDataFromHardware.Start();
             }
         }
         private void readData(SerialPort sender)
@@ -229,14 +236,15 @@ namespace Environment.Base
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
-                    hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
-                    hw.readDataFromHardware.Start();
                     hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
+                    hw.transferDataIn.Name = "datain";
                     hw.transferDataIn.Start();
                     hw.transferDataOut = new Thread(() => transferDataToHardware(hw.mode, hw.serialport, hw.packetQueueOut, moduleObject));
+                    hw.transferDataOut.Name = "dataout";
                     hw.transferDataOut.Start();
                 }
             }
+            communication.sendMessageIsRunning();
         }
         // transfer data from queue in to destination device
         private void transferDataToDestinationDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
@@ -249,9 +257,10 @@ namespace Environment.Base
                     {
                         communication.showQueueReceivedFromHardware(new PacketTransferToView()
                         {
+                            type = "out",
                             portName = serialPort.PortName,
                             packet = packet,
-                        });
+                        }, portClicked);
                         var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
                         if (inter_packet != null)
                         {
@@ -418,16 +427,43 @@ namespace Environment.Base
                 hw.serialport.Close();
             }
         }
-        public void Stop()
+/*        public void Stop()
         {
             State = STOP;
             foreach (var hw in Devices)
             {
-                hw.readDataFromHardware.Join();
-                hw.transferDataIn.Join();
-                hw.transferDataOut.Join();
+                var cpy_queue = hw.packetQueue;
+                if (cpy_queue.TryDequeue(out PacketTransmit packet))
+                {
+                    listTransferedPacket.Add(new PacketTransferToView()
+                    {
+                        portName = hw.serialport.PortName,
+                        packet = packet,
+                    });
+
+                }
             }
-        }
+            
+        }*/
+
+
+
+
+        /*public void createThreadRunning()
+        {
+        }*/
+
+        // Stop program =====
+        /*        public void Stop()
+                {
+                    foreach (var hw in Devices)
+                    {
+                        hw.serialport.Close();
+                        hw.transferDataIn.Abort();
+                        hw.transferDataOut.Abort();
+                    }
+                }*/
+
 
     }
 }

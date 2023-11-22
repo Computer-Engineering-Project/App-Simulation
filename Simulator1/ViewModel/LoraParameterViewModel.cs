@@ -146,7 +146,7 @@ namespace Simulator1.ViewModel
             var loraParams = createLoraParamsObject();
             module.parameters = loraParams;
             module.type = "lora";
-            moduleStore.ModuleObjects.Add(module);
+/*            moduleStore.ModuleObjects.Add(module);*/
 
             var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
             {
@@ -156,7 +156,7 @@ namespace Simulator1.ViewModel
             });
             if (result)
             {
-                moduleStateManagement.configHardwareSuccess(module.port);
+                moduleStateManagement.configHardwareSuccess(module);
                 MessageBox.Show("config object success!");
             }
             
@@ -167,13 +167,7 @@ namespace Simulator1.ViewModel
             {
                 var loraParams = createLoraParamsObject();
                 moduleObject.parameters = loraParams;
-                foreach (var module in moduleStore.ModuleObjects)
-                {
-                    if (module.id == moduleObject.id)
-                    {
-                        module.parameters = moduleObject.parameters;
-                    }
-                }
+                
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                 {
                     module = moduleObject.type,
@@ -182,7 +176,7 @@ namespace Simulator1.ViewModel
                 });
                 if (result)
                 {
-                    moduleStateManagement.configHardwareSuccess(moduleObject.port);
+                    moduleStateManagement.configHardwareSuccess(moduleObject);
                     MessageBox.Show("config object success!");
                 }
             }

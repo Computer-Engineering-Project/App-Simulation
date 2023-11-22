@@ -1,4 +1,5 @@
-﻿using Environment.Model.Module;
+﻿using Environment.Model.History;
+using Environment.Model.Module;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xaml.Behaviors;
@@ -46,6 +47,9 @@ namespace Simulator1.ViewModel
         private string moduleType;
         public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); } }
 
+        private ModuleObject tmp_moduleObject;
+        public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); } }
+
         private bool isEnableSave;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
 
@@ -80,10 +84,11 @@ namespace Simulator1.ViewModel
         private readonly INavigateService loraParameterNavigateService;
         private readonly INavigateService zigbeeParameterNavigateService;
         private readonly IServiceProvider serviceProvider;
+        private readonly HistoryDataStore historyDataStore;
 
         ~ModuleParameterViewModel() { }
         public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore,
-            IServiceProvider serviceProvider,
+            IServiceProvider serviceProvider, HistoryDataStore historyDataStore,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
             //Variable
@@ -96,6 +101,7 @@ namespace Simulator1.ViewModel
             this.loraParameterNavigateService = loraParameterNavigateService;
             this.zigbeeParameterNavigateService = zigbeeParameterNavigateService;
             this.serviceProvider = serviceProvider;
+            this.historyDataStore = historyDataStore;
             //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
@@ -122,36 +128,39 @@ namespace Simulator1.ViewModel
         }
         private void GenerateModule()
         {
-            if (IsUpdate != "true" && !string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
+            if (!string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
             {
-                var x = Double.Parse(HorizontalX);
-                if(x< 0) x = 0;
-                var y = Double.Parse(VerticalY);
-                if (y < 0) y = 0;
-                foreach (var module in moduleStore.ModuleObjects)
+                if (IsUpdate != "true")
                 {
-                    if (module.port == Port)
+                    var x = Double.Parse(HorizontalX);
+                    if (x < 0) x = 0;
+                    var y = Double.Parse(VerticalY);
+                    if (y < 0) y = 0;
+                    tmp_ModuleObject.x = x;
+                    tmp_ModuleObject.y = y;
+                    moduleStore.ModuleObjects.Add(tmp_ModuleObject);
+                    historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
-                        module.x = x;
-                        module.y = y;
-                    }
+                        moduleObject= tmp_ModuleObject,
+                    });
+                    moduleStateManagement.createModuleObject(Port);
                 }
-                moduleStateManagement.createModuleObject(Port);
-            }
-            else
-            {
-                var x = Double.Parse(HorizontalX);
-                if(x<0) x = 0;
-                var y = Double.Parse(VerticalY);
-                if (y < 0) y = 0;
-                var module = new ModuleObject()
+                else
                 {
-                    port = Port,
-                    x = x,
-                    y = y,
-                };
-                moduleStateManagement.changePositionAndPort(module);
-                moduleStateManagement.createModuleObject(Port);
+                    var x = Double.Parse(HorizontalX);
+                    if (x < 0) x = 0;
+                    var y = Double.Parse(VerticalY);
+                    if (y < 0) y = 0;
+                    var module = new ModuleObject()
+                    {
+                        port = Port,
+                        x = x,
+                        y = y,
+                    };
+                    moduleStore.ModuleObjects.Add(tmp_ModuleObject);
+                    moduleStateManagement.changePositionAndPort(module);
+                    moduleStateManagement.createModuleObject(Port);
+                }
             }
             CloseModule();
         }
@@ -189,9 +198,17 @@ namespace Simulator1.ViewModel
             var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
             if (moduleObject != null)
             {
-                moduleObject.mode = "MODE 3";
-                moduleObject.port = Port;
-                moduleStateManagement.updateParamsOfModule(moduleObject);
+                var tmp_moduleObject = new ModuleObject()
+                {
+                    x = moduleObject.x,
+                    y = moduleObject.y,
+                    parameters = moduleObject.parameters,
+                    id = moduleObject.id,
+                    type = moduleObject.type,
+                };
+                tmp_moduleObject.mode = "MODE 3";
+                tmp_moduleObject.port = Port;
+                moduleStateManagement.updateParamsOfModule(tmp_moduleObject);
             }
             else
             {
@@ -207,12 +224,13 @@ namespace Simulator1.ViewModel
                 */
             }
         }
-        private void OnConfigHardwareSuccess(string portName)
+        private void OnConfigHardwareSuccess(ModuleObject moduleObject)
         {
             IsEnableSave = true;
-           /* var tmp_listPort = ListPort;
-            tmp_listPort.Remove(portName);
-            ListPort= tmp_listPort;*/
+            tmp_ModuleObject = moduleObject;
+            /* var tmp_listPort = ListPort;
+             tmp_listPort.Remove(portName);
+             ListPort= tmp_listPort;*/
         }
         private void OnCurrentViewModelChanged()
         {

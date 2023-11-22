@@ -12,6 +12,7 @@ namespace Environment.Model.Packet
         //module type
         public const byte LORA = 0x01;
         public const byte ZIGBEE = 0x02;
+        public const byte UNK = 0xff;
         //cmd word
         public const byte ACTIVE = 0x00;
         public const byte READCONFIG = 0x01;
@@ -91,6 +92,7 @@ namespace Environment.Model.Packet
     }
     public class PacketTransferToView
     {
+        public string type { get; set; }
         public string portName { get; set; }
         public DataProcessed packet { get; set; }
     }

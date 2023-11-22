@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Environment.Model.Module;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,7 @@ namespace Environment.Model.History
 {
     public class ModuleHistory
     {
-        public string id { get; set; }
-        public string type { get; set; }
-        public string portName { get; set; }
+        public ModuleObject moduleObject { get; set; }
         public ConcurrentQueue<HistoryObjectIn> historyObjectIns= new ConcurrentQueue<HistoryObjectIn>();
         public ConcurrentQueue<HistoryObjectOut> historyObjectOuts= new ConcurrentQueue<HistoryObjectOut>();
     }
