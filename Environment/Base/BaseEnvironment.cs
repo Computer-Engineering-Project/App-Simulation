@@ -26,8 +26,6 @@ namespace Environment.Base
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
         //public Thread Collision { get; set; }
-        public Thread readDataFromHw;
-        public Thread runProgram;
 
         private readonly ICommunication communication;
 
@@ -221,14 +219,6 @@ namespace Environment.Base
                                 }*/
             }
         }
-        // After setup done, now Run
-        public void Run()
-        {
-            readDataFromHw = new Thread(createSerialPortInitial);
-            readDataFromHw.Start();
-            runProgram = new Thread(RunProgram);
-            runProgram.Start();
-        }
         public void RunProgram()
         {
             /*transferDataToView = new Thread(transferInPacketToView);
@@ -420,68 +410,24 @@ namespace Environment.Base
             }
         }
 
-        /*//Function listen from hardware
-        private string listenConfigFromHardware(SerialPort serialPort)
+        public void Pause()
         {
-            byte[] buffer = new byte[58];
-            var numOfBytes = serialPort.Read(buffer, 0, 58);
-            if (numOfBytes > 0)
+            State = IDLE;
+            foreach (var hw in Devices)
             {
-                //execute buffer here
-                return "";
+                hw.serialport.Close();
             }
-            return "";
-        }*/
-        //Function add packet from hardware to queue in
-
-
-        //Function add packet from queue out to hardware
-        /*private void addToQueueOut(object sender, SerialDataReceivedEventArgs e)
+        }
+        public void Stop()
         {
-            if (State == RUN)
+            State = STOP;
+            foreach (var hw in Devices)
             {
-
+                hw.readDataFromHardware.Join();
+                hw.transferDataIn.Join();
+                hw.transferDataOut.Join();
             }
-
-        }*/
-
-        /*private void transferInPacketToView()
-        {
-            var listTransferedPacket = new List<PacketTransferToView>();
-            foreach (var hw in HardwareGoIn)
-            {
-                var cpy_queue = hw.packetQueue;
-                if (cpy_queue.TryDequeue(out PacketTransmit packet))
-                {
-                    listTransferedPacket.Add(new PacketTransferToView()
-                    {
-                        portName = hw.serialport.PortName,
-                        packet = packet,
-                    });
-
-                }
-            }
-            
-        }*/
-
-
-        
-        
-        /*public void createThreadRunning()
-        {
-        }*/
-
-        // Stop program =====
-        /*        public void Stop()
-                {
-                    foreach (var hw in Devices)
-                    {
-                        hw.serialport.Close();
-                        hw.transferDataIn.Abort();
-                        hw.transferDataOut.Abort();
-                    }
-                }*/
-
+        }
 
     }
 }
