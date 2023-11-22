@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Environment.Model.Module;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace Environment.Model.Packet
         //module type
         public const byte LORA = 0x01;
         public const byte ZIGBEE = 0x02;
+        public const byte UNK = 0xff;
         //cmd word
         public const byte ACTIVE = 0x00;
         public const byte READCONFIG = 0x01;
@@ -63,10 +65,34 @@ namespace Environment.Model.Packet
                 this.data += data[i].ToString("X2");
             }
         }
+        public DataProcessed(string fixedMode, byte[] data)
+        {
+            if(fixedMode == FixedMode.FIXED)
+            {
+                this.address = "";
+                this.channel = "";
+                this.data = "";
+                for (int i = 0; i < data.Length; i++)
+                {
+                    this.data += data[i].ToString("X2");
+                }
+            }
+            else
+            {
+                this.address = data[0].ToString("X2") + data[1].ToString("X2");
+                this.channel = data[2].ToString("X2");
+                this.data = "";
+                for (int i = 3; i < data.Length; i++)
+                {
+                    this.data += data[i].ToString("X2");
+                }
+            }
+        }
 
     }
     public class PacketTransferToView
     {
+        public string type { get; set; }
         public string portName { get; set; }
         public DataProcessed packet { get; set; }
     }
