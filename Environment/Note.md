@@ -8,3 +8,7 @@
 ## 21/11/2023
 - Tạo dropdown list cho user chọn module
 - Tạo dropdown list "File", bao gồm các chức năng: New, Open, Save, Save as, Exit
+- sửa delete 
+- sửa selectedhistoryitem
+- realtime binding
+

@@ -25,6 +25,7 @@ namespace Environment.Base
         public List<SerialPort> SerialPorts = new List<SerialPort>();
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
+        public string portClicked { get; set; }
         //public Thread Collision { get; set; }
         public Thread readDataFromHw;
         public Thread runProgram;
@@ -106,7 +107,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            return true;
+/*            return true;*/
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -253,6 +254,7 @@ namespace Environment.Base
                     hw.transferDataOut.Start();
                 }
             }
+            communication.sendMessageIsRunning();
         }
         // transfer data from queue in to destination device
         private void transferDataToDestinationDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
@@ -268,7 +270,7 @@ namespace Environment.Base
                             type = "out",
                             portName = serialPort.PortName,
                             packet = packet,
-                        });
+                        }, portClicked);
                         var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
                         if (inter_packet != null)
                         {
