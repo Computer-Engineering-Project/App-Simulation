@@ -2,15 +2,8 @@
 using Environment.Model.Module;
 using Environment.Model.Packet;
 using Environment.Service.Interface;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO.Ports;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Environment.Base
 {
@@ -18,7 +11,7 @@ namespace Environment.Base
     {
         public readonly int IDLE = 0;
         public readonly int RUN = 1;
-        public readonly int STOP = 2;
+        public readonly int PAUSE = 2;
         public int State;
 
         public List<string> Ports = new List<string>();
@@ -74,7 +67,6 @@ namespace Environment.Base
         // Description: connect hardware
         public void ActiveHardwareDevice(string port)
         {
-
             var serialport = SerialPorts.FirstOrDefault(e => e.PortName == port);
             if (serialport != null)
             {
@@ -83,6 +75,7 @@ namespace Environment.Base
                 {
                     serialport.Write(stringActive, 0, stringActive.Length);
                 }
+
                 return;
             }
         }
@@ -105,7 +98,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            return true;
+            /*            return true;*/
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -177,14 +170,13 @@ namespace Environment.Base
                 }
 
             }
-            if (State == IDLE)
+            while (State == PAUSE)
             {
                 Pause();
                 communication.sendMessageIsIdle();
             }
-            else if (State == STOP)
+            if (State == IDLE)
             {
-                Stop();
                 communication.sendMessageIsStop();
             }
         }
@@ -279,14 +271,13 @@ namespace Environment.Base
                     }
                 }
             }
-            if (State == IDLE)
+            while (State == PAUSE)
             {
                 Pause();
                 communication.sendMessageIsIdle();
             }
-            else if (State == STOP)
+            if (State == IDLE)
             {
-                Stop();
                 communication.sendMessageIsStop();
             }
         }
@@ -436,24 +427,23 @@ namespace Environment.Base
                     }
                 }
             }
-            if (State == IDLE)
+            while (State == PAUSE)
             {
                 Pause();
                 communication.sendMessageIsIdle();
             }
-            else if (State == STOP)
+            if (State == IDLE)
             {
-                Stop();
                 communication.sendMessageIsStop();
             }
         }
         //Pause program ======
         public void Pause()
         {
-            foreach (var hw in Devices)
+            /*foreach (var hw in Devices)
             {
                 hw.serialport.Close();
-            }
+            }*/
         }
 
         // Stop program =====
@@ -461,10 +451,10 @@ namespace Environment.Base
         {
             foreach (var hw in Devices)
             {
-                hw.serialport.Close();
-                hw.readDataFromHardware.Join();
+                /*hw.readDataFromHardware.Join();
                 hw.transferDataIn.Join();
-                hw.transferDataOut.Join();
+                hw.transferDataOut.Join();*/
+                hw.serialport.Close();
             }
         }
         /*//Function listen from hardware

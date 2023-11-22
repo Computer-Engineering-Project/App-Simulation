@@ -223,7 +223,8 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteConfigHardware()
         {
-            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id || x.id == tmp_moduleObject.id);
+            
+            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
             if (moduleObject != null)
             {
                 var tmp_moduleObject = new ModuleObject()

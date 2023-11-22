@@ -69,7 +69,7 @@ namespace Environment.Service
 
         public void Stop()
         {
-            environment.State = environment.STOP;
+            environment.State = environment.IDLE;
         }
 
         public void passPortClicked(string portName)
@@ -79,7 +79,7 @@ namespace Environment.Service
 
         public void Pause()
         {
-            environment.State = environment.IDLE;
+            environment.State = environment.PAUSE;
         }
     }
 }

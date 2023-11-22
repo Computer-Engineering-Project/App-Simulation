@@ -21,6 +21,7 @@ using Environment.Model.History;
 using Simulator1.Service;
 using System.Windows.Threading;
 using Environment.Model.VMParameter;
+using System.Media;
 
 namespace Simulator1.ViewModel
 {
@@ -37,6 +38,9 @@ namespace Simulator1.ViewModel
 
         private bool isEnableStop = false;
         public bool IsEnableStop { get => isEnableStop; set { isEnableStop = value; OnPropertyChanged(); } }
+
+        private bool isEnablePause = false;
+        public bool IsEnablePause { get => isEnablePause; set { isEnablePause = value; OnPropertyChanged(); } }
 
         private bool isEnableRun = true;
         public bool IsEnableRun { get => isEnableRun; set { isEnableRun = value; OnPropertyChanged(); } }
@@ -115,7 +119,7 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement.DeleteModule += OnDeleteModule;
             this.mainStateManagement.IsRunningNow += OnIsRunningNow;
             this.mainStateManagement.IsIdleNow += OnIsIdleNow;
-            this.mainStateManagement.IsStopNow += OnIsStopNow;
+            this.mainStateManagement.IsPauseNow += OnIsPauseNow;
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
@@ -144,22 +148,23 @@ namespace Simulator1.ViewModel
         private void OnIsRunningNow()
         {
             IsEnableRun = false;
+            IsEnablePause = true;
             IsEnableStop = true;
         }
         private void OnIsIdleNow()
         {
             IsEnableRun = true;
-            IsEnableStop = true;
-        }
-        private void OnIsStopNow()
-        {
-            
-            IsEnableRun = true;
+            IsEnablePause = false;
             IsEnableStop = false;
+        }
+        private void OnIsPauseNow()
+        {
+            IsEnableRun = true;
+            IsEnablePause = false;
+            IsEnableStop = true;
         }
         private void OnUpdateHistoryOut(string portName)
         {
-
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == portName);
             if (moduleHistory != null)
             {
@@ -180,6 +185,17 @@ namespace Simulator1.ViewModel
             Ports = new ObservableCollection<ButtonPort>(ports);
             IsEnableHistory = false;
         }
+        private void OnDeleteModule(string portName)
+        {
+            var tmp_ports = Ports;
+            var p = tmp_ports.FirstOrDefault(x => x.PortName == portName);
+            if (p != null)
+            {
+                p.Color = "Wheat";
+            }
+            Ports = tmp_ports;
+        }
+        //Command handler
         private void ExecuteAutoSavePosition(object positionObject)
         {
             string json = JsonConvert.SerializeObject(positionObject);
@@ -215,17 +231,6 @@ namespace Simulator1.ViewModel
 
             ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
         }
-        private void OnDeleteModule(string portName)
-        {
-            var tmp_ports = Ports;
-            var p = tmp_ports.FirstOrDefault(x => x.PortName == portName);
-            if (p != null)
-            {
-                p.Color = "Wheat";
-            }
-            Ports = tmp_ports;
-        }
-        //Command handler
         private void ExecuteClickPort(string portName)
         {
             serviceProvider.GetRequiredService<IEnvironmentService>().passPortClicked(portName);
@@ -251,9 +256,6 @@ namespace Simulator1.ViewModel
         private void OpenDialog(string portName)
         {
             IsDialogOpen = true;
-            /*ModuleParameterViewModel = new ModuleParameterViewModel(moduleParamStore, moduleStateManagement, moduleStorePosition);
-            ModuleParameterViewModel.Port = port;
-            ModuleParameterViewModel.Save += CloseDialog;*/
             var tmp_Ports = Ports.Select(x => x.PortName).ToList();
             foreach (var port in Ports)
             {
@@ -266,23 +268,17 @@ namespace Simulator1.ViewModel
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().startPort(portName);
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
-                /*((ModuleParameterViewModel)CurrentModuleViewModel).Port = portName;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);
-                
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = false;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;*/
                 moduleStateManagement.updateModuleVMParams(new ModuleParameterVM()
                 {
                     port = portName,
                     listPort = tmp_Ports,
                     isEnableDelete = false,
-                    isEnablePortSelect= false,
-                }) ;
+                    isEnablePortSelect = false,
+                });
             }
         }
         private void ExecuteOpenUpdateModule(ModuleObject module)
         {
-            /*TestText= port;*/
             IsDialogOpen = true;
             var tmp_Ports = Ports.Select(x => x.PortName).ToList();
             foreach (var port in Ports)
@@ -301,22 +297,17 @@ namespace Simulator1.ViewModel
                     listPort = tmp_Ports,
                     isUpdate = "true"
                 };
-                /*((ModuleParameterViewModel)CurrentModuleViewModel).Id = module.id;
-                ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnableDelete = true;*/
+
                 if (module.port != null)
                 {
                     serviceProvider.GetRequiredService<IEnvironmentService>().startPort(module.port);
-                    /*((ModuleParameterViewModel)CurrentModuleViewModel).Port = module.port;
-                    ((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = false;*/
                     moduleParameterVM.port = module.port;
                     moduleParameterVM.isEnablePortSelect = false;
                 }
                 else
                 {
-                    /*((ModuleParameterViewModel)CurrentModuleViewModel).IsEnablePortSelect = true;*/
-                    moduleParameterVM.isEnablePortSelect= true;
+                    moduleParameterVM.isEnablePortSelect = true;
                 }
-                /*((ModuleParameterViewModel)CurrentModuleViewModel).ListPort = new ObservableCollection<string>(tmp_Ports);*/
                 ((ModuleParameterViewModel)CurrentModuleViewModel).Save += CloseDialog;
                 moduleStateManagement.updateModuleVMParams(moduleParameterVM);
             }
@@ -333,7 +324,6 @@ namespace Simulator1.ViewModel
                         {
                             x = module.x,
                             y = module.y,
-
                         });
                     }
                 }
@@ -390,9 +380,12 @@ namespace Simulator1.ViewModel
         private void DectectActionSelectedColumn()
         {
             //todo
-            SourceHistory = SelectedItemHistory.Source;
-            DataHistory = SelectedItemHistory.Data;
-            DelayTimeHistory = SelectedItemHistory.DelayTime == null? "Na/N": SelectedItemHistory.DelayTime;
+            if (SelectedItemHistory != null)
+            {
+                SourceHistory = SelectedItemHistory.Source;
+                DataHistory = SelectedItemHistory.Data;
+                DelayTimeHistory = SelectedItemHistory.DelayTime == null ? "Na/N" : SelectedItemHistory.DelayTime;
+            }
         }
 
         //Dispose
@@ -450,20 +443,17 @@ namespace Simulator1.ViewModel
 
         public void sendMessageIsRunning()
         {
-            MessageBox.Show("Is running now");
             mainStateManagement.isRunningNow();
         }
 
         public void sendMessageIsIdle()
         {
-            MessageBox.Show("Is idle now");
             mainStateManagement.isIdleNow();
         }
 
         public void sendMessageIsStop()
         {
-            MessageBox.Show("Is stop now");
-            mainStateManagement.isStopNow();
+            mainStateManagement.isPauseNow();
         }
     }
 }
