@@ -101,5 +101,6 @@ namespace Environment.Model.Packet
         public DataProcessed packet { get; set;}
         public double DelayTime { get; set;}
         public string? PreambleCode { get; set;}
+        public bool IsCoverageArea { get; set;}
     }
 }

@@ -1,4 +1,5 @@
-﻿using Environment.Model.Packet;
+﻿using Environment.Model.Module;
+using Environment.Model.Packet;
 using MathNet.Numerics.Distributions;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,11 @@ namespace Environment.Base
             double transmissionPower_dbm = Double.Parse(transmissionPower);
             double rhs = (transmissionPower_dbm - PL_d0_db - max_sensitivity) / (10 * gamma);
             double distance = d0 * Math.Pow(10, rhs);
+            return distance;
+        }
+        public static double computeDistance2Device(ModuleObject sender, ModuleObject receiver)
+        {
+            double distance = Math.Sqrt(Math.Pow(receiver.x - sender.x, 2) + Math.Pow(receiver.y - sender.y, 2));
             return distance;
         }
         public static double computePathLoss(double src_x, double src_y, double des_x, double des_y)

@@ -25,7 +25,9 @@ namespace Environment.Model
         public Thread transferDataIn { get; set; }
         public Thread transferDataOut { get; set; }
         public ModuleObject moduleObject { get; set; }
+
         public ConcurrentQueue<DataProcessed> packetQueueIn = new ConcurrentQueue<DataProcessed>();
+
         public ConcurrentQueue<InternalPacket> packetQueueOut = new ConcurrentQueue<InternalPacket>();
 
     }

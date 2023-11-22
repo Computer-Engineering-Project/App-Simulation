@@ -163,6 +163,7 @@ namespace Environment.Base
         {
             while (State == RUN)
             {
+                sender.DiscardInBuffer();
                 byte[] buffer = Helper.GetDataFromHardware(sender);
                 if (buffer.Length > 0)
                 {
@@ -287,6 +288,8 @@ namespace Environment.Base
             if (moduleObject.type == ModuleObject.LORA)
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
+                /*double range = CaculateService.computeRange(parameter.Power);
+                double distance = CaculateService.computeDistance2Device(moduleObject, );*/
                 switch (mode)
                 {
                     case NodeDevice.MODE_NORMAL:
@@ -312,7 +315,7 @@ namespace Environment.Base
             }
         }
         // Push package into destination device
-        private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
+        private async void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
         {
             if (moduleObject.type == ModuleObject.LORA)
             {
@@ -333,14 +336,22 @@ namespace Environment.Base
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
                                     {
-                                        hw.packetQueueOut.Enqueue(packet);
+                                        await Task.Run(() =>
+                                        {
+                                            Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                            hw.packetQueueOut.Enqueue(packet);
+                                        }); 
                                     }
                                     else if (hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         // check preamble code
                                         if (packet.PreambleCode != null)
                                         {
-                                            hw.packetQueueOut.Enqueue(packet);
+                                            await Task.Run(() =>
+                                            {
+                                                Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                                hw.packetQueueOut.Enqueue(packet);
+                                            });
                                         }
                                     }
                                 }
@@ -422,6 +433,7 @@ namespace Environment.Base
                          */
 
                         // format packet before send, follow protocol
+                        serialPort.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
                         serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
                     }
