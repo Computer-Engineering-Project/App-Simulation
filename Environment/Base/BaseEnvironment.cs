@@ -98,7 +98,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            return true;
+            //return true;
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -163,8 +163,9 @@ namespace Environment.Base
         {
             while (State == RUN)
             {
-                /*sender.DiscardInBuffer();*/
+
                 byte[] buffer = Helper.GetDataFromHardware(sender);
+                /*sender.DiscardInBuffer();*/
                 if (buffer.Length > 0)
                 {
                     addToQueueIn(buffer, sender);
@@ -290,18 +291,25 @@ namespace Environment.Base
                 var parameter = (LoraParameterObject)moduleObject.parameters;
                 /*double range = CaculateService.computeRange(parameter.Power);
                 double distance = CaculateService.computeDistance2Device(moduleObject, );*/
+                if(parameter.FixedMode == FixedMode.BROARDCAST)
+                {
+                    packet.address = parameter.Address;
+                    packet.channel = parameter.Channel;
+                }
                 switch (mode)
                 {
                     case NodeDevice.MODE_NORMAL:
                         return new InternalPacket()
                         {
                             packet = packet,
+                            sourceModule = moduleObject,
                             DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                         };
                     case NodeDevice.MODE_WAKEUP:
                         return new InternalPacket()
                         {
                             packet = packet,
+                            sourceModule = moduleObject,
                             DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                             PreambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime))
                         };
@@ -331,7 +339,7 @@ namespace Environment.Base
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
-                                if (hw_loraParameters.DestinationChannel == destinationChannel)
+                                if (hw_loraParameters.Channel == packet.packet.channel && hw_loraParameters.Address != packet.packet.address)
                                 {
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
@@ -340,7 +348,7 @@ namespace Environment.Base
                                         {
                                             Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
                                             hw.packetQueueOut.Enqueue(packet);
-                                        }); 
+                                        });
                                     }
                                     else if (hw.mode == NodeDevice.MODE_WAKEUP)
                                     {

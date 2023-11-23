@@ -457,7 +457,7 @@ namespace Simulator1.ViewModel
                     newHistoryObject = new HistoryObject()
                     {
                         Id = length + 1,
-                        Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel
+                        Source = "Port: " + transferedPacket.packet.sourceModule.port
                     };
                 }
                 else if (moduleHistory.moduleObject.type == ModuleObject.ZIGBEE)

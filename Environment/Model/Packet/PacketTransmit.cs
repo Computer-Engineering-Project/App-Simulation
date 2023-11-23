@@ -108,5 +108,6 @@ namespace Environment.Model.Packet
         public double DelayTime { get; set;}
         public string? PreambleCode { get; set;}
         public bool IsCoverageArea { get; set;}
+        public ModuleObject sourceModule { get; set;}
     }
 }
