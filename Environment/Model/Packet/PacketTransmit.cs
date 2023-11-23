@@ -90,16 +90,24 @@ namespace Environment.Model.Packet
         }
 
     }
-    public class PacketTransferToView
+    public class PacketSendTransferToView
     {
         public string type { get; set; }
         public string portName { get; set; }
         public DataProcessed packet { get; set; }
+    }
+    public class PacketReceivedTransferToView
+    {
+        public string type { get; set; }
+        public string portName { get; set; }
+        public InternalPacket packet { get; set; }
     }
     public class InternalPacket
     {
         public DataProcessed packet { get; set;}
         public double DelayTime { get; set;}
         public string? PreambleCode { get; set;}
+        public bool IsCoverageArea { get; set;}
+        public ModuleObject sourceModule { get; set;}
     }
 }

@@ -145,51 +145,58 @@ namespace Simulator1.ViewModel
         }
         private void GenerateModule()
         {
-            if (!string.IsNullOrEmpty(HorizontalX) && !string.IsNullOrEmpty(VerticalY))
+            var random = new Random();
+            if (string.IsNullOrEmpty(HorizontalX))
             {
-                if (IsUpdate != "true")
-                {
-                    var x = Double.Parse(HorizontalX);
-                    if (x < 0) x = 0;
-                    var y = Double.Parse(VerticalY);
-                    if (y < 0) y = 0;
-                    tmp_ModuleObject.x = x;
-                    tmp_ModuleObject.y = y;
-                    moduleStore.ModuleObjects.Add(tmp_ModuleObject);
-                    historyDataStore.ModuleHistories.Add(new ModuleHistory()
-                    {
-                        moduleObject = tmp_ModuleObject,
-                    });
-                    moduleStateManagement.createModuleObject(Port);
-                }
-                else
-                {
-                    var x = Double.Parse(HorizontalX);
-                    if (x < 0) x = 0;
-                    var y = Double.Parse(VerticalY);
-                    if (y < 0) y = 0;
-                    var module = new ModuleObject()
-                    {
-                        port = Port,
-                        x = x,
-                        y = y,
-                    };
-                    foreach (var m in moduleStore.ModuleObjects)
-                    {
-                        if (m.id == tmp_ModuleObject.id)
-                        {
-                            m.port = tmp_ModuleObject.port;
-                            m.y = tmp_ModuleObject.y;
-                            m.x = tmp_ModuleObject.x;
-                            m.mode = tmp_ModuleObject.mode;
-                            m.parameters = tmp_ModuleObject.parameters;
-                            m.type = tmp_ModuleObject.type;
-                        }
-                    }
-                    moduleStateManagement.changePositionAndPort(module);
-                    moduleStateManagement.createModuleObject(Port);
-                }
+                HorizontalX = random.Next(501).ToString();
             }
+            if(string.IsNullOrEmpty(VerticalY))
+            {
+                VerticalY = random.Next(501).ToString();
+            }
+            if (IsUpdate != "true")
+            {
+                var x = Double.Parse(HorizontalX);
+                if (x < 0) x = 0;
+                var y = Double.Parse(VerticalY);
+                if (y < 0) y = 0;
+                tmp_ModuleObject.x = x;
+                tmp_ModuleObject.y = y;
+                moduleStore.ModuleObjects.Add(tmp_ModuleObject);
+                historyDataStore.ModuleHistories.Add(new ModuleHistory()
+                {
+                    moduleObject = tmp_ModuleObject,
+                });
+                moduleStateManagement.createModuleObject(Port);
+            }
+            else
+            {
+                var x = Double.Parse(HorizontalX);
+                if (x < 0) x = 0;
+                var y = Double.Parse(VerticalY);
+                if (y < 0) y = 0;
+                var module = new ModuleObject()
+                {
+                    port = Port,
+                    x = x,
+                    y = y,
+                };
+                foreach (var m in moduleStore.ModuleObjects)
+                {
+                    if (m.id == tmp_ModuleObject.id)
+                    {
+                        m.port = tmp_ModuleObject.port;
+                        m.y = tmp_ModuleObject.y;
+                        m.x = tmp_ModuleObject.x;
+                        m.mode = tmp_ModuleObject.mode;
+                        m.parameters = tmp_ModuleObject.parameters;
+                        m.type = tmp_ModuleObject.type;
+                    }
+                }
+                moduleStateManagement.changePositionAndPort(module);
+                moduleStateManagement.createModuleObject(Port);
+            }
+
             CloseModule();
         }
         private void DeleteModule()
@@ -223,7 +230,7 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteConfigHardware()
         {
-            
+
             var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
             if (moduleObject != null)
             {

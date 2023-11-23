@@ -7,7 +7,8 @@ namespace Environment.Service.Interface
         public void sendMessageIsRunning();
         public void sendMessageIsIdle();
         public void sendMessageIsStop();
-        public void showQueueReceivedFromHardware(PacketTransferToView listTransferedPacket, string portClicked);
+        public void showQueueReceivedFromHardware(PacketSendTransferToView transferedPacket, string portClicked);
+        public void showQueueReceivedFromOtherDevice(PacketReceivedTransferToView transferedPacket, string portClicked);
         public void deviceChangeMode(int mode, string port);
     }
 }

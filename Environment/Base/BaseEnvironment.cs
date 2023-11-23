@@ -98,7 +98,7 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            /*            return true;*/
+            //return true;
             if (serialport != null)
             {
                 if (module == ModuleObject.LORA)
@@ -163,7 +163,9 @@ namespace Environment.Base
         {
             while (State == RUN)
             {
+
                 byte[] buffer = Helper.GetDataFromHardware(sender);
+                /*sender.DiscardInBuffer();*/
                 if (buffer.Length > 0)
                 {
                     addToQueueIn(buffer, sender);
@@ -257,9 +259,9 @@ namespace Environment.Base
                 {
                     if (packetQueue.TryDequeue(out DataProcessed packet))
                     {
-                        communication.showQueueReceivedFromHardware(new PacketTransferToView()
+                        communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
                         {
-                            type = "out",
+                            type = "in",
                             portName = serialPort.PortName,
                             packet = packet,
                         }, portClicked);
@@ -287,18 +289,27 @@ namespace Environment.Base
             if (moduleObject.type == ModuleObject.LORA)
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
+                /*double range = CaculateService.computeRange(parameter.Power);
+                double distance = CaculateService.computeDistance2Device(moduleObject, );*/
+                if(parameter.FixedMode == FixedMode.BROARDCAST)
+                {
+                    packet.address = parameter.Address;
+                    packet.channel = parameter.Channel;
+                }
                 switch (mode)
                 {
                     case NodeDevice.MODE_NORMAL:
                         return new InternalPacket()
                         {
                             packet = packet,
+                            sourceModule = moduleObject,
                             DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                         };
                     case NodeDevice.MODE_WAKEUP:
                         return new InternalPacket()
                         {
                             packet = packet,
+                            sourceModule = moduleObject,
                             DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
                             PreambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime))
                         };
@@ -328,19 +339,27 @@ namespace Environment.Base
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
-                                if (hw_loraParameters.DestinationChannel == destinationChannel)
+                                if (hw_loraParameters.Channel == packet.packet.channel && hw_loraParameters.Address != packet.packet.address)
                                 {
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
                                     {
-                                        hw.packetQueueOut.Enqueue(packet);
+                                        Task task = Task.Run(() =>
+                                        {
+                                            Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                            hw.packetQueueOut.Enqueue(packet);
+                                        });
                                     }
                                     else if (hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         // check preamble code
                                         if (packet.PreambleCode != null)
                                         {
-                                            hw.packetQueueOut.Enqueue(packet);
+                                            Task task = Task.Run(() =>
+                                            {
+                                                Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                                hw.packetQueueOut.Enqueue(packet);
+                                            });
                                         }
                                     }
                                 }
@@ -420,8 +439,14 @@ namespace Environment.Base
                         /*create task to delay time and after that send packet to hardware
                          * To do: caculate delay time
                          */
-
+                        communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
+                        {
+                            type = "out",
+                            portName = serialPort.PortName,
+                            packet = packet,
+                        }, portClicked);
                         // format packet before send, follow protocol
+                        serialPort.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
                         serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
                     }

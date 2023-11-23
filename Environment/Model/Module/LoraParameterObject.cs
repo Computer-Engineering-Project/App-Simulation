@@ -8,8 +8,8 @@ namespace Environment.Model.Module
 {
     public class FixedMode
     {
-        public const string FIXED = "0";
-        public const string BROARDCAST = "1";
+        public const string FIXED = "1";
+        public const string BROARDCAST = "0";
     }
     public class IOMode
     {
