@@ -116,103 +116,143 @@ namespace Simulator1.ViewModel
 
         private LoraParameterObject createLoraParamsObject()
         {
-            Address = Address == null ? "FFFF" : Address;
-            Channel = Channel == null ? "17" : Channel;
-            UartRate = UartRate == null ? "9600" : UartRate;
-            AirRate = AirRate == null ? "2.4" : AirRate;
-            PowerTransmit = PowerTransmit == null ? "20" : PowerTransmit;
-            FixedMode = FixedMode == null ? "0" : FixedMode;
-            WORTime = WORTime == null ? "250" : WORTime;
-            Parity = Parity == null ? "8N1" : Parity;
-            IOMode = IOMode == null ? "1" : IOMode;
-            FEC = FEC == null ? "2.4" : FEC;
-
-            return new LoraParameterObject()
+            try
             {
-                UartRate = UartRate,
-                Address = Address,
-                Channel = Channel,
-                AirRate = AirRate,
-                Power = PowerTransmit,
-                FixedMode = FixedMode,
-                WORTime = WORTime,
-                Parity = Parity,
-                IOMode = IOMode,
-                FEC = FEC,
-                DestinationAddress = DestinationAddress,
-                DestinationChannel = DestinationChannel
-            };
-        }
-        private void OnCreateLoraParameter(ModuleObject module)
-        {
-            var loraParams = createLoraParamsObject();
-            module.parameters = loraParams;
-            module.type = "lora";
+                Address = Address == null ? "FFFF" : Address;
+                Channel = Channel == null ? "17" : Channel;
+                UartRate = UartRate == null ? "9600" : UartRate;
+                AirRate = AirRate == null ? "2.4" : AirRate;
+                PowerTransmit = PowerTransmit == null ? "20" : PowerTransmit;
+                FixedMode = FixedMode == null ? "0" : FixedMode;
+                WORTime = WORTime == null ? "250" : WORTime;
+                Parity = Parity == null ? "8N1" : Parity;
+                IOMode = IOMode == null ? "1" : IOMode;
+                FEC = FEC == null ? "2.4" : FEC;
 
-            /*            moduleStore.ModuleObjects.Add(module);*/
+                return new LoraParameterObject()
+                {
+                    UartRate = UartRate,
+                    Address = Address,
+                    Channel = Channel,
+                    AirRate = AirRate,
+                    Power = PowerTransmit,
+                    FixedMode = FixedMode,
+                    WORTime = WORTime,
+                    Parity = Parity,
+                    IOMode = IOMode,
+                    FEC = FEC,
+                    DestinationAddress = DestinationAddress,
+                    DestinationChannel = DestinationChannel
+                };
+            }
+            catch (Exception e)
+            {
 
-            var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
-            {
-                module = module.type,
-                id = module.id,
-                baudrate = loraParams.UartRate
-            });
-            if (result)
-            {
-                moduleStateManagement.configHardwareSuccess(module);
-                MessageBox.Show("config object success!");
+                MessageBox.Show("Lora paramter view model " + "createLoraParamsObject " + e);
+                return null;
             }
 
         }
-        private void OnUpdateParamsOfModule(ModuleObject moduleObject)
+        private void OnCreateLoraParameter(ModuleObject module)
         {
-            if (moduleObject.type == "lora")
+            try
             {
                 var loraParams = createLoraParamsObject();
-                moduleObject.parameters = loraParams;
+                module.parameters = loraParams;
+                module.type = "lora";
 
-                var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
+                /*            moduleStore.ModuleObjects.Add(module);*/
+
+                var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
                 {
-                    module = moduleObject.type,
-                    id = moduleObject.id,
+                    module = module.type,
+                    id = module.id,
                     baudrate = loraParams.UartRate
                 });
                 if (result)
                 {
-                    moduleStateManagement.configHardwareSuccess(moduleObject);
+                    moduleStateManagement.configHardwareSuccess(module);
                     MessageBox.Show("config object success!");
                 }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Lora paramter view model " + "OnCreateLoraParameter " + e);
+            }
+        }
+        private void OnUpdateParamsOfModule(ModuleObject moduleObject)
+        {
+            try
+            {
+                if (moduleObject.type == "lora")
+                {
+                    var loraParams = createLoraParamsObject();
+                    moduleObject.parameters = loraParams;
+
+                    var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
+                    {
+                        module = moduleObject.type,
+                        id = moduleObject.id,
+                        baudrate = loraParams.UartRate
+                    });
+                    if (result)
+                    {
+                        moduleStateManagement.configHardwareSuccess(moduleObject);
+                        MessageBox.Show("config object success!");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Lora paramter view model " + "OnUpdateParamsOfModule " + e);
+            }
+            
         }
         private void OnOpenUpdateLoraParamter(LoraParameterObject loraParams)
         {
-            Address = loraParams.Address;
-            Channel = loraParams.Channel;
-            AirRate = loraParams.AirRate;
-            PowerTransmit = loraParams.Power;
-            FixedMode = loraParams.FixedMode;
-            WORTime = loraParams.WORTime;
-            Parity = loraParams.Parity;
-            IOMode = loraParams.IOMode;
-            FEC = loraParams.FEC;
-            UartRate = loraParams.UartRate;
-            DestinationChannel = loraParams.DestinationChannel;
-            DestinationAddress = loraParams.DestinationAddress;
+            try
+            {
+                Address = loraParams.Address;
+                Channel = loraParams.Channel;
+                AirRate = loraParams.AirRate;
+                PowerTransmit = loraParams.Power;
+                FixedMode = loraParams.FixedMode;
+                WORTime = loraParams.WORTime;
+                Parity = loraParams.Parity;
+                IOMode = loraParams.IOMode;
+                FEC = loraParams.FEC;
+                UartRate = loraParams.UartRate;
+                DestinationChannel = loraParams.DestinationChannel;
+                DestinationAddress = loraParams.DestinationAddress;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Lora paramter view model " + "OnOpenUpdateLoraParamter " + e);
+            }
+            
         }
         private void OnReadConfigLoraParameter(Dictionary<string, string> listParams)
         {
-            Address = listParams["Address"];
-            Channel = listParams["Channel"];
-            AirRate = listParams["AirRate"];
-            PowerTransmit = listParams["Power"];
-            FixedMode = listParams["FixedMode"];
-            WORTime = listParams["WORTime"];
-            Parity = listParams["Parity"];
-            IOMode = listParams["IOMode"];
-            FEC = listParams["FEC"];
-            UartRate = listParams["UartRate"];
-            DestinationAddress = listParams["DestinationAddress"];
-            DestinationChannel = listParams["DestinationChannel"];
+            try
+            {
+                Address = listParams["Address"];
+                Channel = listParams["Channel"];
+                AirRate = listParams["AirRate"];
+                PowerTransmit = listParams["Power"];
+                FixedMode = listParams["FixedMode"];
+                WORTime = listParams["WORTime"];
+                Parity = listParams["Parity"];
+                IOMode = listParams["IOMode"];
+                FEC = listParams["FEC"];
+                UartRate = listParams["UartRate"];
+                DestinationAddress = listParams["DestinationAddress"];
+                DestinationChannel = listParams["DestinationChannel"];
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Lora paramter view model " + "OnReadConfigLoraParameter " + e);
+            }
+            
         }
         private void OnResetParameterModule()
         {

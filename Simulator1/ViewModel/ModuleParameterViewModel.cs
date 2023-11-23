@@ -11,8 +11,11 @@ using Simulator1.Store;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO.Ports;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -124,20 +127,28 @@ namespace Simulator1.ViewModel
         }
         private void OnUpdateParamterForVM(ModuleParameterVM moduleParameterVM)
         {
-            if (moduleParameterVM != null)
+            try
             {
-                HorizontalX = moduleParameterVM.horizontal_x;
-                VerticalY = moduleParameterVM.vertical_y;
-                ListPort = new ObservableCollection<string>(moduleParameterVM.listPort);
-                Port = moduleParameterVM.port;
-                Id = moduleParameterVM.id;
-                IsUpdate = moduleParameterVM.isUpdate;
-                ModuleType = moduleParameterVM.moduleType;
-                tmp_ModuleObject = moduleParameterVM.tmp_moduleObject;
-                IsEnableSave = moduleParameterVM.isEnableSave;
-                IsEnableDelete = moduleParameterVM.isEnableDelete;
-                IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
+                if (moduleParameterVM != null)
+                {
+                    HorizontalX = moduleParameterVM.horizontal_x;
+                    VerticalY = moduleParameterVM.vertical_y;
+                    ListPort = new ObservableCollection<string>(moduleParameterVM.listPort);
+                    Port = moduleParameterVM.port;
+                    Id = moduleParameterVM.id;
+                    IsUpdate = moduleParameterVM.isUpdate;
+                    ModuleType = moduleParameterVM.moduleType;
+                    tmp_ModuleObject = moduleParameterVM.tmp_moduleObject;
+                    IsEnableSave = moduleParameterVM.isEnableSave;
+                    IsEnableDelete = moduleParameterVM.isEnableDelete;
+                    IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
+                }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "OnUpdateParamterForVM " + e);
+            }
+            
         }
         private void ExecuteChangeModuleType(string type)
         {
@@ -145,120 +156,175 @@ namespace Simulator1.ViewModel
         }
         private void GenerateModule()
         {
-            var random = new Random();
-            if (string.IsNullOrEmpty(HorizontalX))
+            try
             {
-                HorizontalX = random.Next(501).ToString();
-            }
-            if(string.IsNullOrEmpty(VerticalY))
-            {
-                VerticalY = random.Next(501).ToString();
-            }
-            if (IsUpdate != "true")
-            {
-                var x = Double.Parse(HorizontalX);
-                if (x < 0) x = 0;
-                var y = Double.Parse(VerticalY);
-                if (y < 0) y = 0;
-                tmp_ModuleObject.x = x;
-                tmp_ModuleObject.y = y;
-                moduleStore.ModuleObjects.Add(tmp_ModuleObject);
-                historyDataStore.ModuleHistories.Add(new ModuleHistory()
+                var random = new Random();
+                if (string.IsNullOrEmpty(HorizontalX))
                 {
-                    moduleObject = tmp_ModuleObject,
-                });
-                moduleStateManagement.createModuleObject(Port);
-            }
-            else
-            {
-                var x = Double.Parse(HorizontalX);
-                if (x < 0) x = 0;
-                var y = Double.Parse(VerticalY);
-                if (y < 0) y = 0;
-                var module = new ModuleObject()
-                {
-                    port = Port,
-                    x = x,
-                    y = y,
-                };
-                foreach (var m in moduleStore.ModuleObjects)
-                {
-                    if (m.id == tmp_ModuleObject.id)
-                    {
-                        m.port = tmp_ModuleObject.port;
-                        m.y = tmp_ModuleObject.y;
-                        m.x = tmp_ModuleObject.x;
-                        m.mode = tmp_ModuleObject.mode;
-                        m.parameters = tmp_ModuleObject.parameters;
-                        m.type = tmp_ModuleObject.type;
-                    }
+                    HorizontalX = random.Next(501).ToString();
                 }
-                moduleStateManagement.changePositionAndPort(module);
-                moduleStateManagement.createModuleObject(Port);
-            }
+                if (string.IsNullOrEmpty(VerticalY))
+                {
+                    VerticalY = random.Next(501).ToString();
+                }
+                if (IsUpdate != "true")
+                {
+                    var x = Double.Parse(HorizontalX);
+                    if (x < 0) x = 0;
+                    var y = Double.Parse(VerticalY);
+                    if (y < 0) y = 0;
+                    tmp_ModuleObject.x = x;
+                    tmp_ModuleObject.y = y;
+                    moduleStore.ModuleObjects.Add(tmp_ModuleObject);
+                    historyDataStore.ModuleHistories.Add(new ModuleHistory()
+                    {
+                        moduleObject = tmp_ModuleObject,
+                    });
+                    moduleStateManagement.createModuleObject(Port);
+                }
+                else
+                {
+                    var x = Double.Parse(HorizontalX);
+                    if (x < 0) x = 0;
+                    var y = Double.Parse(VerticalY);
+                    if (y < 0) y = 0;
+                    var module = new ModuleObject()
+                    {
+                        port = Port,
+                        x = x,
+                        y = y,
+                    };
+                    foreach (var m in moduleStore.ModuleObjects)
+                    {
+                        if (m.id == tmp_ModuleObject.id)
+                        {
+                            if (tmp_ModuleObject.port == null)
+                            {
+                                tmp_ModuleObject.port = ListPort[0];
+                                module.port = ListPort[0];
+                            }
+                            m.port = tmp_ModuleObject.port;
+                            m.y = tmp_ModuleObject.y;
+                            m.x = tmp_ModuleObject.x;
+                            m.mode = tmp_ModuleObject.mode;
+                            m.parameters = tmp_ModuleObject.parameters;
+                            m.type = tmp_ModuleObject.type;
+                        }
+                    }
+                    moduleStateManagement.changePositionAndPort(module);
+                    moduleStateManagement.createModuleObject(module.port);
+                }
 
-            CloseModule();
+                CloseModule();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "GenerateModule " + e);
+            }
+            
         }
         private void DeleteModule()
         {
-            var module = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
-            if (module != null)
+            try
             {
-                moduleStateManagement.deleteModule(module.port);
-                moduleStore.ModuleObjects.Remove(module);
-                Save?.Invoke(module.port);
+                var module = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
+                if (module != null)
+                {
+                    Reset();
+                    this.moduleStateManagement.resetParameterModule();
+                    moduleStateManagement.deleteModule(module.port);
+                    moduleStore.ModuleObjects.Remove(module);
+                    Save?.Invoke(module.port);
+                }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "DeleteModule " + e);
+            }
+            
         }
         private void CloseModule()
         {
-            Save?.Invoke(Port);
-            this.HorizontalX = null;
-            this.VerticalY = null;
-            Reset();
-            this.moduleStateManagement.resetParameterModule();
+            try
+            {
+                Save?.Invoke(Port);
+                this.HorizontalX = null;
+                this.VerticalY = null;
+                Reset();
+                this.moduleStateManagement.resetParameterModule();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "CloseModule " + e);
+            }
+            
         }
         private void ExecuteActiveHardware()
         {
-            serviceProvider.GetRequiredService<IEnvironmentService>().ActiveHardware(Port);
+            try
+            {
+                serviceProvider.GetRequiredService<IEnvironmentService>().ActiveHardware(Port);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "ExecuteActiveHardware " + e);
+            }
+           
         }
         private void ExecuteReadConfigFromHardware()
         {
-            var parameters = moduleStore.LoadParametersFromHardware(Port);
-            string json = JsonConvert.SerializeObject(parameters);
-            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            moduleStateManagement.readLoraConfigParameter(listParams);
+            try
+            {
+                var parameters = moduleStore.LoadParametersFromHardware(Port);
+                string json = JsonConvert.SerializeObject(parameters);
+                Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                moduleStateManagement.readLoraConfigParameter(listParams);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "ExecuteReadConfigFromHardware " + e);
+            }
+            
         }
         private void ExecuteConfigHardware()
         {
-
-            var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
-            if (moduleObject != null)
+            try
             {
-                var tmp_moduleObject = new ModuleObject()
+                var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
+                if (moduleObject != null)
                 {
-                    x = moduleObject.x,
-                    y = moduleObject.y,
-                    parameters = moduleObject.parameters,
-                    id = moduleObject.id,
-                    type = moduleObject.type,
-                };
-                tmp_moduleObject.mode = "MODE 3";
-                tmp_moduleObject.port = Port;
-                moduleStateManagement.updateParamsOfModule(tmp_moduleObject);
+                    var tmp_moduleObject = new ModuleObject()
+                    {
+                        x = moduleObject.x,
+                        y = moduleObject.y,
+                        parameters = moduleObject.parameters,
+                        id = moduleObject.id,
+                        type = moduleObject.type,
+                    };
+                    tmp_moduleObject.mode = "MODE 3";
+                    tmp_moduleObject.port = Port;
+                    moduleStateManagement.updateParamsOfModule(tmp_moduleObject);
+                }
+                else
+                {
+                    var random = new Random();
+                    var id = random.Next(100, 999);
+                    var module = new ModuleObject()
+                    {
+                        port = Port,
+                        id = id.ToString(),
+                        mode = "MODE 3"
+                    };
+                    moduleStateManagement.createLoraParameter(module);
+                    /*                moduleStateManagement.configParameter(ModuleType);
+                    */
+                }
             }
-            else
+            catch (Exception e)
             {
-                var id = moduleStore.ModuleObjects.Count + 1;
-                var module = new ModuleObject()
-                {
-                    port = Port,
-                    id = id.ToString(),
-                    mode = "MODE 3"
-                };
-                moduleStateManagement.createLoraParameter(module);
-                /*                moduleStateManagement.configParameter(ModuleType);
-                */
+                MessageBox.Show("Module paramter view model " + "ExecuteConfigHardware " + e);
             }
+            
         }
         private void OnConfigHardwareSuccess(ModuleObject moduleObject)
         {
@@ -275,17 +341,33 @@ namespace Simulator1.ViewModel
 
         private void OnUpdatePosition(object moduleObject)
         {
-            string json = JsonConvert.SerializeObject(moduleObject);
-            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            HorizontalX = listParams["x"];
-            VerticalY = listParams["y"];
+            try
+            {
+                string json = JsonConvert.SerializeObject(moduleObject);
+                Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                HorizontalX = listParams["x"];
+                VerticalY = listParams["y"];
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "OnUpdatePosition " + e);
+            }
+            
         }
         private void OnIsActionUpdate(object isUpdate)
         {
-            string json = JsonConvert.SerializeObject(isUpdate);
-            Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            IsUpdate = listParams["value"];
-            IsEnableSave = false;
+            try
+            {
+                string json = JsonConvert.SerializeObject(isUpdate);
+                Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                IsUpdate = listParams["value"];
+                IsEnableSave = false;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Module paramter view model " + "OnIsActionUpdate " + e);
+            }
+            
         }
         // Helper function ============
         public void Reset()
