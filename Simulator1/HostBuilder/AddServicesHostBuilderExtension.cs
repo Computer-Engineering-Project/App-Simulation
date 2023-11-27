@@ -25,6 +25,7 @@ namespace Simulator1.HostBuilder
                 //State Management
                 services.AddSingleton<ModuleStateManagement>();
                 services.AddSingleton<MainStateManagement>();
+                services.AddSingleton<HistoryStateManagement>();
                 //Store
                 services.AddSingleton<ModuleStore>();
                 services.AddSingleton<NavigationStore>();
@@ -32,7 +33,7 @@ namespace Simulator1.HostBuilder
                 services.AddSingleton<ModuleParameterViewStore>();
                 services.AddSingleton<HistoryDataStore>();
                 //Database
-                services.AddSingleton<LoadParameter>();
+                services.AddSingleton<LoadHistoryFile>();
                 //Environment
                 services.AddSingleton<IEnvironmentService, EnvironmentService>();
                 services.AddSingleton<ICommunication, MainViewModel>();

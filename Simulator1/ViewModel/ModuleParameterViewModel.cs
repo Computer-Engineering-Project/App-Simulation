@@ -89,10 +89,11 @@ namespace Simulator1.ViewModel
         private readonly INavigateService zigbeeParameterNavigateService;
         private readonly IServiceProvider serviceProvider;
         private readonly HistoryDataStore historyDataStore;
+        private readonly HistoryStateManagement historyStateManagement;
 
         ~ModuleParameterViewModel() { }
         public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore,
-            IServiceProvider serviceProvider, HistoryDataStore historyDataStore,
+            IServiceProvider serviceProvider, HistoryDataStore historyDataStore, HistoryStateManagement historyStateManagement,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
 
@@ -104,6 +105,7 @@ namespace Simulator1.ViewModel
             this.zigbeeParameterNavigateService = zigbeeParameterNavigateService;
             this.serviceProvider = serviceProvider;
             this.historyDataStore = historyDataStore;
+            this.historyStateManagement = historyStateManagement;
             //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);
@@ -209,6 +211,7 @@ namespace Simulator1.ViewModel
                             m.mode = tmp_ModuleObject.mode;
                             m.parameters = tmp_ModuleObject.parameters;
                             m.type = tmp_ModuleObject.type;
+                            historyStateManagement.reloadHistoryData(m);
                         }
                     }
                     moduleStateManagement.changePositionAndPort(module);

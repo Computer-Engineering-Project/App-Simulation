@@ -344,9 +344,9 @@ namespace Environment.Base
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
                                     {
-                                        Task task = Task.Run(() =>
+                                        Task task = Task.Run(async () =>
                                         {
-                                            Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
                                             hw.packetQueueOut.Enqueue(packet);
                                         });
                                     }
@@ -355,9 +355,9 @@ namespace Environment.Base
                                         // check preamble code
                                         if (packet.PreambleCode != null)
                                         {
-                                            Task task = Task.Run(() =>
+                                            Task task = Task.Run(async () =>
                                             {
-                                                Task.Delay(Convert.ToInt32(packet.DelayTime)).Wait();
+                                                await Task.Delay(Convert.ToInt32(packet.DelayTime));
                                                 hw.packetQueueOut.Enqueue(packet);
                                             });
                                         }
@@ -375,14 +375,22 @@ namespace Environment.Base
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL)
                                     {
-                                        hw.packetQueueOut.Enqueue(packet);
+                                        Task task = Task.Run(async () =>
+                                        {
+                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                            hw.packetQueueOut.Enqueue(packet);
+                                        });
                                     }
                                     else if (hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         // check preamble code
                                         if (packet.PreambleCode != null)
                                         {
-                                            hw.packetQueueOut.Enqueue(packet);
+                                            Task task = Task.Run(async () =>
+                                            {
+                                                await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                                hw.packetQueueOut.Enqueue(packet);
+                                            });
                                         }
                                     }
                                 }

@@ -3,6 +3,7 @@ using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Prism.Regions;
+using Simulator1.Database;
 using Simulator1.Service;
 using Simulator1.Service.Implement;
 using Simulator1.State_Management;
@@ -31,7 +32,7 @@ namespace Simulator1.HostBuilder
                     var moduleParamStore = serviceProvider.GetRequiredService<ModuleParameterViewStore>();
                     moduleParamStore.CurrentViewModel = serviceProvider.GetRequiredService<LoraParameterViewModel>();
                     return new ModuleParameterViewModel(moduleParamStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(),
-                        serviceProvider, serviceProvider.GetRequiredService<HistoryDataStore>(),
+                        serviceProvider, serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<HistoryStateManagement>(),
                         CreateLoraParamNavigateService(serviceProvider, moduleParamStore), CreateZigbeeParamNavigateService(serviceProvider, moduleParamStore));
                 });
                 services.AddSingleton<MainViewModel>((serviceProvider) =>
@@ -39,7 +40,7 @@ namespace Simulator1.HostBuilder
                     var mainStore = serviceProvider.GetRequiredService<MainViewStore>();
                     mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
                     return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(),
-                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>(), serviceProvider.GetRequiredService<HistoryDataStore>());
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>(), serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<LoadHistoryFile>());
                 });
             });
             return hostBuilder;

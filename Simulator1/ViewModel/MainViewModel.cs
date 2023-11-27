@@ -22,6 +22,7 @@ using Simulator1.Service;
 using System.Windows.Threading;
 using Environment.Model.VMParameter;
 using System.Media;
+using Simulator1.Database;
 
 namespace Simulator1.ViewModel
 {
@@ -75,6 +76,7 @@ namespace Simulator1.ViewModel
         private readonly MainStateManagement mainStateManagement;
         private readonly testModuleViewModel testModuleVM;
         private readonly HistoryDataStore historyDataStore;
+        private readonly LoadHistoryFile loadHistoryFile;
 
         public BaseViewModel CurrentModuleViewModel => mainStore.CurrentViewModel;
         /*public ModuleParameterViewModel ModuleParameterViewModel { get => moduleParameterViewModel; set { moduleParameterViewModel = value; OnPropertyChanged(); } }*/
@@ -82,7 +84,8 @@ namespace Simulator1.ViewModel
         /*public ModuleParameterStore ModuleParameterStore { get => moduleParameterStore; set { moduleParameterStore = value; OnPropertyChanged(); } }*/
         public ICommand OpenDialogCommand { get; set; }
         public ICommand UpdateModuleCommand { get; set; }
-        public ICommand LoadHistoryCommand { get; set; }
+        public ICommand NewPageCommand { get; set; }
+        public ICommand LoadHistoryFileCommand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
         public ICommand PauseEnvironmentCommand { get; set; }
         public ICommand StopEnvironmentCommand { get; set; }
@@ -95,7 +98,8 @@ namespace Simulator1.ViewModel
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
-            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore)
+            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore, 
+            LoadHistoryFile loadHistoryFile)
         {
 
             //DI
@@ -106,6 +110,8 @@ namespace Simulator1.ViewModel
             this.mainStateManagement = mainStateManagement;
             this.testModuleVM = testModuleVM;
             this.historyDataStore = historyDataStore;
+            this.loadHistoryFile = loadHistoryFile;
+
             //Variable
             moduleObjects = new ObservableCollection<ModuleObject>();
             Ports = new ObservableCollection<ButtonPort>();
@@ -121,6 +127,7 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.IsPauseNow += OnIsPauseNow;
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
             this.mainStateManagement.UpdateHitoryIn += OnUpdateHistoryIn;
+            this.mainStateManagement.ResetAll += OnReset;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -131,7 +138,8 @@ namespace Simulator1.ViewModel
                 });
                 ExecuteOpenUpdateModule(module);
             });
-            LoadHistoryCommand = new RelayCommand(() => ExecuteLoadHistory());
+            LoadHistoryFileCommand = new RelayCommand(() => ExecuteLoadHistoryFile());
+            NewPageCommand = new RelayCommand(() => ExecuteNewPage());
             autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
             {
                 ExecuteAutoSavePosition(o);
@@ -234,7 +242,15 @@ namespace Simulator1.ViewModel
             }
 
         }
+        public void OnReset()
+        {
+            Reset();
+        }
         //Command handler
+        private void ExecuteNewPage()
+        {
+            Reset();
+        }
         private void ExecuteAutoSavePosition(object positionObject)
         {
             try
@@ -404,7 +420,7 @@ namespace Simulator1.ViewModel
             }
 
         }
-        private void ExecuteLoadHistory()
+        private void ExecuteLoadHistoryFile()
         {
             try
             {
@@ -494,7 +510,25 @@ namespace Simulator1.ViewModel
             //todo
 
         }
-
+        //Reset all
+        public void Reset()
+        {
+            try
+            {
+                var portReset = Ports.Select(x=> new ButtonPort()
+                {
+                    PortName = x.PortName,
+                    Color = "Wheat"
+                }).ToList();
+                Ports = new ObservableCollection<ButtonPort>(portReset);
+                ModuleObjects.Clear();
+                moduleStore.Reset();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Main view model " + "Reset " + e);
+            }
+        }
         //Dispose
         public override void Dispose()
         {

@@ -54,28 +54,46 @@
                     <Grid Grid.Row="0"
                           Background="AliceBlue">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"></ColumnDefinition>
+                            <ColumnDefinition Width="6*"></ColumnDefinition>
                             <ColumnDefinition Width="10*"></ColumnDefinition>
                             <ColumnDefinition Width="7*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
-                            <Image Source="./static/img/logo.png"
-                                   Width="50"
-                                   Height="50"
-                                   Margin="20 0 0 0"
-                                   Stretch="Uniform" />
+                            <DockPanel>
+                                <Menu DockPanel.Dock="Left"
+                                      Margin="10"
+                                    VerticalAlignment="Center">
+                                    <MenuItem Header="File"
+                                              Background="WhiteSmoke"
+                                              Foreground="Black"
+                                              Height="22">
+                                        <MenuItem Header="New" Command="{Binding NewPageCommand}"/>
+                                        <MenuItem Header="Open" Command="{Binding LoadHistoryFileCommand}"/>
+                                        <MenuItem Header="Save" />
+                                        <MenuItem Header="Exit" />
+                                    </MenuItem>
+                                </Menu>
+
+                                <Image DockPanel.Dock="Right"
+                                       Source="./static/img/logo.png"
+                                       Width="50"
+                                       Height="50"
+                                       Margin="20 0 0 0"
+                                       Stretch="Uniform" />
+                            </DockPanel>
+                            
                         </Grid>
                         <Grid Grid.Column="2">
                             <StackPanel Orientation="Horizontal"
                                         Margin="5 0 5 0">
-                                <Button Width="100"
+                                <!--<Button Width="100"
                                         Content="HISTORY"
                                         Background="Wheat"
                                         IsEnabled="{Binding IsEnableHistory}"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
                                         Command="{Binding LoadHistoryCommand}"
-                                        ToolTip="MaterialDesignFlatLightButton" />
+                                        ToolTip="MaterialDesignFlatLightButton" />-->
                                 <Button Width="100"
                                         Content="PAUSE"
                                         Background="Yellow"
