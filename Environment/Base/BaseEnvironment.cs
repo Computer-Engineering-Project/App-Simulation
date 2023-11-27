@@ -98,10 +98,10 @@ namespace Environment.Base
         {
             var serialport = SerialPorts.FirstOrDefault(s => s.PortName == port);
             // data is id module
-            //return true;
+            return true;
             if (serialport != null)
             {
-                if (module == ModuleObject.LORA)
+                if (module == ModuleObjectType.LORA)
                 {
                     byte moduleType = 0x01;
                     byte[] data = new byte[3];
@@ -111,7 +111,7 @@ namespace Environment.Base
 
                     return Helper.SendCmdConfigToHardware(serialport, moduleType, data);
                 }
-                else if (module == ModuleObject.ZIGBEE)
+                else if (module == ModuleObjectType.ZIGBEE)
                 {
                     /*                    var data = Helper.GenerateDataConfigZigbee(id, baudrate);
                                         return Helper.SendCmdConfigToHardware(serialport, module, data);*/
@@ -196,7 +196,7 @@ namespace Environment.Base
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            if (hardware.moduleObject.type == ModuleObject.LORA)
+                            if (hardware.moduleObject.type == ModuleObjectType.LORA)
                             {
                                 var loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
                                 DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
@@ -286,7 +286,7 @@ namespace Environment.Base
         // Execute service transfer data from queue in( caculated delay time, preamble code, packet loss, conlision,...) then add to queue out
         private InternalPacket ExecuteTransferDataToQueueOut(int mode, DataProcessed packet, ModuleObject moduleObject)
         {
-            if (moduleObject.type == ModuleObject.LORA)
+            if (moduleObject.type == ModuleObjectType.LORA)
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
                 /*double range = CaculateService.computeRange(parameter.Power);
@@ -325,14 +325,14 @@ namespace Environment.Base
         // Push package into destination device
         private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
         {
-            if (moduleObject.type == ModuleObject.LORA)
+            if (moduleObject.type == ModuleObjectType.LORA)
             {
                 var loraParameters = (LoraParameterObject)moduleObject.parameters;
                 var destinationAddress = loraParameters.DestinationAddress;
                 var destinationChannel = loraParameters.DestinationChannel;
                 foreach (var hw in Devices)
                 {
-                    if (hw.moduleObject.type == ModuleObject.LORA)
+                    if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {

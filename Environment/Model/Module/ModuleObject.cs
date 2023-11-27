@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 
 namespace Environment.Model.Module
 {
-    public class ModuleObject
+    public class ModuleObjectType
     {
         public const string LORA = "lora";
         public const string WIFI = "wifi";
         public const string ZIGBEE = "zigbee";
+    }
+    public class ModuleObject
+    {
         public string id { get; set; }
         public string port { get; set; }
         public string mode { get; set; }

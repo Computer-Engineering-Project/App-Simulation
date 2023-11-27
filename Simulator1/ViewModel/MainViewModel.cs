@@ -86,6 +86,7 @@ namespace Simulator1.ViewModel
         public ICommand UpdateModuleCommand { get; set; }
         public ICommand NewPageCommand { get; set; }
         public ICommand LoadHistoryFileCommand { get; set; }
+        public ICommand SaveHistoryCommmand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
         public ICommand PauseEnvironmentCommand { get; set; }
         public ICommand StopEnvironmentCommand { get; set; }
@@ -98,7 +99,7 @@ namespace Simulator1.ViewModel
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
-            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore, 
+            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore,
             LoadHistoryFile loadHistoryFile)
         {
 
@@ -140,6 +141,7 @@ namespace Simulator1.ViewModel
             });
             LoadHistoryFileCommand = new RelayCommand(() => ExecuteLoadHistoryFile());
             NewPageCommand = new RelayCommand(() => ExecuteNewPage());
+            SaveHistoryCommmand = new RelayCommand(() => ExecuteSaveHistory());
             autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
             {
                 ExecuteAutoSavePosition(o);
@@ -247,6 +249,17 @@ namespace Simulator1.ViewModel
             Reset();
         }
         //Command handler
+        private void ExecuteSaveHistory()
+        {
+            try
+            {
+                moduleStore.SaveHistoryToJsonFile();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Main view model " + "ExecuteSaveHistory " + e);
+            }
+        }
         private void ExecuteNewPage()
         {
             Reset();
@@ -515,7 +528,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
-                var portReset = Ports.Select(x=> new ButtonPort()
+                var portReset = Ports.Select(x => new ButtonPort()
                 {
                     PortName = x.PortName,
                     Color = "Wheat"
@@ -569,11 +582,11 @@ namespace Simulator1.ViewModel
         }
         private bool checkIsAvailableToRun()
         {
-            if(ModuleObjects.Count == 0)
+            if (ModuleObjects.Count == 0)
             {
                 return false;
             }
-            foreach(var m in ModuleObjects)
+            foreach (var m in ModuleObjects)
             {
                 if (string.IsNullOrEmpty(m.port))
                 {
@@ -605,7 +618,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Main view model " + "ExecuteStopEnvironment " + e);
             }
-            
+
         }
         //Received Data from Environment
         public void showQueueReceivedFromHardware(PacketSendTransferToView transferedPacket, string portClicked)
@@ -616,7 +629,7 @@ namespace Simulator1.ViewModel
                 if (moduleHistory != null)
                 {
                     var newHistoryObject = new HistoryObject();
-                    if (moduleHistory.moduleObject.type == ModuleObject.LORA)
+                    if (moduleHistory.moduleObject.type == ModuleObjectType.LORA)
                     {
                         var length = moduleHistory.historyObjectOuts.Count;
                         var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
@@ -627,7 +640,7 @@ namespace Simulator1.ViewModel
                             Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel
                         };
                     }
-                    else if (moduleHistory.moduleObject.type == ModuleObject.ZIGBEE)
+                    else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
                     {
 
                     }
@@ -640,7 +653,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Main view model " + "showQueueReceivedFromHardware " + e);
             }
-            
+
         }
         public void showQueueReceivedFromOtherDevice(PacketReceivedTransferToView transferedPacket, string portClicked)
         {
@@ -650,7 +663,7 @@ namespace Simulator1.ViewModel
                 if (moduleHistory != null)
                 {
                     var newHistoryObject = new HistoryObject();
-                    if (moduleHistory.moduleObject.type == ModuleObject.LORA)
+                    if (moduleHistory.moduleObject.type == ModuleObjectType.LORA)
                     {
                         var length = moduleHistory.historyObjectIns.Count;
                         var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
@@ -661,7 +674,7 @@ namespace Simulator1.ViewModel
                             Source = "Port: " + transferedPacket.packet.sourceModule.port
                         };
                     }
-                    else if (moduleHistory.moduleObject.type == ModuleObject.ZIGBEE)
+                    else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
                     {
 
                     }
@@ -674,7 +687,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Main view model " + "showQueueReceivedFromOtherDevice " + e);
             }
-            
+
         }
         public void deviceChangeMode(int mode, string port)
         {

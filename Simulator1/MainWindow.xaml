@@ -69,7 +69,7 @@
                                               Height="22">
                                         <MenuItem Header="New" Command="{Binding NewPageCommand}"/>
                                         <MenuItem Header="Open" Command="{Binding LoadHistoryFileCommand}"/>
-                                        <MenuItem Header="Save" />
+                                        <MenuItem Header="Save" Command="{Binding SaveHistoryCommmand}"/>
                                         <MenuItem Header="Exit" />
                                     </MenuItem>
                                 </Menu>
