@@ -19,12 +19,14 @@ namespace Environment.Model
         public const int MODE_SETUP = 3;
 
         public SerialPort serialport { get; set; }
-        public object lockObject { get; set; }
+        public object lockObject = new object();
         public int mode { get; set; }
+        public int flagDataIn { get; set; }
         public Thread readDataFromHardware { get; set; }
         public Thread transferDataIn { get; set; }
         public Thread transferDataOut { get; set; }
         public ModuleObject moduleObject { get; set; }
+        public ConcurrentQueue<CollidedPacket> collidedPackets = new ConcurrentQueue<CollidedPacket>();
 
         public ConcurrentQueue<DataProcessed> packetQueueIn = new ConcurrentQueue<DataProcessed>();
 

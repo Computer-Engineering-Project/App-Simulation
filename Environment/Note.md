@@ -18,5 +18,6 @@
 - không có device thì không được phép run //DONE
 - pause lại để coi parameter //DONE
 - close sau khi delete ko reset parameters //DONE
+- check mode khi run 
 
 

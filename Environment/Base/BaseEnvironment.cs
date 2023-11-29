@@ -101,7 +101,7 @@ namespace Environment.Base
             //return true;
             if (serialport != null)
             {
-                if (module == ModuleObject.LORA)
+                if (module == ModuleObjectType.LORA)
                 {
                     byte moduleType = 0x01;
                     byte[] data = new byte[3];
@@ -111,7 +111,7 @@ namespace Environment.Base
 
                     return Helper.SendCmdConfigToHardware(serialport, moduleType, data);
                 }
-                else if (module == ModuleObject.ZIGBEE)
+                else if (module == ModuleObjectType.ZIGBEE)
                 {
                     /*                    var data = Helper.GenerateDataConfigZigbee(id, baudrate);
                                         return Helper.SendCmdConfigToHardware(serialport, module, data);*/
@@ -191,12 +191,11 @@ namespace Environment.Base
 
                 if (packet.cmdWord == PacketTransmit.SENDDATA)
                 {
-
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            if (hardware.moduleObject.type == ModuleObject.LORA)
+                            if (hardware.moduleObject.type == ModuleObjectType.LORA)
                             {
                                 var loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
                                 DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
@@ -286,7 +285,7 @@ namespace Environment.Base
         // Execute service transfer data from queue in( caculated delay time, preamble code, packet loss, conlision,...) then add to queue out
         private InternalPacket ExecuteTransferDataToQueueOut(int mode, DataProcessed packet, ModuleObject moduleObject)
         {
-            if (moduleObject.type == ModuleObject.LORA)
+            if (moduleObject.type == ModuleObjectType.LORA)
             {
                 var parameter = (LoraParameterObject)moduleObject.parameters;
                 /*double range = CaculateService.computeRange(parameter.Power);
@@ -325,14 +324,14 @@ namespace Environment.Base
         // Push package into destination device
         private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
         {
-            if (moduleObject.type == ModuleObject.LORA)
+            if (moduleObject.type == ModuleObjectType.LORA)
             {
                 var loraParameters = (LoraParameterObject)moduleObject.parameters;
                 var destinationAddress = loraParameters.DestinationAddress;
                 var destinationChannel = loraParameters.DestinationChannel;
                 foreach (var hw in Devices)
                 {
-                    if (hw.moduleObject.type == ModuleObject.LORA)
+                    if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
@@ -342,15 +341,17 @@ namespace Environment.Base
                                 if (hw_loraParameters.Channel == packet.packet.channel && hw_loraParameters.Address != packet.packet.address)
                                 {
                                     // check mode of destination device
-                                    if (hw.mode == NodeDevice.MODE_NORMAL)
+                                    if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
                                         {
                                             await Task.Delay(Convert.ToInt32(packet.DelayTime));
-                                            hw.packetQueueOut.Enqueue(packet);
+
+                                            // Execute work: enqueue and handle collision
+                                            await createTransmittionAsync(hw, packet);
                                         });
                                     }
-                                    else if (hw.mode == NodeDevice.MODE_WAKEUP)
+                                    else if (hw.mode == NodeDevice.MODE_POWERSAVING)
                                     {
                                         // check preamble code
                                         if (packet.PreambleCode != null)
@@ -358,8 +359,11 @@ namespace Environment.Base
                                             Task task = Task.Run(async () =>
                                             {
                                                 await Task.Delay(Convert.ToInt32(packet.DelayTime));
-                                                hw.packetQueueOut.Enqueue(packet);
+
+                                                // Execute work: enqueue and handle collision
+                                                await createTransmittionAsync(hw, packet);
                                             });
+                                            
                                         }
                                     }
                                 }
@@ -373,15 +377,17 @@ namespace Environment.Base
                                 if (hw_loraParameters.DestinationAddress == destinationAddress && hw_loraParameters.DestinationChannel == destinationChannel)
                                 {
                                     // check mode of destination device
-                                    if (hw.mode == NodeDevice.MODE_NORMAL)
+                                    if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
                                         {
                                             await Task.Delay(Convert.ToInt32(packet.DelayTime));
-                                            hw.packetQueueOut.Enqueue(packet);
+                                            
+                                            // Execute work: enqueue and handle collision
+                                            await createTransmittionAsync(hw, packet);
                                         });
                                     }
-                                    else if (hw.mode == NodeDevice.MODE_WAKEUP)
+                                    else if (hw.mode == NodeDevice.MODE_POWERSAVING)
                                     {
                                         // check preamble code
                                         if (packet.PreambleCode != null)
@@ -389,7 +395,9 @@ namespace Environment.Base
                                             Task task = Task.Run(async () =>
                                             {
                                                 await Task.Delay(Convert.ToInt32(packet.DelayTime));
-                                                hw.packetQueueOut.Enqueue(packet);
+
+                                                // Execute work: enqueue and handle collision
+                                                await createTransmittionAsync(hw, packet);
                                             });
                                         }
                                     }
@@ -433,6 +441,51 @@ namespace Environment.Base
                                     }
                                 }*/
             }
+        }
+        //Create transmittion with checking collision when pushing data into destinationQueue
+        private async Task createTransmittionAsync(NodeDevice hw, InternalPacket packet)
+        {
+            lock (hw.lockObject)
+            {
+                hw.flagDataIn++;
+            }
+            await caculateCollisionAsync(hw, packet);
+        }
+        private async Task caculateCollisionAsync(NodeDevice hw, InternalPacket packet)
+        {
+            await Task.Delay(5);
+            lock (hw.lockObject)
+            {
+                if(hw.flagDataIn > 1)
+                {
+                    Task collision = Task.Run(() => PushIntoCollidedQueue(hw, packet));
+                }
+                else
+                {
+                    Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(hw, packet));
+                }
+            }
+        }
+        private void PushIntoCollidedQueue(NodeDevice hw, InternalPacket packet)
+        {
+            lock (hw.lockObject)
+            {
+                hw.flagDataIn--;
+            }
+            hw.collidedPackets.Enqueue(new CollidedPacket()
+            {
+                sourceModule = packet.sourceModule,
+                timeUTC = DateTime.Now.ToLocalTime().ToString(),
+                timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
+            });
+        }
+        private void PushIntoDestinationDeviceQueue(NodeDevice hw, InternalPacket packet)
+        {
+            lock (hw.lockObject)
+            {
+                hw.flagDataIn--;
+            }
+            hw.packetQueueOut.Enqueue(packet);
         }
         // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
         private void transferDataToHardware(int mode, SerialPort serialPort, ConcurrentQueue<InternalPacket> packetQueue, ModuleObject moduleObject)

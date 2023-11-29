@@ -3,10 +3,12 @@ using Environment.Model.Module;
 using Environment.Model.Packet;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Simulator1.Database;
 using Simulator1.State_Management;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Simulator1.Store
 {
@@ -61,6 +63,19 @@ namespace Simulator1.Store
         public void Reset()
         {
             ModuleObjects.Clear();
+        }
+        public void SaveHistoryToJsonFile()
+        {
+            var saveModuleObjects = ModuleObjects.Select(x=> new ModuleObject()
+            {
+                id = x.id,
+                type = x.type,
+                x = x.x,
+                y = x.y,
+                parameters = x.parameters
+            }).ToArray();
+            string json = JsonConvert.SerializeObject(saveModuleObjects);
+            loadParameter.SaveJsonFile(json);
         }
         private void OnLoadHistory()
         {

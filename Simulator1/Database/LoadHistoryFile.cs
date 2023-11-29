@@ -39,5 +39,15 @@ namespace Simulator1.Database
             }
             return false;
         }
+        public void SaveJsonFile(string json)
+        {
+            var saveFileDialog = new SaveFileDialog();
+            bool? response = saveFileDialog.ShowDialog();
+            if(response == true)
+            {
+                path = saveFileDialog.FileName;
+                File.WriteAllText(path, json);
+            }
+        }
     }
 }
