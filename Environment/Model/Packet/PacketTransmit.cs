@@ -110,4 +110,10 @@ namespace Environment.Model.Packet
         public bool IsCoverageArea { get; set;}
         public ModuleObject sourceModule { get; set;}
     }
+    public class CollidedPacket
+    {
+        public ModuleObject sourceModule { get; set;}
+        public string timeUTC { get; set;}
+        public string timeMilisecond { get; set;}
+    }
 }
