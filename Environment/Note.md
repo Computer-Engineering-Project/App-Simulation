@@ -20,4 +20,9 @@
 - close sau khi delete ko reset parameters //DONE
 - check mode khi run 
 
+## 30/11/2023
+- Khi stop, nhấn config thì không được, bị lỗi
+- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục
+- 
+
 
