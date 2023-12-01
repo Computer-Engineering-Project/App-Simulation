@@ -19,5 +19,8 @@
 - pause lại để coi parameter //DONE
 - close sau khi delete ko reset parameters //DONE
 - check mode khi run 
+- save có cần phải save luôn lịch sử data không 
+- liệt kê tình huống nào thì sẽ phải save, nếu không mất data
+
 
 
