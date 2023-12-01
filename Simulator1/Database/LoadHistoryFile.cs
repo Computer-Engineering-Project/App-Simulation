@@ -39,7 +39,7 @@ namespace Simulator1.Database
             }
             return false;
         }
-        public void SaveJsonFile(string json)
+        public bool SaveJsonFile(string json)
         {
             var saveFileDialog = new SaveFileDialog();
             bool? response = saveFileDialog.ShowDialog();
@@ -47,7 +47,9 @@ namespace Simulator1.Database
             {
                 path = saveFileDialog.FileName;
                 File.WriteAllText(path, json);
+                return true;
             }
+            return false;
         }
     }
 }

@@ -28,14 +28,16 @@ namespace Simulator1.ViewModel
 {
     public class MainViewModel : BaseViewModel, ICommunication
     {
-        private ObservableCollection<ModuleObject> moduleObjects;
-        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
+        private ObservableCollection<ModuleObject> moduleObjects = new ObservableCollection<ModuleObject>();
+        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private ObservableCollection<ButtonPort> ports;
-        public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
+        public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged();} }
+        private string programName;
+        public string ProgramName { get => programName; set { programName = value; OnPropertyChanged(); } }
 
-        private bool isEnableHistory = true;
-        public bool IsEnableHistory { get => isEnableHistory; set { isEnableHistory = value; OnPropertyChanged(); } }
+        /* private bool isEnableHistory = true;
+         public bool IsEnableHistory { get => isEnableHistory; set { isEnableHistory = value; OnPropertyChanged(); } }*/
 
         private bool isEnableStop = false;
         public bool IsEnableStop { get => isEnableStop; set { isEnableStop = value; OnPropertyChanged(); } }
@@ -51,6 +53,7 @@ namespace Simulator1.ViewModel
 
         private HistoryObject selectedItemHistory;
         public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+
         //handle get value from object
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
@@ -58,6 +61,7 @@ namespace Simulator1.ViewModel
         public string DataHistory { get => dataHistory; set { dataHistory = value; OnPropertyChanged(); } }
         private string delayTimeHistory;
         public string DelayTimeHistory { get => delayTimeHistory; set { delayTimeHistory = value; OnPropertyChanged(); } }
+
 
         /*private string testText;
         public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
@@ -74,9 +78,8 @@ namespace Simulator1.ViewModel
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly IServiceProvider serviceProvider;
         private readonly MainStateManagement mainStateManagement;
-        private readonly testModuleViewModel testModuleVM;
         private readonly HistoryDataStore historyDataStore;
-        private readonly LoadHistoryFile loadHistoryFile;
+        private readonly StatusStateManagement statusStateManagement;
 
         public BaseViewModel CurrentModuleViewModel => mainStore.CurrentViewModel;
         /*public ModuleParameterViewModel ModuleParameterViewModel { get => moduleParameterViewModel; set { moduleParameterViewModel = value; OnPropertyChanged(); } }*/
@@ -84,9 +87,10 @@ namespace Simulator1.ViewModel
         /*public ModuleParameterStore ModuleParameterStore { get => moduleParameterStore; set { moduleParameterStore = value; OnPropertyChanged(); } }*/
         public ICommand OpenDialogCommand { get; set; }
         public ICommand UpdateModuleCommand { get; set; }
-        public ICommand NewPageCommand { get; set; }
+        /*        public ICommand NewPageCommand { get; set; }*/
         public ICommand LoadHistoryFileCommand { get; set; }
         public ICommand SaveHistoryCommmand { get; set; }
+        public ICommand SaveAsHistoryCommmand { get; set; }
         public ICommand RunEnvironmentCommand { get; set; }
         public ICommand PauseEnvironmentCommand { get; set; }
         public ICommand StopEnvironmentCommand { get; set; }
@@ -99,8 +103,8 @@ namespace Simulator1.ViewModel
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
-            ModuleStore moduleStore, IServiceProvider serviceProvider, testModuleViewModel testModuleVM, HistoryDataStore historyDataStore,
-            LoadHistoryFile loadHistoryFile)
+            ModuleStore moduleStore, IServiceProvider serviceProvider, HistoryDataStore historyDataStore,
+            StatusStateManagement statusStateManagement)
         {
 
             //DI
@@ -109,15 +113,14 @@ namespace Simulator1.ViewModel
             this.moduleStateManagement = moduleStateManagement;
             this.serviceProvider = serviceProvider;
             this.mainStateManagement = mainStateManagement;
-            this.testModuleVM = testModuleVM;
             this.historyDataStore = historyDataStore;
-            this.loadHistoryFile = loadHistoryFile;
+            this.statusStateManagement = statusStateManagement;
 
             //Variable
-            moduleObjects = new ObservableCollection<ModuleObject>();
             Ports = new ObservableCollection<ButtonPort>();
             HistoryObjectIns = new ObservableCollection<HistoryObject>();
             HistoryObjectOuts = new ObservableCollection<HistoryObject>();
+            ProgramName = "Software Simulator";
 
             //Event delegate
             this.moduleStateManagement.ModuleObjectCreated += OnModuleObjectCreated;
@@ -129,6 +132,7 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
             this.mainStateManagement.UpdateHitoryIn += OnUpdateHistoryIn;
             this.mainStateManagement.ResetAll += OnReset;
+            this.statusStateManagement.StatusChanged += OnStatusChanged;
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -140,8 +144,9 @@ namespace Simulator1.ViewModel
                 ExecuteOpenUpdateModule(module);
             });
             LoadHistoryFileCommand = new RelayCommand(() => ExecuteLoadHistoryFile());
-            NewPageCommand = new RelayCommand(() => ExecuteNewPage());
+            /*NewPageCommand = new RelayCommand(() => ExecuteNewPage());*/
             SaveHistoryCommmand = new RelayCommand(() => ExecuteSaveHistory());
+            SaveAsHistoryCommmand = new RelayCommand(() => ExecuteSaveAsHistory());
             autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
             {
                 ExecuteAutoSavePosition(o);
@@ -155,6 +160,14 @@ namespace Simulator1.ViewModel
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
         }
         //Delegate handler
+        private void OnStatusChanged()
+        {
+            if (!ProgramName.Contains('*'))
+            {
+                var nameUnSave = ProgramName + "*";
+                ProgramName = nameUnSave;
+            }
+        }
         private void OnIsRunningNow()
         {
             IsEnableRun = false;
@@ -218,7 +231,7 @@ namespace Simulator1.ViewModel
                     }
                 }
                 Ports = new ObservableCollection<ButtonPort>(ports);
-                IsEnableHistory = false;
+                /*IsEnableHistory = false;*/
             }
             catch (Exception e)
             {
@@ -253,17 +266,31 @@ namespace Simulator1.ViewModel
         {
             try
             {
-                moduleStore.SaveHistoryToJsonFile();
+                if (moduleStore.SaveHistoryToJsonFile())
+                {
+                    ProgramName = "Software Simulator";
+                }
             }
             catch (Exception e)
             {
                 MessageBox.Show("Main view model " + "ExecuteSaveHistory " + e);
             }
         }
-        private void ExecuteNewPage()
+        private void ExecuteSaveAsHistory()
+        {
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+        /*private void ExecuteNewPage()
         {
             Reset();
-        }
+        }*/
         private void ExecuteAutoSavePosition(object positionObject)
         {
             try
@@ -439,7 +466,7 @@ namespace Simulator1.ViewModel
             {
                 mainStateManagement.loadHistoryFromDB();
                 ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
-                IsEnableHistory = false;
+                /* IsEnableHistory = false;*/
             }
             catch (Exception e)
             {

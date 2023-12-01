@@ -18,7 +18,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         Name="mainwindow"
-        Title="Software Simulator"
+        Title="{Binding ProgramName}"
         Height="450"
         Width="800">
     <Grid>
@@ -67,9 +67,9 @@
                                               Background="WhiteSmoke"
                                               Foreground="Black"
                                               Height="22">
-                                        <MenuItem Header="New" Command="{Binding NewPageCommand}"/>
                                         <MenuItem Header="Open" Command="{Binding LoadHistoryFileCommand}"/>
                                         <MenuItem Header="Save" Command="{Binding SaveHistoryCommmand}"/>
+                                        <MenuItem Header="Save As" Command="{Binding SaveAsHistoryCommmand}"/>
                                         <MenuItem Header="Exit" />
                                     </MenuItem>
                                 </Menu>

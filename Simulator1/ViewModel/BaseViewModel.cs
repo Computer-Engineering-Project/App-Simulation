@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Simulator1.State_Management;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -10,9 +11,8 @@ using System.Windows.Input;
 namespace Simulator1.ViewModel
 {
     public class BaseViewModel : INotifyPropertyChanged
-    {
+    { 
         public event PropertyChangedEventHandler PropertyChanged;
-
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
