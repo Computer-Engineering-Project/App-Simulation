@@ -313,7 +313,7 @@ namespace Simulator1.ViewModel
                 else
                 {
                     var random = new Random();
-                    var id = random.Next(100, 999);
+                    var id = random.Next(50, 255);
                     var module = new ModuleObject()
                     {
                         port = Port,

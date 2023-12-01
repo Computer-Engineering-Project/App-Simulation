@@ -57,35 +57,23 @@ namespace Environment.Model.Packet
 
         public DataProcessed( byte[] data )
         {
-            this.address = data[0].ToString("X2") + data[1].ToString("X2");
-            this.channel = data[2].ToString("X2");
-            this.data = "";
-            for (int i = 3; i < data.Length; i++)
-            {
-                this.data += data[i].ToString("X2");
-            }
+            this.address = "";
+            this.channel = "";
+            this.data = Encoding.ASCII.GetString(data);
         }
         public DataProcessed(string fixedMode, byte[] data)
         {
             if(fixedMode == FixedMode.FIXED)
             {
-                this.address = "";
-                this.channel = "";
-                this.data = "";
-                for (int i = 0; i < data.Length; i++)
-                {
-                    this.data += data[i].ToString("X2");
-                }
+                this.address = Encoding.ASCII.GetString(data.Take(2).ToArray());
+                this.channel = Encoding.ASCII.GetString(data.Skip(2).Take(1).ToArray());
+                this.data = Encoding.ASCII.GetString(data.Skip(3).ToArray());
             }
             else
             {
-                this.address = data[0].ToString("X2") + data[1].ToString("X2");
-                this.channel = data[2].ToString("X2");
-                this.data = "";
-                for (int i = 3; i < data.Length; i++)
-                {
-                    this.data += data[i].ToString("X2");
-                }
+                this.address = "";
+                this.channel = "";
+                this.data = Encoding.ASCII.GetString(data);
             }
         }
 
