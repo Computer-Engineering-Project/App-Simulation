@@ -32,7 +32,7 @@ namespace Simulator1.ViewModel
         public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private ObservableCollection<ButtonPort> ports;
-        public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged();} }
+        public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
         private string programName;
         public string ProgramName { get => programName; set { programName = value; OnPropertyChanged(); } }
 
@@ -54,7 +54,7 @@ namespace Simulator1.ViewModel
         private HistoryObject selectedItemHistory;
         public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
 
-        //handle get value from object
+        //History Data
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
         private string dataHistory;
@@ -62,9 +62,12 @@ namespace Simulator1.ViewModel
         private string delayTimeHistory;
         public string DelayTimeHistory { get => delayTimeHistory; set { delayTimeHistory = value; OnPropertyChanged(); } }
 
+        private string distanceHistory;
+        public string DistanceHistory { get => distanceHistory; set { distanceHistory = value; OnPropertyChanged(); } }
 
-        /*private string testText;
-        public string TestText { get => testText; set { testText = value; OnPropertyChanged(); } }*/
+        //Animation
+        private Visibility isLoadingPort = Visibility.Hidden;
+        public Visibility IsLoadingPort { get => isLoadingPort; set { isLoadingPort = value; OnPropertyChanged(); } }
 
 
         private ObservableCollection<HistoryObject> historyObjectIns;
@@ -327,6 +330,7 @@ namespace Simulator1.ViewModel
                 }
 
                 ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+                serviceProvider.GetRequiredService<IEnvironmentService>().changeModuleObjectsPosition(new List<ModuleObject>(ModuleObjects));
             }
             catch (Exception e)
             {
@@ -494,6 +498,7 @@ namespace Simulator1.ViewModel
         }
         private void ExecuteLoadPorts()
         {
+            IsLoadingPort = Visibility.Visible;
             try
             {
                 var ports = serviceProvider.GetRequiredService<IEnvironmentService>().loadPorts();
@@ -524,6 +529,7 @@ namespace Simulator1.ViewModel
                     Ports = tmpPorts;
 
                 }
+                IsLoadingPort = Visibility.Hidden;
             }
             catch (Exception e)
             {
@@ -541,6 +547,7 @@ namespace Simulator1.ViewModel
                     SourceHistory = SelectedItemHistory.Source;
                     DataHistory = SelectedItemHistory.Data;
                     DelayTimeHistory = SelectedItemHistory.DelayTime == null ? "Na/N" : SelectedItemHistory.DelayTime;
+                    DistanceHistory = SelectedItemHistory.Distance == null ? "Na/N" : SelectedItemHistory.Distance;
                 }
             }
             catch (Exception e)
@@ -550,8 +557,13 @@ namespace Simulator1.ViewModel
             //todo
 
         }
+        // Clear all history data
+        private void ClearHistoryData()
+        {
+
+        }
         //Reset all
-        public void Reset()
+        private void Reset()
         {
             try
             {
@@ -640,6 +652,9 @@ namespace Simulator1.ViewModel
             try
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().Stop();
+                historyDataStore.ClearHistoryData();
+                HistoryObjectIns = new ObservableCollection<HistoryObject>();
+                HistoryObjectOuts = new ObservableCollection<HistoryObject>();
             }
             catch (Exception e)
             {
@@ -664,7 +679,7 @@ namespace Simulator1.ViewModel
                         newHistoryObject = new HistoryObject()
                         {
                             Id = length + 1,
-                            Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel
+                            Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel,
                         };
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
@@ -706,6 +721,8 @@ namespace Simulator1.ViewModel
 
                     }
                     newHistoryObject.Data = transferedPacket.packet.packet.data;
+                    newHistoryObject.DelayTime = transferedPacket.packet.DelayTime.ToString();
+                    newHistoryObject.Distance = transferedPacket.packet.Distance.ToString();
                     moduleHistory.historyObjectIns.Enqueue(newHistoryObject);
                     mainStateManagement.updateHistoryIn(portClicked);
                 }

@@ -48,7 +48,11 @@ namespace Simulator1.Store
         }
         public void ClearHistoryData()
         {
-            ModuleHistories.Clear();
+            foreach(var history in ModuleHistories)
+            {
+                history.historyObjectOuts.Clear();
+                history.historyObjectIns.Clear();
+            }
         }
     }
 }

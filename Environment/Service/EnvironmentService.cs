@@ -81,5 +81,11 @@ namespace Environment.Service
         {
             environment.State = environment.PAUSE;
         }
+
+        public void changeModuleObjectsPosition(List<ModuleObject> moduleObjects)
+        {
+            environment.ModuleObjects = moduleObjects;
+            environment.ResetParamsForDevice();
+        }
     }
 }

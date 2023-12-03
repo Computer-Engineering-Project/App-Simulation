@@ -77,11 +77,9 @@ namespace Simulator1.ViewModel
         private string fec;
         public string FEC { get => fec; set { fec = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
-        private string destinationAddress;
-        public string DestinationAddress { get => destinationAddress; set { destinationAddress = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        private string antennaGain;
+        public string AntennaGain { get => antennaGain; set { antennaGain = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
-        private string destinationChannel;
-        public string DestinationChannel { get => destinationChannel; set { destinationChannel = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
 
 
@@ -144,8 +142,7 @@ namespace Simulator1.ViewModel
                     Parity = Parity,
                     IOMode = IOMode,
                     FEC = FEC,
-                    DestinationAddress = DestinationAddress,
-                    DestinationChannel = DestinationChannel
+                    AntennaGain = AntennaGain
                 };
             }
             catch (Exception e)
@@ -225,8 +222,7 @@ namespace Simulator1.ViewModel
                 IOMode = loraParams.IOMode;
                 FEC = loraParams.FEC;
                 UartRate = loraParams.UartRate;
-                DestinationChannel = loraParams.DestinationChannel;
-                DestinationAddress = loraParams.DestinationAddress;
+                AntennaGain = loraParams.AntennaGain;
             }
             catch (Exception e)
             {
@@ -248,8 +244,7 @@ namespace Simulator1.ViewModel
                 IOMode = listParams["IOMode"];
                 FEC = listParams["FEC"];
                 UartRate = listParams["UartRate"];
-                DestinationAddress = listParams["DestinationAddress"];
-                DestinationChannel = listParams["DestinationChannel"];
+                AntennaGain = listParams["AntennaGain"];
             }
             catch (Exception e)
             {
@@ -269,8 +264,7 @@ namespace Simulator1.ViewModel
             IOMode = null;
             FEC = null;
             UartRate = null;
-            DestinationChannel = null;
-            DestinationAddress = null;
+            AntennaGain = null;
         }
     }
 }
