@@ -16,6 +16,7 @@ namespace Environment.Service.Interface
         public bool configHardware(string portName, object parameters);
         public void closePort(string portName);
         public void passModuleObjects(List<ModuleObject> moduleObjects);
+        public void changeModuleObjectsPosition(List<ModuleObject> moduleObjects);
         public void passPortClicked(string portName);
         public List<string> loadPorts();
         public void Run();

@@ -31,28 +31,28 @@ namespace Simulator1.ViewModel
         #region variable
 
         private string horizontal_x;
-        public string HorizontalX { get => horizontal_x; set { horizontal_x = value; OnPropertyChanged(); } }
+        public string HorizontalX { get => horizontal_x; set { horizontal_x = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string vertical_y;
-        public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); } }
+        public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private ObservableCollection<string> listPort;
-        public ObservableCollection<string> ListPort { get => listPort; set { listPort = value; OnPropertyChanged(); } }
+        public ObservableCollection<string> ListPort { get => listPort; set { listPort = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string port;
-        public string Port { get => port; set { port = value; OnPropertyChanged(); } }
+        public string Port { get => port; set { port = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string id;
-        public string Id { get => id; set { id = value; OnPropertyChanged(); } }
+        public string Id { get => id; set { id = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string isUpdate;
-        public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); } }
+        public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string moduleType;
-        public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); } }
+        public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private ModuleObject tmp_moduleObject;
-        public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); } }
+        public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private bool isEnableSave = false;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
@@ -90,10 +90,11 @@ namespace Simulator1.ViewModel
         private readonly IServiceProvider serviceProvider;
         private readonly HistoryDataStore historyDataStore;
         private readonly HistoryStateManagement historyStateManagement;
+        private readonly StatusStateManagement statusStateManagement;
 
         ~ModuleParameterViewModel() { }
         public ModuleParameterViewModel(ModuleParameterViewStore moduleParamViewStore, ModuleStateManagement moduleStateManagement, ModuleStore moduleStore,
-            IServiceProvider serviceProvider, HistoryDataStore historyDataStore, HistoryStateManagement historyStateManagement,
+            IServiceProvider serviceProvider, HistoryDataStore historyDataStore, HistoryStateManagement historyStateManagement, StatusStateManagement statusStateManagement,
             INavigateService loraParameterNavigateService, INavigateService zigbeeParameterNavigateService)
         {
 
@@ -106,6 +107,7 @@ namespace Simulator1.ViewModel
             this.serviceProvider = serviceProvider;
             this.historyDataStore = historyDataStore;
             this.historyStateManagement = historyStateManagement;
+            this.statusStateManagement = statusStateManagement;
             //Navigate
             LoraParamCommand = new NavigateCommand(this.loraParameterNavigateService);
             ZigbeeParamCommand = new NavigateCommand(this.zigbeeParameterNavigateService);

@@ -32,7 +32,7 @@ namespace Simulator1.HostBuilder
                     var moduleParamStore = serviceProvider.GetRequiredService<ModuleParameterViewStore>();
                     moduleParamStore.CurrentViewModel = serviceProvider.GetRequiredService<LoraParameterViewModel>();
                     return new ModuleParameterViewModel(moduleParamStore, serviceProvider.GetRequiredService<ModuleStateManagement>(), serviceProvider.GetRequiredService<ModuleStore>(),
-                        serviceProvider, serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<HistoryStateManagement>(),
+                        serviceProvider, serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<HistoryStateManagement>(), serviceProvider.GetRequiredService<StatusStateManagement>(),
                         CreateLoraParamNavigateService(serviceProvider, moduleParamStore), CreateZigbeeParamNavigateService(serviceProvider, moduleParamStore));
                 });
                 services.AddSingleton<MainViewModel>((serviceProvider) =>
@@ -40,7 +40,8 @@ namespace Simulator1.HostBuilder
                     var mainStore = serviceProvider.GetRequiredService<MainViewStore>();
                     mainStore.CurrentViewModel = serviceProvider.GetRequiredService<ModuleParameterViewModel>();
                     return new MainViewModel(mainStore, serviceProvider.GetRequiredService<MainStateManagement>(), serviceProvider.GetRequiredService<ModuleStateManagement>(),
-                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider, serviceProvider.GetRequiredService<testModuleViewModel>(), serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<LoadHistoryFile>());
+                        serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider,
+                        serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<StatusStateManagement>());
                 });
             });
             return hostBuilder;

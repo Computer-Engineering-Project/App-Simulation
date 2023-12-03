@@ -18,7 +18,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         Name="mainwindow"
-        Title="Software Simulator"
+        Title="{Binding ProgramName}"
         Height="450"
         Width="800">
     <Grid>
@@ -52,7 +52,7 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0"
-                          Background="AliceBlue">
+                          Background="#FFCAC8BC">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="6*"></ColumnDefinition>
                             <ColumnDefinition Width="10*"></ColumnDefinition>
@@ -62,14 +62,17 @@
                             <DockPanel>
                                 <Menu DockPanel.Dock="Left"
                                       Margin="10"
-                                    VerticalAlignment="Center">
+                                      VerticalAlignment="Center">
                                     <MenuItem Header="File"
                                               Background="WhiteSmoke"
                                               Foreground="Black"
                                               Height="22">
-                                        <MenuItem Header="New" Command="{Binding NewPageCommand}"/>
-                                        <MenuItem Header="Open" Command="{Binding LoadHistoryFileCommand}"/>
-                                        <MenuItem Header="Save" Command="{Binding SaveHistoryCommmand}"/>
+                                        <MenuItem Header="Open"
+                                                  Command="{Binding LoadHistoryFileCommand}" />
+                                        <MenuItem Header="Save"
+                                                  Command="{Binding SaveHistoryCommmand}" />
+                                        <MenuItem Header="Save As"
+                                                  Command="{Binding SaveAsHistoryCommmand}" />
                                         <MenuItem Header="Exit" />
                                     </MenuItem>
                                 </Menu>
@@ -81,7 +84,7 @@
                                        Margin="20 0 0 0"
                                        Stretch="Uniform" />
                             </DockPanel>
-                            
+
                         </Grid>
                         <Grid Grid.Column="2">
                             <StackPanel Orientation="Horizontal"
@@ -94,29 +97,54 @@
                                         Margin="0 0 20 0"
                                         Command="{Binding LoadHistoryCommand}"
                                         ToolTip="MaterialDesignFlatLightButton" />-->
+
                                 <Button Width="100"
-                                        Content="PAUSE"
-                                        Background="Yellow"
+                                        Background="LightGoldenrodYellow"
                                         IsEnabled="{Binding IsEnablePause}"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
                                         Command="{Binding PauseEnvironmentCommand}"
-                                        ToolTip="MaterialDesignFlatLightButton" />
-                                <Button Width="70"
-                                        Content="STOP"
-                                        Background="OrangeRed"
+                                        ToolTip="MaterialDesignFlatLightButton">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="PauseCircleOutline"
+                                                                 Width="21" />
+                                        <TextBlock Text="PAUSE"
+                                                   Width="48" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Width="84"
+                                        Background="Red"
                                         IsEnabled="{Binding IsEnableStop}"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Margin="0 0 20 0"
+                                        Foreground="White"
                                         Command="{Binding StopEnvironmentCommand}"
-                                        ToolTip="MaterialDesignFlatLightButton" />
+                                        ToolTip="MaterialDesignFlatLightButton">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="StopCircleOutline"
+                                                                 Width="15" />
+                                        <TextBlock Text="STOP"
+                                                   Width="37" />
+                                    </StackPanel>
+                                </Button>
+
                                 <Button Width="70"
-                                        Background="Green"
-                                        Content="RUN"
+                                        Background="#FF9BE23F"
+                                        Padding="0 0 0 0"
                                         IsEnabled="{Binding IsEnableRun}"
                                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
                                         Command="{Binding RunEnvironmentCommand}"
-                                        ToolTip="MaterialDesignFlatDarkButton" />
+                                        ToolTip="MaterialDesignFlatDarkButton">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="PlayCircleOutline"
+                                                                 Width="18" />
+                                        <TextBlock Text="RUN"
+                                                   Width="32" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
 
@@ -150,7 +178,6 @@
                                             Height="27"
                                             Width="62">
                                         <StackPanel Orientation="Horizontal">
-
                                             <materialDesign:PackIcon Kind="Reload"
                                                                      Height="14"
                                                                      Width="10" />
@@ -171,6 +198,13 @@
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0"
                                           Margin="0 10 0 0">
+                                        <materialDesign:Card Padding="4"
+                                                             UniformCornerRadius="14"
+                                                             Visibility="{Binding IsLoadingPort}">
+                                            <ProgressBar IsIndeterminate="True"
+                                                         Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                                         Value="50" />
+                                        </materialDesign:Card>
                                         <ItemsControl ItemsSource="{Binding Ports}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>

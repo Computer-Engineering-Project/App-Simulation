@@ -55,7 +55,6 @@ namespace Environment.Model.Module
         public string FixedMode { get; set; }
         public string WORTime { get; set; }
         public string IOMode { get; set; }
-        public string DestinationAddress { get; set; }
-        public string DestinationChannel { get; set; }
+        public string AntennaGain { get; set; }
     }
 }
