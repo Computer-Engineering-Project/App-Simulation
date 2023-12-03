@@ -327,12 +327,14 @@ namespace Environment.Base
             if (moduleObject.type == ModuleObjectType.LORA)
             {
                 var loraParameters = (LoraParameterObject)moduleObject.parameters;
-                var destinationAddress = loraParameters.DestinationAddress;
-                var destinationChannel = loraParameters.DestinationChannel;
+
                 foreach (var hw in Devices)
                 {
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
+                        bool isCoverageArea = CaculateService.isCoverageArea(packet, hw.moduleObject);
+
+                        //bool isAcceptPacket = CaculateService.acceptPacket(packet, hw.moduleObject);
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
@@ -374,7 +376,7 @@ namespace Environment.Base
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
-                                if (hw_loraParameters.DestinationAddress == destinationAddress && hw_loraParameters.DestinationChannel == destinationChannel)
+                                if (hw_loraParameters.Address == packet.packet.address && hw_loraParameters.Channel == packet.packet.channel)
                                 {
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
@@ -382,7 +384,7 @@ namespace Environment.Base
                                         Task task = Task.Run(async () =>
                                         {
                                             await Task.Delay(Convert.ToInt32(packet.DelayTime));
-                                            
+
                                             // Execute work: enqueue and handle collision
                                             await createTransmittionAsync(hw, packet);
                                         });
@@ -509,7 +511,8 @@ namespace Environment.Base
                         // format packet before send, follow protocol
                         serialPort.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
-                        serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
+                        byte[] data = packetTransmit.getPacket();
+                        serialPort.Write(data, 0, data.Length);
                     }
                 }
             }

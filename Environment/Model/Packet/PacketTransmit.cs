@@ -39,8 +39,16 @@ namespace Environment.Model.Packet
             byte[] packet = new byte[4 + data.Length];
             packet[0] = module;
             packet[1] = cmdWord;
-            packet[2] = dataLength[0];
-            packet[3] = dataLength[1];
+            if(cmdWord == PacketTransmit.SENDDATA)
+            {
+                packet[2] = dataLength[1];
+                packet[3] = dataLength[0];
+            }
+            else
+            {
+                packet[2] = dataLength[0];
+                packet[3] = dataLength[1];
+            }
             for (int i = 0; i < data.Length; i++)
             {
                 packet[4 + i] = data[i];
