@@ -19,6 +19,7 @@ namespace Environment.Base
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
         public string portClicked { get; set; }
+        public object lockObjectSetParams = new object();
         //public Thread Collision { get; set; }
 
         private readonly ICommunication communication;
@@ -159,13 +160,27 @@ namespace Environment.Base
                 hw.readDataFromHardware.Start();
             }
         }
+        public void ResetParamsForDevice()
+        {
+            foreach(var hw in Devices)
+            {
+                var m_obj = ModuleObjects.FirstOrDefault(x => x.id == hw.moduleObject.id);
+                if(m_obj!= null)
+                {
+                    lock (lockObjectSetParams)
+                    {
+                        hw.moduleObject.parameters = m_obj.parameters;
+                    }
+                }
+            }
+        }
         private void readData(SerialPort sender)
         {
             while (State == RUN)
             {
 
                 byte[] buffer = Helper.GetDataFromHardware(sender);
-                /*sender.DiscardInBuffer();*/
+                sender.DiscardInBuffer();
                 if (buffer.Length > 0)
                 {
                     addToQueueIn(buffer, sender);
@@ -197,7 +212,12 @@ namespace Environment.Base
                         {
                             if (hardware.moduleObject.type == ModuleObjectType.LORA)
                             {
-                                var loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
+                                var loraParameters = new LoraParameterObject();
+                                lock (lockObjectSetParams)
+                                {
+                                    loraParameters = (LoraParameterObject)hardware.moduleObject.parameters;
+                                }
+
                                 DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
                                 hardware.packetQueueIn.Enqueue(data);
                             }
@@ -207,26 +227,25 @@ namespace Environment.Base
                 }
                 else if (packet.cmdWord == PacketTransmit.CHANGEMODE)
                 {
+                    int mode = packet.data[0]; 
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            hardware.mode = packet.data[0];
-                            communication.deviceChangeMode(hardware.mode, hardware.serialport.PortName);
-                            return;
+                            if (hardware.moduleObject.type == ModuleObjectType.LORA)
+                            {
+                                lock (hardware.lockObjectChangeMode)
+                                {
+                                    hardware.mode = mode;
+                                }
+
+                                communication.deviceChangeMode( hardware.mode, hardware.moduleObject.id);
+                                return;
+                            }
                         }
                     }
                 }
 
-                /*                DataProcessed dataProcessed = new DataProcessed(packet.data);
-
-                                foreach (var hardware in Devices)
-                                {
-                                    if (hardware.serialport.PortName == sender.PortName)
-                                    {
-                                        hardware.packetQueueIn.Enqueue(dataProcessed);
-                                    }
-                                }*/
             }
         }
         public void RunProgram()
@@ -287,10 +306,15 @@ namespace Environment.Base
         {
             if (moduleObject.type == ModuleObjectType.LORA)
             {
-                var parameter = (LoraParameterObject)moduleObject.parameters;
+                var parameter = new LoraParameterObject();
+                lock (lockObjectSetParams)
+                {
+                    parameter = (LoraParameterObject)moduleObject.parameters;
+                }
+                
                 /*double range = CaculateService.computeRange(parameter.Power);
                 double distance = CaculateService.computeDistance2Device(moduleObject, );*/
-                if(parameter.FixedMode == FixedMode.BROARDCAST)
+                if (parameter.FixedMode == FixedMode.BROARDCAST)
                 {
                     packet.address = parameter.Address;
                     packet.channel = parameter.Channel;
@@ -326,13 +350,18 @@ namespace Environment.Base
         {
             if (moduleObject.type == ModuleObjectType.LORA)
             {
-                var loraParameters = (LoraParameterObject)moduleObject.parameters;
-
+                var loraParameters = new LoraParameterObject();
+                lock (lockObjectSetParams)
+                {
+                    loraParameters = (LoraParameterObject)moduleObject.parameters;
+                }
+              
                 foreach (var hw in Devices)
                 {
+                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString();
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
-                        bool isCoverageArea = CaculateService.isCoverageArea(packet, hw.moduleObject);
+                        
 
                         //bool isAcceptPacket = CaculateService.acceptPacket(packet, hw.moduleObject);
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
@@ -365,7 +394,7 @@ namespace Environment.Base
                                                 // Execute work: enqueue and handle collision
                                                 await createTransmittionAsync(hw, packet);
                                             });
-                                            
+
                                         }
                                     }
                                 }
@@ -375,7 +404,12 @@ namespace Environment.Base
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
-                                var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
+                                var hw_loraParameters = new LoraParameterObject();
+                                lock (lockObjectSetParams)
+                                {
+                                    hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
+                                }
+                                
                                 if (hw_loraParameters.Address == packet.packet.address && hw_loraParameters.Channel == packet.packet.channel)
                                 {
                                     // check mode of destination device
@@ -447,7 +481,7 @@ namespace Environment.Base
         //Create transmittion with checking collision when pushing data into destinationQueue
         private async Task createTransmittionAsync(NodeDevice hw, InternalPacket packet)
         {
-            lock (hw.lockObject)
+            lock (hw.lockObjecCollision)
             {
                 hw.flagDataIn++;
             }
@@ -456,9 +490,9 @@ namespace Environment.Base
         private async Task caculateCollisionAsync(NodeDevice hw, InternalPacket packet)
         {
             await Task.Delay(5);
-            lock (hw.lockObject)
+            lock (hw.lockObjecCollision)
             {
-                if(hw.flagDataIn > 1)
+                if (hw.flagDataIn > 1)
                 {
                     Task collision = Task.Run(() => PushIntoCollidedQueue(hw, packet));
                 }
@@ -470,12 +504,13 @@ namespace Environment.Base
         }
         private void PushIntoCollidedQueue(NodeDevice hw, InternalPacket packet)
         {
-            lock (hw.lockObject)
+            lock (hw.lockObjecCollision)
             {
                 hw.flagDataIn--;
             }
-            hw.collidedPackets.Enqueue(new CollidedPacket()
+            hw.collidedPackets.Enqueue(new ErrorPacket()
             {
+                typeError = "Collided",
                 sourceModule = packet.sourceModule,
                 timeUTC = DateTime.Now.ToLocalTime().ToString(),
                 timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
@@ -483,7 +518,7 @@ namespace Environment.Base
         }
         private void PushIntoDestinationDeviceQueue(NodeDevice hw, InternalPacket packet)
         {
-            lock (hw.lockObject)
+            lock (hw.lockObjecCollision)
             {
                 hw.flagDataIn--;
             }

@@ -17,12 +17,13 @@ namespace Environment.Model.History
         private string source;
         public string Source { get => source; set { source = value; OnPropertyChanged(); } }
 
-        public string data;
+        private string data;
         public string Data { get => data; set { data = value; OnPropertyChanged(); } }
 
-        public string delayTime { get; set; }
+        private string delayTime { get; set; }
         public string DelayTime { get => delayTime; set { delayTime = value; OnPropertyChanged(); } }
-
+        private string distance { get; set; }
+        public string Distance { get => distance; set { distance = value; OnPropertyChanged(); } }
 
     }
 }

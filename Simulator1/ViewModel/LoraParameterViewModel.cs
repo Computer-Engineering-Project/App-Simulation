@@ -45,55 +45,56 @@ namespace Simulator1.ViewModel
         public ObservableCollection<string> ListFEC { get => listFEC; set { listFEC = value; OnPropertyChanged(); } }
 
         private string id;
-        public string Id { get => id; set { id = value; OnPropertyChanged(); } }
+        public string Id { get => id; set { id = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string address;
-        public string Address { get => address; set { address = value; OnPropertyChanged(); } }
+        public string Address { get => address; set { address = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string channel;
-        public string Channel { get => channel; set { channel = value; OnPropertyChanged(); } }
+        public string Channel { get => channel; set { channel = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string airRate;
-        public string AirRate { get => airRate; set { airRate = value; OnPropertyChanged(); } }
+        public string AirRate { get => airRate; set { airRate = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string powerTransmit;
-        public string PowerTransmit { get => powerTransmit; set { powerTransmit = value; OnPropertyChanged(); } }
+        public string PowerTransmit { get => powerTransmit; set { powerTransmit = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string uartRate;
-        public string UartRate { get => uartRate; set { uartRate = value; OnPropertyChanged(); } }
+        public string UartRate { get => uartRate; set { uartRate = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string fixedMode;
-        public string FixedMode { get => fixedMode; set { fixedMode = value; OnPropertyChanged(); } }
+        public string FixedMode { get => fixedMode; set { fixedMode = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string worTime;
-        public string WORTime { get => worTime; set { worTime = value; OnPropertyChanged(); } }
+        public string WORTime { get => worTime; set { worTime = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string parity;
-        public string Parity { get => parity; set { parity = value; OnPropertyChanged(); } }
+        public string Parity { get => parity; set { parity = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string ioMode;
-        public string IOMode { get => ioMode; set { ioMode = value; OnPropertyChanged(); } }
+        public string IOMode { get => ioMode; set { ioMode = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string fec;
-        public string FEC { get => fec; set { fec = value; OnPropertyChanged(); } }
+        public string FEC { get => fec; set { fec = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
-        private string destinationAddress;
-        public string DestinationAddress { get => destinationAddress; set { destinationAddress = value; OnPropertyChanged(); } }
+        private string antennaGain;
+        public string AntennaGain { get => antennaGain; set { antennaGain = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
-        private string destinationChannel;
-        public string DestinationChannel { get => destinationChannel; set { destinationChannel = value; OnPropertyChanged(); } }
 
 
 
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly ModuleStore moduleStore;
         private readonly IServiceProvider serviceProvider;
+        private readonly StatusStateManagement statusStateManagement;
 
-        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider)
+        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, 
+            StatusStateManagement statusStateManagement)
         {
             this.moduleStateManagement = moduleStateManagement;
             this.moduleStore = moduleStore;
             this.serviceProvider = serviceProvider;
+            this.statusStateManagement = statusStateManagement;
 
             this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
             this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter; // load on program
@@ -141,8 +142,7 @@ namespace Simulator1.ViewModel
                     Parity = Parity,
                     IOMode = IOMode,
                     FEC = FEC,
-                    DestinationAddress = DestinationAddress,
-                    DestinationChannel = DestinationChannel
+                    AntennaGain = AntennaGain
                 };
             }
             catch (Exception e)
@@ -222,8 +222,7 @@ namespace Simulator1.ViewModel
                 IOMode = loraParams.IOMode;
                 FEC = loraParams.FEC;
                 UartRate = loraParams.UartRate;
-                DestinationChannel = loraParams.DestinationChannel;
-                DestinationAddress = loraParams.DestinationAddress;
+                AntennaGain = loraParams.AntennaGain;
             }
             catch (Exception e)
             {
@@ -245,8 +244,7 @@ namespace Simulator1.ViewModel
                 IOMode = listParams["IOMode"];
                 FEC = listParams["FEC"];
                 UartRate = listParams["UartRate"];
-                DestinationAddress = listParams["DestinationAddress"];
-                DestinationChannel = listParams["DestinationChannel"];
+                AntennaGain = listParams["AntennaGain"];
             }
             catch (Exception e)
             {
@@ -266,8 +264,7 @@ namespace Simulator1.ViewModel
             IOMode = null;
             FEC = null;
             UartRate = null;
-            DestinationChannel = null;
-            DestinationAddress = null;
+            AntennaGain = null;
         }
     }
 }

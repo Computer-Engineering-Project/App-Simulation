@@ -64,7 +64,7 @@ namespace Simulator1.Store
         {
             ModuleObjects.Clear();
         }
-        public void SaveHistoryToJsonFile()
+        public bool SaveHistoryToJsonFile()
         {
             var saveModuleObjects = ModuleObjects.Select(x=> new ModuleObject()
             {
@@ -75,7 +75,7 @@ namespace Simulator1.Store
                 parameters = x.parameters
             }).ToArray();
             string json = JsonConvert.SerializeObject(saveModuleObjects);
-            loadParameter.SaveJsonFile(json);
+            return loadParameter.SaveJsonFile(json);
         }
         private void OnLoadHistory()
         {

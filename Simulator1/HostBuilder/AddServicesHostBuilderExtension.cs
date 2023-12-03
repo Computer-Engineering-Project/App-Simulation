@@ -26,6 +26,7 @@ namespace Simulator1.HostBuilder
                 services.AddSingleton<ModuleStateManagement>();
                 services.AddSingleton<MainStateManagement>();
                 services.AddSingleton<HistoryStateManagement>();
+                services.AddSingleton<StatusStateManagement>();
                 //Store
                 services.AddSingleton<ModuleStore>();
                 services.AddSingleton<NavigationStore>();
