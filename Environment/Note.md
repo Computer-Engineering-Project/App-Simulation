@@ -27,6 +27,11 @@
 - Khi stop, nhấn config thì không được, bị lỗi -> stop sẽ clear history data, còn pause thì không
 - tạo nút clear data 
 - Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục
-- 
+
+## 04/12/2023
+- clear buffer cua hw sau khi nhan data tu node controller
+
+## 05/12/2023
+- sửa UI phần fixmode, thông tin hiện ở packet send là address và channel của device đích, không phải device source
 
 

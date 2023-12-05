@@ -73,8 +73,8 @@ namespace Environment.Model.Packet
         {
             if(fixedMode == FixedMode.FIXED)
             {
-                this.address = Encoding.ASCII.GetString(data.Take(2).ToArray());
-                this.channel = Encoding.ASCII.GetString(data.Skip(2).Take(1).ToArray());
+                this.address = data[1].ToString("X2") + data[0].ToString("X2");
+                this.channel = data[2].ToString("X2");
                 this.data = Encoding.ASCII.GetString(data.Skip(3).ToArray());
             }
             else
