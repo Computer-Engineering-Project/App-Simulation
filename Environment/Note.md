@@ -33,5 +33,9 @@
 
 ## 05/12/2023
 - sửa UI phần fixmode, thông tin hiện ở packet send là address và channel của device đích, không phải device source
+- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục //DONE
+- 
+## 5/12/2023
+- hiện channel target khi data gửi từ hardware lên có target 
 
 

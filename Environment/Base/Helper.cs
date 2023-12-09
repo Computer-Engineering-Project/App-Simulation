@@ -21,7 +21,7 @@ namespace Environment.Base
             byte module = 0xff;
             byte cmdWord = PacketTransmit.ACTIVE;
             byte[] dataLength = { 0x00, 0x00 };
-            byte[] data = { PacketTransmit.ENDBYTE};
+            byte[] data = { PacketTransmit.ENDBYTE };
 
             PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, data);
 
@@ -73,7 +73,7 @@ namespace Environment.Base
             bool success = false;
             byte cmdWord = PacketTransmit.CONFIG;
             byte[] dataLength = { 0x00, 0x00 };
-            int dataLengthRaw = data.Length -1;
+            int dataLengthRaw = data.Length - 1;
             dataLength[0] = (byte)(dataLengthRaw >> 8);
             dataLength[1] = (byte)(dataLengthRaw & 0xFF);
 
@@ -128,7 +128,7 @@ namespace Environment.Base
                 serialPort.Read(temp, 0, 1);
 
                 bool check = checkStartByte(temp);
-                if(startByte == false && check == true)
+                if (startByte == false && check == true)
                 {
                     startByte = true;
                 }
@@ -152,9 +152,9 @@ namespace Environment.Base
             byte cmdWord = data[1];
             byte[] dataLength = { data[3], data[2] };
             byte[] dataRaw;
-            if(cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
+            if (cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
             {
-               dataRaw  = new byte[dataLength[0] * 256 + dataLength[1]];
+                dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
             }
             else
             {
@@ -171,10 +171,12 @@ namespace Environment.Base
         {
             return "";
         }
-        public static string generatePreamble(int length)
+        public static string generatePreamble(int worTime)
         {
             string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>? ";
             Random random = new Random();
+            var length = BitConverter.GetBytes(worTime).Length;
+            
 
             char[] preambleArray = new char[length];
             for (int i = 0; i < length; i++)
@@ -204,7 +206,7 @@ namespace Environment.Base
 
         public static byte ConvertSpeedrate(string baudrate)
         {
-              switch (baudrate)
+            switch (baudrate)
             {
                 case "300":
                     return 0x00;

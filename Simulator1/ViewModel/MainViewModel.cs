@@ -55,6 +55,9 @@ namespace Simulator1.ViewModel
         public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
 
         //History Data
+        private string informationCom;
+        public string InformationCom { get => informationCom; set { informationCom = value; OnPropertyChanged(); } }
+
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
         private string dataHistory;
@@ -338,18 +341,26 @@ namespace Simulator1.ViewModel
                             var y = Double.Parse(listParams["y"]);
                             if (y < 0) y = 0;
                             module.y = y;
+                            var transX = Double.Parse(listParams["transformX"]);
+                            module.transformX = transX;
+                            var transY = Double.Parse(listParams["transformY"]);
+                            module.transformY = transY;
                         }
                     }
                     else
                     {
                         if (module.port == listParams["port"])
                         {
+                            
                             var x = Double.Parse(listParams["x"]);
                             if (x < 0) x = 0;
                             module.x = x;
+                            module.transformX = x - 70;
                             var y = Double.Parse(listParams["y"]);
                             if (y < 0) y = 0;
                             module.y = y;
+                            module.transformY = y - 72;
+
                         }
                     }
 
@@ -379,6 +390,7 @@ namespace Simulator1.ViewModel
                     else
                     {
                         //Binding history data to history table
+                        InformationCom = portName;
                         var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == portName);
                         if (moduleHistory != null)
                         {
@@ -748,7 +760,7 @@ namespace Simulator1.ViewModel
                     }
                     newHistoryObject.Data = transferedPacket.packet.packet.data;
                     newHistoryObject.DelayTime = transferedPacket.packet.DelayTime.ToString();
-                    newHistoryObject.Distance = transferedPacket.packet.Distance.ToString();
+                    newHistoryObject.Distance = transferedPacket.packet.Distance;
                     moduleHistory.historyObjectIns.Enqueue(newHistoryObject);
                     mainStateManagement.updateHistoryIn(portClicked);
                 }

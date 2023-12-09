@@ -267,6 +267,7 @@
                                             <view:testModule PortModule="{Binding port}"
                                                              ModeModule="{Binding mode}"
                                                              Id="{Binding id}"
+                                                             CoveringArea="{Binding coveringAreaRange}"
                                                              DropModuleCommand="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.autoSaveCommand}">
                                                 <i:Interaction.Triggers>
                                                     <i:EventTrigger EventName="MouseRightButtonDown">
@@ -276,18 +277,21 @@
                                                 </i:Interaction.Triggers>
                                             </view:testModule>
                                         </DataTemplate>
+
                                     </ItemsControl.ItemTemplate>
+
                                     <ItemsControl.ItemContainerStyle>
                                         <Style TargetType="ContentPresenter">
                                             <Setter Property="Canvas.Left"
-                                                    Value="{Binding x, Mode=TwoWay}" />
+                                                    Value="{Binding transformX, Mode=TwoWay}" />
                                             <Setter Property="Canvas.Top"
-                                                    Value="{Binding y, Mode=TwoWay}" />
+                                                    Value="{Binding transformY, Mode=TwoWay}" />
                                             <Setter Property="Tag"
                                                     Value="{Binding port, Mode=TwoWay}" />
                                         </Style>
                                     </ItemsControl.ItemContainerStyle>
                                 </ItemsControl>
+
                             </Grid>
                             <GridSplitter Grid.Row="1"
                                           HorizontalAlignment="Stretch"></GridSplitter>
@@ -305,26 +309,49 @@
                                     <Grid Grid.Column="0">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="30" />
-                                            <RowDefinition Height="*" />
+                                            <RowDefinition />
                                         </Grid.RowDefinitions>
 
                                         <Grid Grid.Row="0">
-                                            <TextBlock Text="Information"
-                                                       Margin="5 5 5 0"
-                                                       Padding="0 0 0 0"
-                                                       FontSize="15"
-                                                       FontWeight="Bold" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="InformationOutline" />
+                                                <TextBlock Text="Information"
+                                                           Margin="5 5 5 0"
+                                                           Padding="0 0 0 0"
+                                                           FontSize="15"
+                                                           FontWeight="Bold" />
+                                                <TextBlock Text=":"
+                                                           Margin="5 5 5 0"
+                                                           Padding="0 0 0 0"
+                                                           FontSize="15"
+                                                           FontWeight="Bold" />
+                                                <TextBlock Text="{Binding InformationCom}"
+                                                           Margin="25 5 5 0"
+                                                           Padding="0 0 0 0"
+                                                           FontSize="15"
+                                                           FontWeight="Bold" />
+                                            </StackPanel>
+
                                         </Grid>
 
 
                                         <!--Table-->
 
-                                        <TabControl Grid.RowSpan="2"
-                                                    Margin="0,15,0,0">
-                                            <TabItem Header="SEND">
+                                        <TabControl Grid.Row="2">
+
+                                            <TabItem Padding="0 0 0 0"
+                                                     Height="31">
+                                                <TabItem.Header>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                HorizontalAlignment="Center"
+                                                                Width="68">
+                                                        <materialDesign:PackIcon Kind="EmailArrowRight"
+                                                                                 Width="27" />
+                                                        <TextBlock Text="SEND" />
+                                                    </StackPanel>
+                                                </TabItem.Header>
                                                 <ScrollViewer VerticalScrollBarVisibility="
                                                              Auto">
-
                                                     <ListView x:Name="historySend"
                                                               ItemsSource="{Binding HistoryObjectOuts}"
                                                               SelectedItem="{Binding SelectedItemHistory, Mode=OneWayToSource}">
@@ -334,12 +361,11 @@
                                                                                 DisplayMemberBinding="{Binding Id}"></GridViewColumn>
                                                                 <GridViewColumn Header="Data"
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
-                                                                <GridViewColumn Header="Data"
+                                                                <GridViewColumn Header="Source"
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
 
                                                             </GridView>
                                                         </ListView.View>
-
                                                         <ListView.Resources>
                                                             <Style TargetType="ListViewItem">
                                                                 <Setter Property="Background"
@@ -374,7 +400,17 @@
                                                     </ListView>
                                                 </ScrollViewer>
                                             </TabItem>
-                                            <TabItem Header="RECEIVED">
+                                            <TabItem Padding="0 0 0 0"
+                                                     Height="31">
+                                                <TabItem.Header>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                HorizontalAlignment="Center"
+                                                                Width="80">
+                                                        <materialDesign:PackIcon Kind="EmailArrowLeft"
+                                                                                 Width="27" />
+                                                        <TextBlock Text="RECEIVE" />
+                                                    </StackPanel>
+                                                </TabItem.Header>
                                                 <ScrollViewer VerticalScrollBarVisibility="
                                                              Auto">
 
@@ -473,7 +509,7 @@
                                                 <TextBlock Text="{Binding DelayTimeHistory}"></TextBlock>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal"
-                                                         Grid.Row="3">
+                                                        Grid.Row="3">
                                                 <TextBlock Padding="0 0 10 0"
                                                            Width="80">Distance</TextBlock>
                                                 <TextBlock Text="{Binding DistanceHistory}"></TextBlock>

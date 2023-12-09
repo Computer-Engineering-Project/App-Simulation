@@ -63,6 +63,8 @@ namespace Simulator1.ViewModel
         private bool isEnablePortSelect = false;
         public bool IsEnablePortSelect { get => isEnablePortSelect; set { isEnablePortSelect = value; OnPropertyChanged(); } }
 
+        private ObservableCollection<string> listModuleType = new ObservableCollection<string>();
+        public ObservableCollection<string> ListModuleType { get => listModuleType; set { listModuleType = value; OnPropertyChanged(); } }
         public BaseViewModel CurrentModuleViewModel => moduleParamViewStore.CurrentViewModel;
 
         #endregion
@@ -152,11 +154,19 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "OnUpdateParamterForVM " + e);
             }
-            
+
         }
         private void ExecuteChangeModuleType(string type)
         {
             ModuleType = type;
+            if (type == "lora")
+            {
+                ListModuleType = new ObservableCollection<string>() { "E32-433T20D" };
+            }
+            else
+            {
+                ListModuleType = new ObservableCollection<string>() { "DL-22" };
+            }
         }
         private void GenerateModule()
         {
@@ -178,7 +188,9 @@ namespace Simulator1.ViewModel
                     var y = Double.Parse(VerticalY);
                     if (y < 0) y = 0;
                     tmp_ModuleObject.x = x;
+                    tmp_ModuleObject.transformX = x - 70;
                     tmp_ModuleObject.y = y;
+                    tmp_ModuleObject.transformY = y - 72;
                     moduleStore.ModuleObjects.Add(tmp_ModuleObject);
                     historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
@@ -210,6 +222,9 @@ namespace Simulator1.ViewModel
                             m.port = tmp_ModuleObject.port;
                             m.y = tmp_ModuleObject.y;
                             m.x = tmp_ModuleObject.x;
+                            m.coveringAreaRange = tmp_ModuleObject.coveringAreaRange;
+                            m.transformX = tmp_ModuleObject.x - 70;
+                            m.transformY = tmp_ModuleObject.y - 72;
                             m.mode = tmp_ModuleObject.mode;
                             m.parameters = tmp_ModuleObject.parameters;
                             m.type = tmp_ModuleObject.type;
@@ -226,7 +241,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "GenerateModule " + e);
             }
-            
+
         }
         private void DeleteModule()
         {
@@ -246,7 +261,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "DeleteModule " + e);
             }
-            
+
         }
         private void CloseModule()
         {
@@ -262,7 +277,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "CloseModule " + e);
             }
-            
+
         }
         private void ExecuteActiveHardware()
         {
@@ -274,7 +289,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "ExecuteActiveHardware " + e);
             }
-           
+
         }
         private void ExecuteReadConfigFromHardware()
         {
@@ -289,7 +304,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "ExecuteReadConfigFromHardware " + e);
             }
-            
+
         }
         private void ExecuteConfigHardware()
         {
@@ -329,7 +344,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "ExecuteConfigHardware " + e);
             }
-            
+
         }
         private void OnConfigHardwareSuccess(ModuleObject moduleObject)
         {
@@ -357,7 +372,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "OnUpdatePosition " + e);
             }
-            
+
         }
         private void OnIsActionUpdate(object isUpdate)
         {
@@ -372,7 +387,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Module paramter view model " + "OnIsActionUpdate " + e);
             }
-            
+
         }
         // Helper function ============
         public void Reset()

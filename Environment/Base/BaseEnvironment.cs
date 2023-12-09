@@ -162,10 +162,10 @@ namespace Environment.Base
         }
         public void ResetParamsForDevice()
         {
-            foreach(var hw in Devices)
+            foreach (var hw in Devices)
             {
                 var m_obj = ModuleObjects.FirstOrDefault(x => x.id == hw.moduleObject.id);
-                if(m_obj!= null)
+                if (m_obj != null)
                 {
                     lock (lockObjectSetParams)
                     {
@@ -311,7 +311,7 @@ namespace Environment.Base
                 {
                     parameter = (LoraParameterObject)moduleObject.parameters;
                 }
-                
+
                 /*double range = CaculateService.computeRange(parameter.Power);
                 double distance = CaculateService.computeDistance2Device(moduleObject, );*/
                 if (parameter.FixedMode == FixedMode.BROARDCAST)
@@ -326,15 +326,16 @@ namespace Environment.Base
                         {
                             packet = packet,
                             sourceModule = moduleObject,
-                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
+                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data, "", parameter.FEC),
                         };
                     case NodeDevice.MODE_WAKEUP:
+                        var preambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime));
                         return new InternalPacket()
                         {
                             packet = packet,
                             sourceModule = moduleObject,
-                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data),
-                            PreambleCode = Helper.generatePreamble(Convert.ToInt32(parameter.WORTime))
+                            PreambleCode = preambleCode,
+                            DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data, preambleCode, parameter.FEC),
                         };
                     default:
                         return null;
@@ -355,15 +356,12 @@ namespace Environment.Base
                 {
                     loraParameters = (LoraParameterObject)moduleObject.parameters;
                 }
-              
+
                 foreach (var hw in Devices)
                 {
-                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString();
+                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
-                        
-
-                        //bool isAcceptPacket = CaculateService.acceptPacket(packet, hw.moduleObject);
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
@@ -409,7 +407,7 @@ namespace Environment.Base
                                 {
                                     hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
                                 }
-                                
+
                                 if (hw_loraParameters.Address == packet.packet.address && hw_loraParameters.Channel == packet.packet.channel)
                                 {
                                     // check mode of destination device

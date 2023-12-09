@@ -25,12 +25,14 @@ namespace Simulator1.View
     /// </summary>
     public partial class testModule : UserControl
     {
-/*        public testModuleViewModel test { get; set; }*/
+        /*        public testModuleViewModel test { get; set; }*/
         protected bool isDragging;
         private FrameworkElement dragElement;
         private Point clickPosition;
         private Double baseX, baseY = 0;
-        private Point intialElementOffset;
+        private Double transX, transY = 0;
+        private Point intialActualElementOffset;
+        private Point intialTransformElementOffset;
         private Point currentPosition;
         private Double prevX, prevY;
 
@@ -46,8 +48,6 @@ namespace Simulator1.View
         // Using a DependencyProperty as the backing store for Id.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IdProperty =
             DependencyProperty.Register("Id", typeof(string), typeof(testModule), new PropertyMetadata(null));
-
-
 
         public string ModeModule
         {
@@ -69,6 +69,17 @@ namespace Simulator1.View
         public static readonly DependencyProperty PortModuleProperty =
             DependencyProperty.Register("PortModule", typeof(string), typeof(testModule), new PropertyMetadata(null));
 
+        public double CoveringArea
+        {
+            get { return (double)GetValue(CoveringAreaProperty); }
+            set { SetValue(CoveringAreaProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CoveringArea.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CoveringAreaProperty =
+            DependencyProperty.Register("CoveringArea", typeof(double), typeof(testModule), new PropertyMetadata(null));
+
+
 
         public ICommand DropModuleCommand
         {
@@ -85,68 +96,92 @@ namespace Simulator1.View
             InitializeComponent();
             this.MouseLeftButtonDown += new MouseButtonEventHandler(Control_MouseLeftButtonDown);
             this.MouseLeftButtonUp += new MouseButtonEventHandler(Control_MouseLeftButtonUp);
-            this.MouseMove += new MouseEventHandler(Control_MouseMove);        }
+            this.MouseMove += new MouseEventHandler(Control_MouseMove);
+        }
         private void Control_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
 
-            isDragging = true;
             var draggableControl = sender as UserControl;
             if (draggableControl != null)
             {
                 dragElement = (FrameworkElement)sender;
             }
-            clickPosition = e.GetPosition(FindAncestor(this) as UIElement);
-            intialElementOffset = e.GetPosition(dragElement);
 
-            draggableControl.CaptureMouse();
+            intialActualElementOffset = e.GetPosition(dragElement.FindName("device") as UIElement);
+            intialTransformElementOffset = e.GetPosition(dragElement as UIElement);
+            if (intialActualElementOffset.X > 0 && intialActualElementOffset.X <= 40 && intialActualElementOffset.Y > 0 && intialActualElementOffset.Y <= 40)
+            {
+                draggableControl.CaptureMouse();
+                isDragging = true;
+                clickPosition = e.GetPosition(FindAncestor(this) as UIElement);
+            }
+
         }
 
         private void Control_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            isDragging = false;
-            var draggable = sender as UserControl;
-            var transform = (draggable.RenderTransform as TranslateTransform);
-            if (transform != null)
+            if (isDragging)
             {
-                prevX = transform.X;
-                prevY = transform.Y;
+                isDragging = false;
+                var draggable = sender as UserControl;
+                var transform = (draggable.RenderTransform as TranslateTransform);
+                var modulePosition = e.GetPosition(dragElement);
+                if (transform != null)
+                {
+                    prevX = transform.X;
+                    prevY = transform.Y;
+                }
+                draggable.ReleaseMouseCapture();
+                if (currentPosition.X > 0 && currentPosition.Y > 0)
+                {
+                    transX = currentPosition.X - intialTransformElementOffset.X;
+                    transY = currentPosition.Y - intialTransformElementOffset.Y;
+                    baseX = transX + 70;
+                    baseY = transY + 72;
+                    var id = ((testModule)draggable).Id;
+                    DropModuleCommand?.Execute(new
+                    {
+                        x = baseX,
+                        y = baseY,
+                        transformX = transX,
+                        transformY = transY,
+                        id = id,
+                    });
+                }
+
             }
-            draggable.ReleaseMouseCapture();
-            baseX = currentPosition.X - intialElementOffset.X;
-            baseY = currentPosition.Y - intialElementOffset.Y;
-            var id = ((testModule)draggable).Id;
-            DropModuleCommand?.Execute(new
-            {
-                x = baseX,
-                y = baseY,
-                id = id,
-            });
+
         }
         private void Control_MouseMove(object sender, MouseEventArgs e)
         {
-            var draggableControl = sender as UserControl;
-
-            if (isDragging && draggableControl != null && e.LeftButton == MouseButtonState.Pressed)
+            if (intialActualElementOffset.X > 0 && intialActualElementOffset.X <= 40 && intialActualElementOffset.Y > 0 && intialActualElementOffset.Y <= 40)
             {
-                Point current_position = e.GetPosition(FindAncestor(this) as UIElement);
-                intialElementOffset = e.GetPosition(dragElement);
+                var draggableControl = sender as UserControl;
 
-                var transform = draggableControl.RenderTransform as TranslateTransform;
-                if (transform == null)
+                if (isDragging && draggableControl != null && e.LeftButton == MouseButtonState.Pressed)
                 {
-                    transform = new TranslateTransform();
-                    draggableControl.RenderTransform = transform;
-                }
+                    Point current_position = e.GetPosition(FindAncestor(this) as UIElement);
+                    intialActualElementOffset = e.GetPosition(dragElement.FindName("device") as UIElement);
+                    intialTransformElementOffset = e.GetPosition(dragElement as UIElement);
 
-                transform.X = (current_position.X - clickPosition.X);
-                transform.Y = (current_position.Y - clickPosition.Y);
-                if (prevX > 0)
-                {
-                    transform.X += prevX;
-                    transform.Y += prevY;
+                    var transform = draggableControl.RenderTransform as TranslateTransform;
+                    if (transform == null)
+                    {
+                        transform = new TranslateTransform();
+                        draggableControl.RenderTransform = transform;
+                    }
+
+                    transform.X = (current_position.X - clickPosition.X);
+                    transform.Y = (current_position.Y - clickPosition.Y);
+                    if (prevX > 0)
+                    {
+                        transform.X += prevX;
+                        transform.Y += prevY;
+                    }
+                    currentPosition = current_position;
                 }
-                currentPosition = current_position;
             }
+
         }
         private Canvas FindAncestor(DependencyObject obj)
         {
