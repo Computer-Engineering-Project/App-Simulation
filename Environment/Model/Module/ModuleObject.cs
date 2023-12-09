@@ -19,6 +19,9 @@ namespace Environment.Model.Module
         public string mode { get; set; }
         public double  x { get; set; }
         public double y { get; set; }
+        public double transformX { get; set; }
+        public double transformY { get; set; }
+        public double coveringAreaRange { get; set; }
         public string type { get; set; }
         public object parameters { get; set; }
     }

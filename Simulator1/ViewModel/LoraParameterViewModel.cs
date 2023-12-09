@@ -1,4 +1,5 @@
 ﻿
+using Environment.Base;
 using Environment.Model.Module;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,7 +89,7 @@ namespace Simulator1.ViewModel
         private readonly IServiceProvider serviceProvider;
         private readonly StatusStateManagement statusStateManagement;
 
-        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider, 
+        public LoraParameterViewModel(ModuleStateManagement moduleStateManagement, ModuleStore moduleStore, IServiceProvider serviceProvider,
             StatusStateManagement statusStateManagement)
         {
             this.moduleStateManagement = moduleStateManagement;
@@ -129,6 +130,7 @@ namespace Simulator1.ViewModel
                 Parity = Parity == null ? "8N1" : Parity;
                 IOMode = IOMode == null ? "1" : IOMode;
                 FEC = FEC == null ? "2.4" : FEC;
+                AntennaGain = AntennaGain == "" || AntennaGain == null ? "0" : AntennaGain;
 
                 return new LoraParameterObject()
                 {
@@ -160,6 +162,7 @@ namespace Simulator1.ViewModel
                 var loraParams = createLoraParamsObject();
                 module.parameters = loraParams;
                 module.type = "lora";
+                module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
 
                 /*            moduleStore.ModuleObjects.Add(module);*/
 
@@ -188,6 +191,7 @@ namespace Simulator1.ViewModel
                 {
                     var loraParams = createLoraParamsObject();
                     moduleObject.parameters = loraParams;
+                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {
@@ -206,7 +210,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Lora paramter view model " + "OnUpdateParamsOfModule " + e);
             }
-            
+
         }
         private void OnOpenUpdateLoraParamter(LoraParameterObject loraParams)
         {
@@ -228,7 +232,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Lora paramter view model " + "OnOpenUpdateLoraParamter " + e);
             }
-            
+
         }
         private void OnReadConfigLoraParameter(Dictionary<string, string> listParams)
         {
@@ -250,7 +254,7 @@ namespace Simulator1.ViewModel
             {
                 MessageBox.Show("Lora paramter view model " + "OnReadConfigLoraParameter " + e);
             }
-            
+
         }
         private void OnResetParameterModule()
         {
@@ -265,6 +269,15 @@ namespace Simulator1.ViewModel
             FEC = null;
             UartRate = null;
             AntennaGain = null;
+        }
+        public override void Dispose()
+        {
+            this.moduleStateManagement.LoraParamsCreated -= OnCreateLoraParameter;
+            this.moduleStateManagement.OpenUpdateLoraParams -= OnOpenUpdateLoraParamter; // load on program
+            this.moduleStateManagement.UpdateParamsOfModule -= OnUpdateParamsOfModule;
+            this.moduleStateManagement.ReadLoraConfigParams -= OnReadConfigLoraParameter;
+            this.moduleStateManagement.ResetParameterModule -= OnResetParameterModule;
+            base.Dispose();
         }
     }
 }

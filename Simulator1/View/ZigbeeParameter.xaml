@@ -1,12 +1,110 @@
 ﻿<UserControl x:Class="Simulator1.View.ZigbeeParameter"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Simulator1.View"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Background="White">
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">Zigbee</TextBlock>
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <Grid Background="White" Height="400">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <WrapPanel Orientation="Vertical"
+                       Margin="21,30,10,30">
+
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Channel" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="{Binding Channel}"
+                             materialDesign:HintAssist.Hint="0 - 31"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Antenna gain (dBi)" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="{Binding AntennaGain}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
+            </WrapPanel>
+        </Grid>
+        <Grid Grid.Column="1">
+            <WrapPanel Orientation="Vertical"
+                       Margin="16,30,16,30">
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Uart Rate (bps)" /></TextBlock>
+                    <ComboBox Width="180"
+                              Height="30"
+                              Padding="5 0 5 0"
+                              ItemsSource="{Binding ListUartRate}"
+                              SelectedValue="{Binding UartRate, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
+                              materialDesign:HintAssist.Hint="9600 (default)"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}">
+
+                    </ComboBox>
+                </Grid>
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Transmit Mode" /></TextBlock>
+                    <ComboBox Width="180"
+                              Height="30"
+                              Padding="5 0 5 0"
+                              ItemsSource="{Binding ListFixedMode}"
+                              SelectedValue="{Binding FixedMode, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
+                              materialDesign:HintAssist.Hint="0 (default)"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}">
+
+                    </ComboBox>
+                </Grid>
+
+            </WrapPanel>
+        </Grid>
+        <Grid Grid.Column="2">
+            <WrapPanel Orientation="Vertical"
+                       Margin="21,30,10,30">
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Data Rate (bps)" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="3300 (MAX)"
+                             IsEnabled="False"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Power Transmit (dBm)" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="20 (MAX)"
+                             IsEnabled="False"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
+            </WrapPanel>
+        </Grid>
     </Grid>
 </UserControl>

@@ -26,7 +26,9 @@
 ## 30/11/2023
 - Khi stop, nhấn config thì không được, bị lỗi -> stop sẽ clear history data, còn pause thì không
 - tạo nút clear data 
-- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục
+- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục //DONE
 - 
+## 5/12/2023
+- hiện channel target khi data gửi từ hardware lên có target 
 
 

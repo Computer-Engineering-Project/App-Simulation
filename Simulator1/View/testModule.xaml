@@ -8,24 +8,37 @@
              d:DesignHeight="450"
              Name="module"
              d:DesignWidth="800">
-    <Grid>
-        <StackPanel>
-            <Grid Width="80"
-                  Margin="20 10 20 10"
-                  Height="80"
-                  Background="White">
-                <Image Grid.Row="0"
-                       Source="../static/img/lora.png"
-                       Stretch="Uniform"
-                       Cursor="" />
-            </Grid>
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding Path=PortModule, ElementName=module}" />
-                <TextBlock DockPanel.Dock="Left"
-                           Text="{Binding Path=ModeModule, ElementName=module}" />
-            </DockPanel>
+    <Grid HorizontalAlignment="Center"
+          VerticalAlignment="Center">
+        <Ellipse Fill="LightGreen"
+                 Opacity="0.5"
+                 Width="{Binding Path=CoveringArea, ElementName=module}"
+                 Height="{Binding Path=CoveringArea, ElementName=module}" />
+        <Grid x:Name="device"
+              Height="56"
+              Width="60">
+            <StackPanel VerticalAlignment="Center"
+                        Height="56">
+                <Grid Width="40"
+                      Height="40"
+                      Background="White">
+                    <Image Grid.Row="0"
+                           Source="../static/img/lora.png"
+                           Stretch="Uniform"
+                           Cursor="" />
+                </Grid>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <TextBlock Margin="5 0 5 0"
+                               FontSize="7"
+                               Text="{Binding Path=PortModule, ElementName=module}" />
+                    <TextBlock Margin="5 0 5 0"
+                               FontSize="7"
+                               Text="{Binding Path=ModeModule, ElementName=module}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
 
-        </StackPanel>
+
     </Grid>
 </UserControl>

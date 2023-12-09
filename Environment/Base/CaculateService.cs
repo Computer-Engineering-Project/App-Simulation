@@ -1,9 +1,11 @@
 ﻿using Environment.Model.Module;
 using Environment.Model.Packet;
+using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -11,24 +13,63 @@ using System.Threading.Tasks;
 
 namespace Environment.Base
 {
-    public static class  CaculateService
+    public static class CaculateService
     {
-        public static double caculateDelayTime(string airRate, string data)
+        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC)
         {
-            return Double.Parse(airRate) / data.Length;
+            double BW = 0;
+            double SF = 0;
+            double CR = 1;
+            double n_preamble = preamble.Length;
+            double PL = Encoding.ASCII.GetBytes(data).Length;
+            double CRC = FEC == "0" ? 0 : 1;
+            double IH = 1;
+            double DE = 0;
+
+            var airRateNum = Double.Parse(airRate);
+            switch (airRateNum)
+            {
+                case 0.3:
+                    BW = 125;
+                    SF = 12;
+                    DE = 1;
+                    break;
+                case 1.2:
+                    BW = 250;
+                    SF = 11;
+                    break;
+                case 2.4:
+                    BW = 500;
+                    SF = 11;
+                    break;
+                case 4.8:
+                    BW = 250;
+                    SF = 8;
+                    break;
+                case 9.6:
+                    BW = 500;
+                    SF = 8;
+                    break;
+                case 19.2:
+                    BW = 500;
+                    SF = 7;
+                    break;
+                default:
+                    break;
+            }
+            var Tsym = Math.Pow(2, SF) / BW;
+            var Tpreamble = (n_preamble + 4.25) * Tsym;
+            var Tpayload = Tsym * (8 + Math.Max(Math.Ceiling((8 * PL - 4 * SF + 28 + 16 * CRC - 20 * IH) / (4 * (SF - 2 * DE))) * (CR + 4), 0));
+            var Tpacket = Tpayload + Tpreamble;
+            return Tpacket;
         }
-        public static double computeRange(string transmissionPower)
+        public static double computeRange(string antenaGain, string transmissionPower)
         {
-            double max_sensitivity = -110.225; // by measuring device in reality
-            // parameters taken from paper "Do LoRa Low-Power Wide-Area Networks Scale?"
-            double d0 = 40;
-            double PL_d0_db = 127.41;
-            double gamma = 2.08;
-            // Caculate distance
-            double transmissionPower_dbm = Double.Parse(transmissionPower);
-            double rhs = (transmissionPower_dbm - PL_d0_db - max_sensitivity) / (10 * gamma);
-            double distance = d0 * Math.Pow(10, rhs);
-            return distance;
+            double maxTransmitPower = 20;
+            double productAntenaGain = 5;
+            double productMaxRange = 3000;
+            var val1 = (Double.Parse(transmissionPower) + Double.Parse(antenaGain) - maxTransmitPower - productAntenaGain + 20 * Math.Log10(productMaxRange)) / 20;
+            return Math.Pow(10, val1) / 10;
         }
         public static double computeDistance2Device(ModuleObject sender, ModuleObject receiver)
         {
@@ -41,26 +82,17 @@ namespace Environment.Base
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             var distance = Math.Sqrt(Math.Pow(receiver.x - sender.x, 2) + Math.Pow(receiver.y - sender.y, 2));
             // parameters taken from paper "Do LoRa Low-Power Wide-Area Networks Scale?"
-            if(listParams!=null)
+            if (listParams != null)
             {
-                double constValue = 33.45;
+                double constValue = 32.45;
                 double frequency = 410 + Double.Parse(listParams["Channel"], NumberStyles.HexNumber);
                 double pthLoss = constValue + 20 * Math.Log10(distance) + 20 * Math.Log10(frequency);
                 return pthLoss;
             }
             return Double.NaN;
         }
-        
-        private static void HandleCollisionPacket(List<PacketTransmit> packets, PacketTransmit packet)
-        {
-            foreach (var p in packets)
-            {
-                if (p != packet)
-                {
-                    //p.Collision = true;
-                }
-            }
-        }
+
+
 
         public static bool acceptPacket(double percentPacketLoss)
         {
