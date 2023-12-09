@@ -425,10 +425,10 @@
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
                                                                 <GridViewColumn Header="Data"
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
-                                                                <GridViewColumn Header="Delay Time"
+                                                                <GridViewColumn Header="Delay Time(ms)"
                                                                                 DisplayMemberBinding="{Binding DelayTime}"></GridViewColumn>
-                                                                <GridViewColumn Header="Distance"
-                                                                                DisplayMemberBinding="{Binding DistanceHistory}"></GridViewColumn>
+                                                                <GridViewColumn Header="Distance" 
+                                                                                DisplayMemberBinding="{Binding Distance}"></GridViewColumn>
                                                             </GridView>
                                                         </ListView.View>
 

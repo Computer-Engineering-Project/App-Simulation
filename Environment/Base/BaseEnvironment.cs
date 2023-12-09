@@ -180,7 +180,7 @@ namespace Environment.Base
             {
 
                 byte[] buffer = Helper.GetDataFromHardware(sender);
-                /*sender.DiscardInBuffer();*/
+                sender.DiscardInBuffer();
                 if (buffer.Length > 0)
                 {
                     addToQueueIn(buffer, sender);
@@ -227,26 +227,25 @@ namespace Environment.Base
                 }
                 else if (packet.cmdWord == PacketTransmit.CHANGEMODE)
                 {
+                    int mode = packet.data[0]; 
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
                         {
-                            hardware.mode = packet.data[0];
-                            communication.deviceChangeMode(hardware.mode, hardware.serialport.PortName);
-                            return;
+                            if (hardware.moduleObject.type == ModuleObjectType.LORA)
+                            {
+                                lock (hardware.lockObjectChangeMode)
+                                {
+                                    hardware.mode = mode;
+                                }
+
+                                communication.deviceChangeMode( hardware.mode, hardware.moduleObject.id);
+                                return;
+                            }
                         }
                     }
                 }
 
-                /*                DataProcessed dataProcessed = new DataProcessed(packet.data);
-
-                                foreach (var hardware in Devices)
-                                {
-                                    if (hardware.serialport.PortName == sender.PortName)
-                                    {
-                                        hardware.packetQueueIn.Enqueue(dataProcessed);
-                                    }
-                                }*/
             }
         }
         public void RunProgram()
@@ -545,7 +544,8 @@ namespace Environment.Base
                         // format packet before send, follow protocol
                         serialPort.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
-                        serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
+                        byte[] data = packetTransmit.getPacket();
+                        serialPort.Write(data, 0, data.Length);
                     }
                 }
             }

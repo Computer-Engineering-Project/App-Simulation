@@ -20,6 +20,7 @@ namespace Environment.Model
 
         public SerialPort serialport { get; set; }
         public object lockObjecCollision = new object();
+        public object lockObjectChangeMode = new object();
         public int mode { get; set; }
         public int flagDataIn { get; set; }
         public Thread readDataFromHardware { get; set; }
