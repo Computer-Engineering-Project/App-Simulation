@@ -135,7 +135,10 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.UpdateHistoryOut += OnUpdateHistoryOut;
             this.mainStateManagement.UpdateHitoryIn += OnUpdateHistoryIn;
             this.mainStateManagement.ResetAll += OnReset;
+            this.mainStateManagement.ChangeMode += OnChangeMode;
+
             this.statusStateManagement.StatusChanged += OnStatusChanged;
+            
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -188,6 +191,29 @@ namespace Simulator1.ViewModel
             IsEnableRun = true;
             IsEnablePause = false;
             IsEnableStop = true;
+        }
+        private void OnChangeMode(object data)
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(data);
+                Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                foreach (var module in moduleStore.ModuleObjects)
+                {
+                    if (listParams["id"] != null)
+                    {
+                        if (module.id == listParams["id"])
+                        {
+                            module.mode = "MODE " + listParams["mode"];
+                        }
+                    }
+                }
+                ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Main view model " + "OnChangeMode " + e);
+            }
         }
         private void OnUpdateHistoryOut(string portName)
         {
@@ -733,9 +759,20 @@ namespace Simulator1.ViewModel
             }
 
         }
-        public void deviceChangeMode(int mode, string port)
+        public void deviceChangeMode(int mode, string id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                mainStateManagement.changeMode(new
+                {
+                    mode = mode,
+                    id = id
+                });
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Main view model " + "deviceChangeMode " + e);
+            }
         }
 
         public void sendMessageIsRunning()

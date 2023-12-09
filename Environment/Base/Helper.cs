@@ -84,9 +84,9 @@ namespace Environment.Base
             serialPort.DiscardInBuffer();
             serialPort.DiscardOutBuffer();
             while (count < 2)
-            { 
-                serialPort.Write(packetTransmit.getPacket(), 0, packetTransmit.getPacket().Length);
-                byte[] bytes = new byte[7];
+            {
+                byte[] bytes = packetTransmit.getPacket();
+                serialPort.Write(bytes, 0, bytes.Length);
 
                 bytes = GetDataFromHardware(serialPort);
 

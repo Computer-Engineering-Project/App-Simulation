@@ -389,8 +389,10 @@
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
                                                                 <GridViewColumn Header="Data"
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
-                                                                <GridViewColumn Header="Delay Time"
+                                                                <GridViewColumn Header="Delay Time(ms)"
                                                                                 DisplayMemberBinding="{Binding DelayTime}"></GridViewColumn>
+                                                                <GridViewColumn Header="Distance" 
+                                                                                DisplayMemberBinding="{Binding Distance}"></GridViewColumn>
                                                             </GridView>
                                                         </ListView.View>
 
@@ -450,7 +452,7 @@
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
-
+                                                <RowDefinition Height="30"></RowDefinition>
                                             </Grid.RowDefinitions>
                                             <StackPanel Orientation="Horizontal"
                                                         Grid.Row="0">
@@ -469,6 +471,12 @@
                                                 <TextBlock Padding="0 0 10 0"
                                                            Width="80">Delay Time</TextBlock>
                                                 <TextBlock Text="{Binding DelayTimeHistory}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal"
+                                                         Grid.Row="3">
+                                                <TextBlock Padding="0 0 10 0"
+                                                           Width="80">Distance</TextBlock>
+                                                <TextBlock Text="{Binding DistanceHistory}"></TextBlock>
                                             </StackPanel>
 
                                         </Grid>
