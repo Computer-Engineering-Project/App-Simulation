@@ -22,9 +22,10 @@ namespace Simulator1
     public partial class MainWindow : Window
     {
         private bool isLoaded = false;
+        private double _scaleValue = 1.0;
         public MainWindow()
         {
-            if(!isLoaded)
+            if (!isLoaded)
             {
                 InitializeComponent();
                 isLoaded = true;
@@ -33,6 +34,23 @@ namespace Simulator1
         private void Main_Window_Closed(object sender, EventArgs e)
         {
             this.Close();
+        }
+        private void Control_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            bool zoomIn = e.Delta > 0;
+
+            // Set the scale value based on the direction of the zoom
+            _scaleValue += zoomIn ? 0.03 : -0.03;
+
+            // Set the maximum and minimum scale values
+            _scaleValue = _scaleValue < 1.0 ? 1.0 : _scaleValue;
+            _scaleValue = _scaleValue > 10.0 ? 10.0 : _scaleValue;
+            var centerX = (double)e.GetPosition(mycanvas).X;
+            var centerY = (double)e.GetPosition(mycanvas).Y;
+
+            // Apply the scale transformation to the ItemsControl
+            ScaleTransform scaleTransform = new ScaleTransform(_scaleValue, _scaleValue, centerX, centerY);
+            mycanvas.RenderTransform = scaleTransform;
         }
     }
 }

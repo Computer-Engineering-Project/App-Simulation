@@ -15,41 +15,66 @@ namespace Simulator1.Database
 {
     public class LoadHistoryFile
     {
-        string path = Env.path;
+        string path = "";
         public List<ModuleObject> listInModules = new List<ModuleObject>();
         public LoadHistoryFile()
         {
-            
+
         }
-        public bool ScanJsonFile()
+        public bool OpenJsonFile()
         {
-            
             var openFileDialog = new OpenFileDialog();
             bool? response = openFileDialog.ShowDialog();
-            if(response == true)
+            if (response == true)
             {
                 path = openFileDialog.FileName;
+                if (!path.Contains(".json"))
+                {
+                    throw new Exception("File open is not right format, please choose again (.json)");
+                }
                 string json = File.ReadAllText(path);
                 var nodeJSONList = JsonConvert.DeserializeObject<List<ModuleObject>>(json);
                 if (nodeJSONList != null)
                 {
-                    listInModules = nodeJSONList;
+                    listInModules = nodeJSONList.Select(m => new ModuleObject()
+                    {
+                        id = m.id,
+                        x = m.x,
+                        y = m.y,
+                        transformX = m.x - 70,
+                        transformY = m.y - 72,
+                        parameters = m.parameters,
+                        coveringAreaRange = m.coveringAreaRange,
+                        type = m.type,
+                    }).ToList();
                 }
                 return true;
             }
             return false;
         }
-        public bool SaveJsonFile(string json)
+        public bool SaveJsonFile(string json, string saveType)
         {
-            var saveFileDialog = new SaveFileDialog();
-            bool? response = saveFileDialog.ShowDialog();
-            if(response == true)
+            if (string.IsNullOrEmpty(path) || saveType == "saveas")
             {
-                path = saveFileDialog.FileName;
+                var saveFileDialog = new SaveFileDialog();
+                bool? response = saveFileDialog.ShowDialog();
+                if (response == true)
+                {
+                    path = saveFileDialog.FileName;
+                    if (!path.Contains(".json"))
+                    {
+                        throw new Exception("File is not right format, please save file with right format (.json)");
+                    }
+                    File.WriteAllText(path, json);
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
                 File.WriteAllText(path, json);
                 return true;
             }
-            return false;
         }
     }
 }

@@ -31,28 +31,28 @@ namespace Simulator1.ViewModel
         #region variable
 
         private string horizontal_x;
-        public string HorizontalX { get => horizontal_x; set { horizontal_x = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string HorizontalX { get => horizontal_x; set { horizontal_x = value; OnPropertyChanged(); } }
 
         private string vertical_y;
-        public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string VerticalY { get => vertical_y; set { vertical_y = value; OnPropertyChanged(); } }
 
         private ObservableCollection<string> listPort;
-        public ObservableCollection<string> ListPort { get => listPort; set { listPort = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public ObservableCollection<string> ListPort { get => listPort; set { listPort = value; OnPropertyChanged(); } }
 
         private string port;
-        public string Port { get => port; set { port = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string Port { get => port; set { port = value; OnPropertyChanged(); } }
 
         private string id;
-        public string Id { get => id; set { id = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string Id { get => id; set { id = value; OnPropertyChanged(); } }
 
         private string isUpdate;
-        public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string IsUpdate { get => isUpdate; set { isUpdate = value; OnPropertyChanged(); } }
 
         private string moduleType;
-        public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); } }
 
         private ModuleObject tmp_moduleObject;
-        public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); } }
 
         private bool isEnableSave = false;
         public bool IsEnableSave { get => isEnableSave; set { isEnableSave = value; OnPropertyChanged(); } }
@@ -234,7 +234,7 @@ namespace Simulator1.ViewModel
                     moduleStateManagement.changePositionAndPort(module);
                     moduleStateManagement.createModuleObject(module.port);
                 }
-
+                statusStateManagement.statusChanged();
                 CloseModule();
             }
             catch (Exception e)
@@ -256,6 +256,7 @@ namespace Simulator1.ViewModel
                     moduleStore.ModuleObjects.Remove(module);
                     Save?.Invoke(module.port);
                 }
+                statusStateManagement.statusChanged();
             }
             catch (Exception e)
             {
@@ -403,6 +404,11 @@ namespace Simulator1.ViewModel
         }
         public override void Dispose()
         {
+            this.moduleParamViewStore.CurrentModuleViewModelChanged -= OnCurrentViewModelChanged;
+            this.moduleStateManagement.UpdatePosition -= OnUpdatePosition;
+            this.moduleStateManagement.IsActionUpdate -= OnIsActionUpdate;
+            this.moduleStateManagement.ConfigHardwareSuccess -= OnConfigHardwareSuccess;
+            this.moduleStateManagement.UpdateParamsForModuleParameterVM -= OnUpdateParamterForVM;
             base.Dispose();
         }
 

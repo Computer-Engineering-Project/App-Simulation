@@ -23,13 +23,14 @@ using System.Windows.Threading;
 using Environment.Model.VMParameter;
 using System.Media;
 using Simulator1.Database;
+using System.Xml.Serialization;
 
 namespace Simulator1.ViewModel
 {
     public class MainViewModel : BaseViewModel, ICommunication
     {
         private ObservableCollection<ModuleObject> moduleObjects = new ObservableCollection<ModuleObject>();
-        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged();} }
 
         private ObservableCollection<ButtonPort> ports;
         public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
@@ -68,6 +69,13 @@ namespace Simulator1.ViewModel
         private string distanceHistory;
         public string DistanceHistory { get => distanceHistory; set { distanceHistory = value; OnPropertyChanged(); } }
 
+        private string rssiHistory;
+        public string RSSIHistory { get => rssiHistory; set { rssiHistory = value; OnPropertyChanged(); } }
+
+        private string snrHistory;
+        public string SNRHistory { get => snrHistory; set { snrHistory = value; OnPropertyChanged(); } }
+
+
         //Animation
         private Visibility isLoadingPort = Visibility.Hidden;
         public Visibility IsLoadingPort { get => isLoadingPort; set { isLoadingPort = value; OnPropertyChanged(); } }
@@ -93,7 +101,6 @@ namespace Simulator1.ViewModel
         /*public ModuleParameterStore ModuleParameterStore { get => moduleParameterStore; set { moduleParameterStore = value; OnPropertyChanged(); } }*/
         public ICommand OpenDialogCommand { get; set; }
         public ICommand UpdateModuleCommand { get; set; }
-        /*        public ICommand NewPageCommand { get; set; }*/
         public ICommand LoadHistoryFileCommand { get; set; }
         public ICommand SaveHistoryCommmand { get; set; }
         public ICommand SaveAsHistoryCommmand { get; set; }
@@ -105,7 +112,7 @@ namespace Simulator1.ViewModel
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
         public ICommand SelectionChangedCommand { get; set; }
-
+        public ICommand ZoomCommand { get; set; }
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
@@ -167,6 +174,10 @@ namespace Simulator1.ViewModel
             StopEnvironmentCommand = new RelayCommand(() => ExecuteStopEnvironment());
             PauseEnvironmentCommand = new RelayCommand(() => ExecutePauseEnvironment());
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
+            ZoomCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
+            {
+                ExecuteZoomCommand(o);
+            });
         }
         //Delegate handler
         private void OnStatusChanged()
@@ -294,11 +305,15 @@ namespace Simulator1.ViewModel
             Reset();
         }
         //Command handler
+        private void ExecuteZoomCommand(object o)
+        {
+            var p = o;
+        }
         private void ExecuteSaveHistory()
         {
             try
             {
-                if (moduleStore.SaveHistoryToJsonFile())
+                if (moduleStore.SaveHistoryToJsonFile("save"))
                 {
                     ProgramName = "Software Simulator";
                 }
@@ -312,17 +327,16 @@ namespace Simulator1.ViewModel
         {
             try
             {
-
+                if (moduleStore.SaveHistoryToJsonFile("saveas"))
+                {
+                    ProgramName = "Software Simulator";
+                }
             }
             catch (Exception e)
             {
-
+                MessageBox.Show("Main view model " + "ExecuteSaveAsHistory " + e);
             }
         }
-        /*private void ExecuteNewPage()
-        {
-            Reset();
-        }*/
         private void ExecuteAutoSavePosition(object positionObject)
         {
             try
@@ -367,6 +381,7 @@ namespace Simulator1.ViewModel
                 }
 
                 ModuleObjects = new ObservableCollection<ModuleObject>(moduleStore.ModuleObjects);
+                statusStateManagement.statusChanged();
                 serviceProvider.GetRequiredService<IEnvironmentService>().changeModuleObjectsPosition(new List<ModuleObject>(ModuleObjects));
             }
             catch (Exception e)
@@ -442,7 +457,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
-                if (!IsEnableRun && !IsEnablePause)
+                if (!IsEnableRun)
                 {
                     return;
                 }
@@ -586,6 +601,8 @@ namespace Simulator1.ViewModel
                     DataHistory = SelectedItemHistory.Data;
                     DelayTimeHistory = SelectedItemHistory.DelayTime == null ? "Na/N" : SelectedItemHistory.DelayTime;
                     DistanceHistory = SelectedItemHistory.Distance == null ? "Na/N" : SelectedItemHistory.Distance;
+                    RSSIHistory = SelectedItemHistory.RSSI == null ? "Na/N" : SelectedItemHistory.RSSI;
+                    SNRHistory = SelectedItemHistory.SNR == null ? "Na/N" : SelectedItemHistory.SNR;
                 }
             }
             catch (Exception e)
@@ -678,6 +695,7 @@ namespace Simulator1.ViewModel
             try
             {
                 serviceProvider.GetRequiredService<IEnvironmentService>().Pause();
+                serviceProvider.GetRequiredService<IEnvironmentService>().closeThreads();
             }
             catch (Exception e)
             {
@@ -761,6 +779,8 @@ namespace Simulator1.ViewModel
                     newHistoryObject.Data = transferedPacket.packet.packet.data;
                     newHistoryObject.DelayTime = transferedPacket.packet.DelayTime.ToString();
                     newHistoryObject.Distance = transferedPacket.packet.Distance;
+                    newHistoryObject.RSSI = transferedPacket.packet.RSSI;
+                    newHistoryObject.SNR = transferedPacket.packet.SNR;
                     moduleHistory.historyObjectIns.Enqueue(newHistoryObject);
                     mainStateManagement.updateHistoryIn(portClicked);
                 }
@@ -792,14 +812,15 @@ namespace Simulator1.ViewModel
             mainStateManagement.isRunningNow();
         }
 
-        public void sendMessageIsIdle()
+        public void sendMessageIsPause()
         {
-            mainStateManagement.isIdleNow();
+            mainStateManagement.isPauseNow();
+            
         }
 
         public void sendMessageIsStop()
         {
-            mainStateManagement.isPauseNow();
+            mainStateManagement.isIdleNow();
         }
     }
 }

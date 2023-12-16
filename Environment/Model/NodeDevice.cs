@@ -27,7 +27,7 @@ namespace Environment.Model
         public Thread transferDataIn { get; set; }
         public Thread transferDataOut { get; set; }
         public ModuleObject moduleObject { get; set; }
-        public ConcurrentQueue<ErrorPacket> collidedPackets = new ConcurrentQueue<ErrorPacket>();
+        public ConcurrentQueue<ErrorPacket> errorPackets = new ConcurrentQueue<ErrorPacket>();
 
         public ConcurrentQueue<DataProcessed> packetQueueIn = new ConcurrentQueue<DataProcessed>();
 

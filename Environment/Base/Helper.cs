@@ -16,6 +16,7 @@ namespace Environment.Base
 {
     public static class Helper
     {
+        public static int ENV_STATE = 0;
         public static byte[] CmdActiveHardware()
         {
             byte module = 0xff;
@@ -176,7 +177,7 @@ namespace Environment.Base
             string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>? ";
             Random random = new Random();
             var length = BitConverter.GetBytes(worTime).Length;
-            
+
 
             char[] preambleArray = new char[length];
             for (int i = 0; i < length; i++)
