@@ -316,7 +316,7 @@
                                             <view:testModule PortModule="{Binding port}"
                                                              ModeModule="{Binding mode}"
                                                              Id="{Binding id}"
-                                                             CoveringArea="{Binding coveringAreaRange}"
+                                                             CoveringArea="{Binding coveringAreaDiameter}"
                                                              DropModuleCommand="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.autoSaveCommand}">
                                                 <i:Interaction.Triggers>
                                                     <i:EventTrigger EventName="MouseRightButtonDown">

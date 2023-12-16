@@ -175,11 +175,11 @@ namespace Simulator1.ViewModel
                 var random = new Random();
                 if (string.IsNullOrEmpty(HorizontalX))
                 {
-                    HorizontalX = random.Next(501).ToString();
+                    HorizontalX = (random.Next(501) * 10).ToString();
                 }
                 if (string.IsNullOrEmpty(VerticalY))
                 {
-                    VerticalY = random.Next(501).ToString();
+                    VerticalY = (random.Next(501) * 10).ToString();
                 }
                 if (IsUpdate != "true")
                 {
@@ -188,9 +188,9 @@ namespace Simulator1.ViewModel
                     var y = Double.Parse(VerticalY);
                     if (y < 0) y = 0;
                     tmp_ModuleObject.x = x;
-                    tmp_ModuleObject.transformX = x - 70;
+                    tmp_ModuleObject.transformX = x / 10 - tmp_moduleObject.coveringAreaRange + 20;
                     tmp_ModuleObject.y = y;
-                    tmp_ModuleObject.transformY = y - 72;
+                    tmp_ModuleObject.transformY = y / 10 - tmp_moduleObject.coveringAreaRange + 20;
                     moduleStore.ModuleObjects.Add(tmp_ModuleObject);
                     historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
@@ -223,8 +223,9 @@ namespace Simulator1.ViewModel
                             m.y = tmp_ModuleObject.y;
                             m.x = tmp_ModuleObject.x;
                             m.coveringAreaRange = tmp_ModuleObject.coveringAreaRange;
-                            m.transformX = tmp_ModuleObject.x - 70;
-                            m.transformY = tmp_ModuleObject.y - 72;
+                            m.coveringAreaDiameter = tmp_ModuleObject.coveringAreaRange * 2;
+                            m.transformX = tmp_ModuleObject.x / 10 - tmp_moduleObject.coveringAreaRange + 20;
+                            m.transformY = tmp_ModuleObject.y / 10 - tmp_moduleObject.coveringAreaRange + 20;
                             m.mode = tmp_ModuleObject.mode;
                             m.parameters = tmp_ModuleObject.parameters;
                             m.type = tmp_ModuleObject.type;

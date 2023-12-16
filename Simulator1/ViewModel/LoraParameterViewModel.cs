@@ -163,6 +163,7 @@ namespace Simulator1.ViewModel
                 module.parameters = loraParams;
                 module.type = "lora";
                 module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
+                module.coveringAreaDiameter = module.coveringAreaRange * 2;
 
                 /*            moduleStore.ModuleObjects.Add(module);*/
 
@@ -192,6 +193,7 @@ namespace Simulator1.ViewModel
                     var loraParams = createLoraParamsObject();
                     moduleObject.parameters = loraParams;
                     moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
+                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange * 2;
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {

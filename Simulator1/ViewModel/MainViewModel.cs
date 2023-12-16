@@ -30,7 +30,7 @@ namespace Simulator1.ViewModel
     public class MainViewModel : BaseViewModel, ICommunication
     {
         private ObservableCollection<ModuleObject> moduleObjects = new ObservableCollection<ModuleObject>();
-        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged();} }
+        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
 
         private ObservableCollection<ButtonPort> ports;
         public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
@@ -148,7 +148,7 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.ChangeMode += OnChangeMode;
 
             this.statusStateManagement.StatusChanged += OnStatusChanged;
-            
+
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -365,15 +365,14 @@ namespace Simulator1.ViewModel
                     {
                         if (module.port == listParams["port"])
                         {
-                            
                             var x = Double.Parse(listParams["x"]);
                             if (x < 0) x = 0;
                             module.x = x;
-                            module.transformX = x - 70;
+                            module.transformX = x / 10 + 20 - module.coveringAreaRange;
                             var y = Double.Parse(listParams["y"]);
                             if (y < 0) y = 0;
                             module.y = y;
-                            module.transformY = y - 72;
+                            module.transformY = y / 10 + 20 - module.coveringAreaRange;
 
                         }
                     }
@@ -815,7 +814,7 @@ namespace Simulator1.ViewModel
         public void sendMessageIsPause()
         {
             mainStateManagement.isPauseNow();
-            
+
         }
 
         public void sendMessageIsStop()
