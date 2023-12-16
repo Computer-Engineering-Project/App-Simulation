@@ -37,5 +37,5 @@
 - 
 ## 5/12/2023
 - hiện channel target khi data gửi từ hardware lên có target 
-
+- lúc config xong, thì k được đóng port
 
