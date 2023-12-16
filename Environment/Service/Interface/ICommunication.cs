@@ -5,7 +5,7 @@ namespace Environment.Service.Interface
     public interface ICommunication
     {
         public void sendMessageIsRunning();
-        public void sendMessageIsIdle();
+        public void sendMessageIsPause();
         public void sendMessageIsStop();
         public void showQueueReceivedFromHardware(PacketSendTransferToView transferedPacket, string portClicked);
         public void showQueueReceivedFromOtherDevice(PacketReceivedTransferToView transferedPacket, string portClicked);

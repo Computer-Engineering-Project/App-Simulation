@@ -23,7 +23,7 @@ namespace Environment.Base
             double n_preamble = preamble.Length;
             double PL = Encoding.ASCII.GetBytes(data).Length;
             double CRC = FEC == "0" ? 0 : 1;
-            double IH = 1;
+            double IH = 0;
             double DE = 0;
 
             var airRateNum = Double.Parse(airRate);
@@ -71,6 +71,14 @@ namespace Environment.Base
             var val1 = (Double.Parse(transmissionPower) + Double.Parse(antenaGain) - maxTransmitPower - productAntenaGain + 20 * Math.Log10(productMaxRange)) / 20;
             return Math.Pow(10, val1) / 10;
         }
+        public static double computeMaxRange(string antenaGain, string transmissionPower)
+        {
+            double maxTransmitPower = 20;
+            double productAntenaGain = 5;
+            double productMaxRange = 3300;
+            var val1 = (Double.Parse(transmissionPower) + Double.Parse(antenaGain) - maxTransmitPower - productAntenaGain + 20 * Math.Log10(productMaxRange)) / 20;
+            return Math.Pow(10, val1) / 5;
+        }
         public static double computeDistance2Device(ModuleObject sender, ModuleObject receiver)
         {
             double distance = Math.Sqrt(Math.Pow(receiver.x - sender.x, 2) + Math.Pow(receiver.y - sender.y, 2));
@@ -78,7 +86,7 @@ namespace Environment.Base
         }
         public static double computePathLoss(double distance, double frequency, double gainTx, double gainRx)
         {
-            double constValue = 33.45;
+            double constValue = 32.45;
             double pthLoss = constValue + 20 * Math.Log10(frequency) + 20 * Math.Log10(distance) - gainTx - gainRx;
             return pthLoss;
         }
@@ -90,7 +98,7 @@ namespace Environment.Base
                 LoraParameterObject senderParameter = (LoraParameterObject)sender.parameters;
                 LoraParameterObject receiverParameter = (LoraParameterObject)receiver.parameters;
                 double distance = computeDistance2Device(sender, receiver);
-                double frequency = 410 + Double.Parse(senderParameter.Channel, NumberStyles.HexNumber);
+                double frequency = 410 + int.Parse(senderParameter.Channel, NumberStyles.HexNumber);
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
@@ -109,7 +117,6 @@ namespace Environment.Base
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
                 double noise = 0;
-
                 double rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
 */
                 return rssi;

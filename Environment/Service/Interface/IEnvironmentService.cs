@@ -22,5 +22,6 @@ namespace Environment.Service.Interface
         public void Run();
         public void Pause();
         public void Stop();
+        public void closeThreads();
     }
 }

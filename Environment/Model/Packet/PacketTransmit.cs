@@ -103,13 +103,16 @@ namespace Environment.Model.Packet
         public DataProcessed packet { get; set;}
         public double DelayTime { get; set;}
         public string? PreambleCode { get; set;}
+        public string RSSI { get; set;}
+        public string PathLoss { get; set;}
+        public string SNR = "20";
         public string Distance { get; set;}
         public bool IsCoverageArea { get; set;}
         public ModuleObject sourceModule { get; set;}
     }
     public class ErrorPacket
     {
-        public string typeError { get; set;}
+        public int typeError { get; set;}
         public ModuleObject sourceModule { get; set;}
         public string timeUTC { get; set;}
         public string timeMilisecond { get; set;}

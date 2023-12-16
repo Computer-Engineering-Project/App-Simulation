@@ -57,6 +57,7 @@ namespace Environment.Service
         public void Run()
         {
             environment.State = environment.RUN;
+            Helper.ENV_STATE = environment.RUN;
             environment.createSerialPortInitial();
             environment.RunProgram();
            
@@ -70,6 +71,7 @@ namespace Environment.Service
         public void Stop()
         {
             environment.State = environment.IDLE;
+            Helper.ENV_STATE = environment.IDLE;
         }
 
         public void passPortClicked(string portName)
@@ -80,12 +82,24 @@ namespace Environment.Service
         public void Pause()
         {
             environment.State = environment.PAUSE;
+            Helper.ENV_STATE = environment.PAUSE;
         }
 
         public void changeModuleObjectsPosition(List<ModuleObject> moduleObjects)
         {
             environment.ModuleObjects = moduleObjects;
             environment.ResetParamsForDevice();
+        }
+
+        public void closeThreads()
+        {
+           /* foreach(var hw in environment.Devices)
+            {
+                hw.readDataFromHardware.Join();
+                hw.transferDataIn.Join();
+                hw.transferDataOut.Join();
+                environment.Devices.Remove(hw);
+            }*/
         }
     }
 }

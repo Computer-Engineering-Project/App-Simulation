@@ -21,7 +21,7 @@ namespace Simulator1.Store
 
         public List<ModuleObject> ModuleObjects { get; set; }
         public List<string> Ports { get; set; }
-        public ModuleStore(IServiceProvider serviceProvider, LoadHistoryFile loadParameter, MainStateManagement mainStateManagement, 
+        public ModuleStore(IServiceProvider serviceProvider, LoadHistoryFile loadParameter, MainStateManagement mainStateManagement,
             HistoryStateManagement historyStateManagement)
         {
             this.serviceProvider = serviceProvider;
@@ -64,27 +64,36 @@ namespace Simulator1.Store
         {
             ModuleObjects.Clear();
         }
-        public bool SaveHistoryToJsonFile()
+        public bool SaveHistoryToJsonFile(string saveType)
         {
-            var saveModuleObjects = ModuleObjects.Select(x=> new ModuleObject()
+            var saveModuleObjects = ModuleObjects.Select(x => new ModuleObjectDTO()
             {
                 id = x.id,
                 type = x.type,
                 x = x.x,
                 y = x.y,
-                parameters = x.parameters
-            }).ToArray();
+                parameters = x.parameters,
+                coveringAreaRange = x.coveringAreaRange
+            }).ToList();
             string json = JsonConvert.SerializeObject(saveModuleObjects);
-            return loadParameter.SaveJsonFile(json);
+            return loadParameter.SaveJsonFile(json, saveType);
         }
         private void OnLoadHistory()
         {
-            if (loadParameter.ScanJsonFile())
+            try
             {
-                mainStateManagement.resetAll();
-                ModuleObjects = loadParameter.listInModules;
-                historyStateManagement.loadHistoryModuleFromFile();
+                if (loadParameter.OpenJsonFile())
+                {
+                    mainStateManagement.resetAll();
+                    ModuleObjects = loadParameter.listInModules;
+                    historyStateManagement.loadHistoryModuleFromFile();
+                }
             }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
         }
     }
 }

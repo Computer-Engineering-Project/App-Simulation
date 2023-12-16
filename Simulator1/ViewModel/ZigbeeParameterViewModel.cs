@@ -63,8 +63,6 @@ namespace Simulator1.ViewModel
 
             //Event Delegate
 
-
-
         }
     }
 }

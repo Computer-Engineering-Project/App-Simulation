@@ -190,9 +190,11 @@ namespace Environment.Base
             while (State == PAUSE)
             {
                 Pause();
-                communication.sendMessageIsIdle();
+                sender.Close();
+                communication.sendMessageIsPause();
+                break;
             }
-            if (State == IDLE)
+            while (State == IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -227,7 +229,7 @@ namespace Environment.Base
                 }
                 else if (packet.cmdWord == PacketTransmit.CHANGEMODE)
                 {
-                    int mode = packet.data[0]; 
+                    int mode = packet.data[0];
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
@@ -239,7 +241,7 @@ namespace Environment.Base
                                     hardware.mode = mode;
                                 }
 
-                                communication.deviceChangeMode( hardware.mode, hardware.moduleObject.id);
+                                communication.deviceChangeMode(hardware.mode, hardware.moduleObject.id);
                                 return;
                             }
                         }
@@ -294,9 +296,10 @@ namespace Environment.Base
             while (State == PAUSE)
             {
                 Pause();
-                communication.sendMessageIsIdle();
+                communication.sendMessageIsPause();
+                break;
             }
-            if (State == IDLE)
+            while (State == IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -360,6 +363,8 @@ namespace Environment.Base
                 foreach (var hw in Devices)
                 {
                     packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
@@ -477,50 +482,61 @@ namespace Environment.Base
             }
         }
         //Create transmittion with checking collision when pushing data into destinationQueue
-        private async Task createTransmittionAsync(NodeDevice hw, InternalPacket packet)
+        private async Task createTransmittionAsync(NodeDevice desHW, InternalPacket packet)
         {
-            lock (hw.lockObjecCollision)
+            if (desHW.moduleObject.coveringAreaRange > Double.Parse(packet.Distance))
             {
-                hw.flagDataIn++;
-            }
-            await caculateCollisionAsync(hw, packet);
-        }
-        private async Task caculateCollisionAsync(NodeDevice hw, InternalPacket packet)
-        {
-            await Task.Delay(5);
-            lock (hw.lockObjecCollision)
-            {
-                if (hw.flagDataIn > 1)
+                lock (desHW.lockObjecCollision)
                 {
-                    Task collision = Task.Run(() => PushIntoCollidedQueue(hw, packet));
+                    desHW.flagDataIn++;
+                }
+                await caculateCollisionAsync(desHW, packet);
+            }
+            else
+            {
+                Task outRange = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.OUT_OF_RANGE));
+            }
+
+        }
+        private async Task caculateCollisionAsync(NodeDevice desHW, InternalPacket packet)
+        {
+            await Task.Delay(7);
+            lock (desHW.lockObjecCollision)
+            {
+                if (desHW.flagDataIn > 1)
+                {
+                    Task collision = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.COLLIDED));
                 }
                 else
                 {
-                    Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(hw, packet));
+                    Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(desHW, packet));
                 }
             }
         }
-        private void PushIntoCollidedQueue(NodeDevice hw, InternalPacket packet)
+        private void PushIntoErrorQueue(NodeDevice desHW, InternalPacket packet, int typeError)
         {
-            lock (hw.lockObjecCollision)
+            if (typeError == ERROR_TYPE.COLLIDED)
             {
-                hw.flagDataIn--;
+                lock (desHW.lockObjecCollision)
+                {
+                    desHW.flagDataIn--;
+                }
             }
-            hw.collidedPackets.Enqueue(new ErrorPacket()
+            desHW.errorPackets.Enqueue(new ErrorPacket()
             {
-                typeError = "Collided",
+                typeError = typeError,
                 sourceModule = packet.sourceModule,
                 timeUTC = DateTime.Now.ToLocalTime().ToString(),
                 timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
             });
         }
-        private void PushIntoDestinationDeviceQueue(NodeDevice hw, InternalPacket packet)
+        private void PushIntoDestinationDeviceQueue(NodeDevice desHW, InternalPacket packet)
         {
-            lock (hw.lockObjecCollision)
+            lock (desHW.lockObjecCollision)
             {
-                hw.flagDataIn--;
+                desHW.flagDataIn--;
             }
-            hw.packetQueueOut.Enqueue(packet);
+            desHW.packetQueueOut.Enqueue(packet);
         }
         // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
         private void transferDataToHardware(int mode, SerialPort serialPort, ConcurrentQueue<InternalPacket> packetQueue, ModuleObject moduleObject)
@@ -552,9 +568,10 @@ namespace Environment.Base
             while (State == PAUSE)
             {
                 Pause();
-                communication.sendMessageIsIdle();
+                communication.sendMessageIsPause();
+                break;
             }
-            if (State == IDLE)
+            while (State == IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -562,10 +579,10 @@ namespace Environment.Base
         //Pause program ======
         public void Pause()
         {
-            /*foreach (var hw in Devices)
-            {
-                hw.serialport.Close();
-            }*/
+            /* foreach (var hw in Devices)
+             {
+                 hw.serialport.Close();
+             }*/
         }
 
         // Stop program =====

@@ -52,6 +52,7 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0"
+                          Panel.ZIndex="1"
                           Background="#FFCAC8BC">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="6*"></ColumnDefinition>
@@ -73,7 +74,7 @@
                                                   Command="{Binding SaveHistoryCommmand}" />
                                         <MenuItem Header="Save As"
                                                   Command="{Binding SaveAsHistoryCommmand}" />
-                                        <MenuItem Header="Exit" />
+                                        <!--<MenuItem Header="Exit" />-->
                                     </MenuItem>
                                 </Menu>
 
@@ -151,115 +152,163 @@
                     </Grid>
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
                             <ColumnDefinition Width="3"></ColumnDefinition>
-                            <ColumnDefinition Width="3*"></ColumnDefinition>
+                            <ColumnDefinition Width="4*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
-                        <materialDesign:Card Grid.Row="1"
-                                             Margin="2">
-                            <Grid Grid.Column="0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="30"></RowDefinition>
-                                    <RowDefinition></RowDefinition>
-                                </Grid.RowDefinitions>
-                                <DockPanel Grid.Row="0">
-                                    <TextBlock DockPanel.Dock="Left"
-                                               Margin="10 10 10 0"
-                                               Padding="0 0 0 0"
-                                               FontSize="15"
-                                               Width="56">Module</TextBlock>
-                                    <Button DockPanel.Dock="Right"
-                                            Background="DimGray"
-                                            FontSize="13"
-                                            Margin="5 5 0 0"
-                                            Padding="0 0 0 0"
-                                            Command="{Binding LoadPorts}"
-                                            Style="{StaticResource MaterialDesignRaisedSecondaryLightButton}"
-                                            Height="27"
-                                            Width="62">
-                                        <StackPanel Orientation="Horizontal">
-                                            <materialDesign:PackIcon Kind="Reload"
-                                                                     Height="14"
-                                                                     Width="10" />
-                                            <TextBlock Text="Port"
-                                                       Margin="5 0 0 0" />
-                                        </StackPanel>
+                        <materialDesign:Card Margin="2"
+                                             Panel.ZIndex="1">
+                            <materialDesign:Card Grid.Column="0"
+                                                 Panel.ZIndex="1">
+                                <TabControl materialDesign:ColorZoneAssist.Mode="Standard"
+                                            materialDesign:ElevationAssist.Elevation="Dp2"
+                                            Style="{StaticResource MaterialDesignNavigationRailTabControl}">
+                                    <TabItem>
+                                        <TabItem.Header>
+                                            <StackPanel Width="auto"
+                                                        Height="auto">
+                                                <materialDesign:PackIcon Kind="SerialPort"
+                                                                         Width="51"
+                                                                         Height="27" />
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           Text="PORTS"
+                                                           Height="14" />
+                                            </StackPanel>
+                                        </TabItem.Header>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="30"></RowDefinition>
+                                                <RowDefinition></RowDefinition>
+                                            </Grid.RowDefinitions>
+                                            <DockPanel Grid.Row="0">
+                                                <Button DockPanel.Dock="Right"
+                                                        Background="DimGray"
+                                                        FontSize="13"
+                                                        Margin="5 5 0 0"
+                                                        Padding="0 0 0 0"
+                                                        Command="{Binding LoadPorts}"
+                                                        Style="{StaticResource MaterialDesignRaisedSecondaryLightButton}"
+                                                        Height="27"
+                                                        Width="62">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="Reload"
+                                                                                 Height="14"
+                                                                                 Width="10" />
+                                                        <TextBlock Text="Port"
+                                                                   Margin="5 0 0 0" />
+                                                    </StackPanel>
 
-                                    </Button>
-                                </DockPanel>
+                                                </Button>
+                                            </DockPanel>
 
-                                <Grid Grid.Row="1"
-                                      Margin="0 20 0 0">
-                                    <!--Thêm code cho button-->
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition></RowDefinition>
-                                        <RowDefinition Height="3"></RowDefinition>
-                                        <RowDefinition Height="150"></RowDefinition>
-                                    </Grid.RowDefinitions>
-                                    <Grid Grid.Row="0"
-                                          Margin="0 10 0 0">
-                                        <materialDesign:Card Padding="4"
-                                                             UniformCornerRadius="14"
-                                                             Visibility="{Binding IsLoadingPort}">
-                                            <ProgressBar IsIndeterminate="True"
-                                                         Style="{StaticResource MaterialDesignCircularProgressBar}"
-                                                         Value="50" />
-                                        </materialDesign:Card>
-                                        <ItemsControl ItemsSource="{Binding Ports}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Button materialDesign:ButtonAssist.CornerRadius="10"
-                                                            Style="{StaticResource MaterialDesignOutlinedDarkButton}"
-                                                            Background="{Binding Color}"
-                                                            Margin="10 0 10 10"
-                                                            Content="{Binding PortName}">
-                                                        <i:Interaction.Triggers>
-                                                            <i:EventTrigger EventName="Click">
-                                                                <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.OpenDialogCommand }"
-                                                                                           CommandParameter="{Binding PortName}" />
-                                                            </i:EventTrigger>
-                                                        </i:Interaction.Triggers>
-                                                    </Button>
+                                            <Grid Grid.Row="1"
+                                                  Margin="0 20 0 0">
+                                                <!--Thêm code cho button-->
+                                                <ItemsControl ItemsSource="{Binding Ports}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button materialDesign:ButtonAssist.CornerRadius="10"
+                                                                    Style="{StaticResource MaterialDesignOutlinedDarkButton}"
+                                                                    Background="{Binding Color}"
+                                                                    Margin="10 0 10 10"
+                                                                    Content="{Binding PortName}">
+                                                                <i:Interaction.Triggers>
+                                                                    <i:EventTrigger EventName="Click">
+                                                                        <prism:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor}, Path=DataContext.OpenDialogCommand }"
+                                                                                                   CommandParameter="{Binding PortName}" />
+                                                                    </i:EventTrigger>
+                                                                </i:Interaction.Triggers>
+                                                            </Button>
 
-                                                </DataTemplate>
+                                                        </DataTemplate>
 
-                                            </ItemsControl.ItemTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Grid>
+                                        </Grid>
+                                    </TabItem>
+                                    <TabItem>
+                                        <TabItem.Header>
+                                            <StackPanel Width="auto"
+                                                        Height="auto">
+                                                <materialDesign:PackIcon Kind="Waveform"
+                                                                         Width="51"
+                                                                         Height="27" />
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           Text="ENV" />
+                                            </StackPanel>
+                                        </TabItem.Header>
+                                        <Grid>
+                                            <Grid Height="156"
+                                                  VerticalAlignment="Center">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="40"></RowDefinition>
+                                                    <RowDefinition></RowDefinition>
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0"
+                                                           Margin="10"
+                                                           Text="Environment Factors" />
+                                                <Grid Grid.Row="1">
+                                                    <TextBlock  FontSize="12"
+                                                                Margin="15,0,50,0"><Run Text="Noise" /></TextBlock>
+                                                    <TextBox Padding="5 5 5 5"
+                                                             AcceptsReturn="True"
+                                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                                             TextWrapping="Wrap"
+                                                             Margin="12,20,0,65"
+                                                             HorizontalAlignment="Left"
+                                                             Width="138" />
+                                                </Grid>
+                                            </Grid>
 
-                                        </ItemsControl>
-                                    </Grid>
+                                        </Grid>
+                                    </TabItem>
+                                    <TabItem>
+                                        <TabItem.Header>
+                                            <StackPanel Width="auto"
+                                                        Height="auto">
+                                                <materialDesign:PackIcon Kind="ChartBarStacked"
+                                                                         Width="69"
+                                                                         Height="27" />
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           Text="STATISTIC" />
+                                            </StackPanel>
+                                        </TabItem.Header>
+                                    </TabItem>
+                                </TabControl>
+                            </materialDesign:Card>
 
-                                    <GridSplitter Grid.Row="1"
-                                                  HorizontalAlignment="Stretch"></GridSplitter>
-                                    <Grid Grid.Row="2">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="40"></RowDefinition>
-                                            <RowDefinition></RowDefinition>
-                                        </Grid.RowDefinitions>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
                         </materialDesign:Card>
 
                         <GridSplitter Grid.Column="1"
-                                      HorizontalAlignment="Stretch"></GridSplitter>
-                        <Grid Grid.Column="2"
-                              x:Name="workspace">
+                                      HorizontalAlignment="Stretch"
+                                      Panel.ZIndex="1"></GridSplitter>
+                        <Grid Grid.Column="2">
                             <Grid.RowDefinitions>
-                                <RowDefinition></RowDefinition>
+                                <RowDefinition Height="8*"></RowDefinition>
                                 <RowDefinition Height="3"></RowDefinition>
-                                <RowDefinition Height="150"></RowDefinition>
+                                <RowDefinition Height="3*"></RowDefinition>
                             </Grid.RowDefinitions>
-                            <Grid Grid.Row="0">
-                                <ItemsControl ItemsSource="{Binding ModuleObjects}">
+                            <Grid Grid.Row="0"
+                                  x:Name="workspace"
+                                  Panel.ZIndex="0">
+
+                                <ItemsControl x:Name="mycanvas"
+                                              MouseWheel="Control_MouseWheel"
+                                              ItemsSource="{Binding ModuleObjects}"
+                                              RenderTransformOrigin="0,0"
+                                              Panel.ZIndex="0">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <Canvas AllowDrop="True"
-                                                    x:Name="canvas" />
+                                                    Background="AliceBlue"
+                                                    Panel.ZIndex="0">
+                                            </Canvas>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
@@ -294,9 +343,11 @@
 
                             </Grid>
                             <GridSplitter Grid.Row="1"
+                                          Panel.ZIndex="1"
                                           HorizontalAlignment="Stretch"></GridSplitter>
                             <materialDesign:Card Grid.Row="2"
-                                                 Margin="2">
+                                                 Margin="2"
+                                                 Panel.ZIndex="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"></ColumnDefinition>
@@ -427,7 +478,76 @@
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
                                                                 <GridViewColumn Header="Delay Time(ms)"
                                                                                 DisplayMemberBinding="{Binding DelayTime}"></GridViewColumn>
-                                                                <GridViewColumn Header="Distance" 
+                                                                <GridViewColumn Header="Distance"
+                                                                                DisplayMemberBinding="{Binding Distance}"></GridViewColumn>
+                                                                <GridViewColumn Header="RSSI"
+                                                                                DisplayMemberBinding="{Binding RSSI}"></GridViewColumn>
+                                                                <GridViewColumn Header="SNR"
+                                                                                DisplayMemberBinding="{Binding SNR}"></GridViewColumn>
+                                                            </GridView>
+                                                        </ListView.View>
+
+                                                        <ListView.Resources>
+                                                            <Style TargetType="ListViewItem">
+                                                                <Setter Property="Background"
+                                                                        Value="LightGray" />
+                                                                <Setter Property="BorderThickness"
+                                                                        Value="0,0,0,1" />
+                                                                <Setter Property="BorderBrush"
+                                                                        Value="Gray" />
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="ListViewItem">
+                                                                            <Border BorderThickness="{TemplateBinding BorderThickness}"
+                                                                                    BorderBrush="{TemplateBinding BorderBrush}">
+                                                                                <Grid>
+                                                                                    <GridViewRowPresenter Content="{TemplateBinding Content}" />
+                                                                                    <Border BorderThickness="0,0,0,0"
+                                                                                            BorderBrush="Gray"
+                                                                                            HorizontalAlignment="Stretch"
+                                                                                            VerticalAlignment="Bottom" />
+                                                                                </Grid>
+                                                                            </Border>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </ListView.Resources>
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="SelectionChanged">
+                                                                <prism:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                    </ListView>
+                                                </ScrollViewer>
+                                            </TabItem>
+                                            <TabItem Padding="0 0 0 0"
+                                                     Height="31">
+                                                <TabItem.Header>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                HorizontalAlignment="Center"
+                                                                Width="80">
+                                                        <materialDesign:PackIcon Kind="FileDocumentAlert"
+                                                                                 Width="15" />
+                                                        <TextBlock Text="ERROR"
+                                                                   Width="55" />
+                                                    </StackPanel>
+                                                </TabItem.Header>
+                                                <ScrollViewer VerticalScrollBarVisibility="
+                                                             Auto">
+
+                                                    <ListView x:Name="historyError">
+                                                        <ListView.View>
+                                                            <GridView>
+                                                                <GridViewColumn Header="Event"
+                                                                                DisplayMemberBinding="{Binding Id}"></GridViewColumn>
+                                                                <GridViewColumn Header="Source"
+                                                                                DisplayMemberBinding="{Binding Source}"></GridViewColumn>
+                                                                <GridViewColumn Header="Data"
+                                                                                DisplayMemberBinding="{Binding Data}"></GridViewColumn>
+                                                                <GridViewColumn Header="Reason"
+                                                                                DisplayMemberBinding="{Binding Reason}"></GridViewColumn>
+                                                                <GridViewColumn Header="Distance"
                                                                                 DisplayMemberBinding="{Binding Distance}"></GridViewColumn>
                                                             </GridView>
                                                         </ListView.View>
@@ -489,6 +609,8 @@
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
+                                                <RowDefinition Height="30"></RowDefinition>
+                                                <RowDefinition Height="30"></RowDefinition>
                                             </Grid.RowDefinitions>
                                             <StackPanel Orientation="Horizontal"
                                                         Grid.Row="0">
@@ -513,6 +635,18 @@
                                                 <TextBlock Padding="0 0 10 0"
                                                            Width="80">Distance</TextBlock>
                                                 <TextBlock Text="{Binding DistanceHistory}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal"
+                                                        Grid.Row="4">
+                                                <TextBlock Padding="0 0 10 0"
+                                                           Width="80">RSSI</TextBlock>
+                                                <TextBlock Text="{Binding RSSIHistory}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal"
+                                                        Grid.Row="5">
+                                                <TextBlock Padding="0 0 10 0"
+                                                           Width="80">SNR</TextBlock>
+                                                <TextBlock Text="{Binding SNRHistory}"></TextBlock>
                                             </StackPanel>
 
                                         </Grid>
