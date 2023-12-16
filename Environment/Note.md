@@ -7,7 +7,7 @@
 - chưa có chức năng read config từ hardware
 ## 21/11/2023
 - Tạo dropdown list cho user chọn module //REMOVE
-- Tạo dropdown list "File", bao gồm các chức năng: New, Open, Save, Save as, Exit
+- Tạo dropdown list "File", bao gồm các chức năng: New, Open, Save, Save as //DONE
 - sửa delete //DONE
 - sửa selectedhistoryitem //DONE
 - realtime binding //DONE
@@ -26,7 +26,7 @@
 ## 30/11/2023
 - Khi stop, nhấn config thì không được, bị lỗi -> stop sẽ clear history data, còn pause thì không
 - tạo nút clear data 
-- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục
+- Khi khởi tạo device, config bị lỗi, xuất hiện exception liên tục //DONE
 
 ## 04/12/2023
 - clear buffer cua hw sau khi nhan data tu node controller
@@ -37,5 +37,13 @@
 - 
 ## 5/12/2023
 - hiện channel target khi data gửi từ hardware lên có target 
+
+## 12/12/2023
+- định nghĩa lớp class mẫu chứa các trạng thái, không thể chỉ có 3 trạng thái
+- bug khi load open file //DONE
+
+##13/12/2023
+- tính max range bằng RSSI của module
+- tạo phân phối chuẩn cho việc packet loss
 - lúc config xong, thì k được đóng port
 

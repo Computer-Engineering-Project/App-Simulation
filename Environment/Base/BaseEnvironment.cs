@@ -9,11 +9,6 @@ namespace Environment.Base
 {
     public class BaseEnvironment
     {
-        public readonly int IDLE = 0;
-        public readonly int RUN = 1;
-        public readonly int PAUSE = 2;
-        public int State;
-
         public List<string> Ports = new List<string>();
         public List<SerialPort> SerialPorts = new List<SerialPort>();
         public List<NodeDevice> Devices = new List<NodeDevice>();
@@ -26,7 +21,8 @@ namespace Environment.Base
 
         public BaseEnvironment(ICommunication communication)
         {
-            State = IDLE;
+            EnvState.PreProgramStatus = PROGRAM_STATUS.IDLE;
+            EnvState.ProgramStatus = PROGRAM_STATUS.IDLE;
             this.communication = communication;
             SetUp();
         }
@@ -125,7 +121,7 @@ namespace Environment.Base
          */
 
         /*
-         * ====================== Running part includes: RUN, and other small FUNCTIONS helping RUN ============================= 
+         * ====================== Running part includes: PROGRAM_STATUS.RUN, and other small FUNCTIONS helping PROGRAM_STATUS.RUN ============================= 
          */
         // First we create ports initial and read data from that port, then push it into queueIn.
         public void createSerialPortInitial()
@@ -136,28 +132,36 @@ namespace Environment.Base
                 if (!serialport.IsOpen)
                 {
                     serialport.Open();
-                    var device = new NodeDevice()
+                    if(EnvState.PreProgramStatus == PROGRAM_STATUS.IDLE)
                     {
-                        serialport = serialport,
-                        mode = NodeDevice.MODE_SLEEP,
-
-                    };
-                    foreach (var module in ModuleObjects)
-                    {
-                        if (module.port == serialport.PortName)
+                        var device = new NodeDevice()
                         {
-                            device.moduleObject = module;
+                            serialport = serialport,
+                            mode = NodeDevice.MODE_SLEEP,
+                            existReadThread = false,
+                        };
+                        foreach (var module in ModuleObjects)
+                        {
+                            if (module.port == serialport.PortName)
+                            {
+                                device.moduleObject = module;
+                            }
                         }
-                    }
 
-                    Devices.Add(device);
+                        Devices.Add(device);
+                    }
+                    
                 }
             }
-            foreach (var hw in Devices)
+            foreach (NodeDevice hw in Devices)
             {
-                hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
-                hw.readDataFromHardware.Name = "readData";
-                hw.readDataFromHardware.Start();
+                if(hw.existReadThread == false)
+                {
+                    hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
+                    hw.readDataFromHardware.Name = "readData";
+                    hw.readDataFromHardware.Start();
+                    hw.existReadThread = true;
+                }
             }
         }
         public void ResetParamsForDevice()
@@ -176,9 +180,8 @@ namespace Environment.Base
         }
         private void readData(SerialPort sender)
         {
-            while (State == RUN)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-
                 byte[] buffer = Helper.GetDataFromHardware(sender);
                 sender.DiscardInBuffer();
                 if (buffer.Length > 0)
@@ -187,12 +190,21 @@ namespace Environment.Base
                 }
 
             }
-            while (State == PAUSE)
+            if (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
+                sender.Close();
+                communication.sendMessageIsPause();
+                // update exist read thread
+                foreach (var hw in Devices)
+                {
+                    if (hw.serialport.PortName == sender.PortName)
+                    {
+                        hw.existReadThread = false;
+                    }
+                }
                 Pause();
-                communication.sendMessageIsIdle();
             }
-            if (State == IDLE)
+            if (EnvState.ProgramStatus == PROGRAM_STATUS.IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -227,7 +239,7 @@ namespace Environment.Base
                 }
                 else if (packet.cmdWord == PacketTransmit.CHANGEMODE)
                 {
-                    int mode = packet.data[0]; 
+                    int mode = packet.data[0];
                     foreach (var hardware in Devices)
                     {
                         if (hardware.serialport.PortName == sender.PortName)
@@ -239,7 +251,7 @@ namespace Environment.Base
                                     hardware.mode = mode;
                                 }
 
-                                communication.deviceChangeMode( hardware.mode, hardware.moduleObject.id);
+                                communication.deviceChangeMode(hardware.mode, hardware.moduleObject.id);
                                 return;
                             }
                         }
@@ -258,10 +270,10 @@ namespace Environment.Base
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
-                    hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw.mode, hw.serialport, hw.packetQueueIn, moduleObject));
+                    hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw, moduleObject));
                     hw.transferDataIn.Name = "datain";
                     hw.transferDataIn.Start();
-                    hw.transferDataOut = new Thread(() => transferDataToHardware(hw.mode, hw.serialport, hw.packetQueueOut, moduleObject));
+                    hw.transferDataOut = new Thread(() => transferDataToHardware(hw, moduleObject));
                     hw.transferDataOut.Name = "dataout";
                     hw.transferDataOut.Start();
                 }
@@ -269,21 +281,21 @@ namespace Environment.Base
             communication.sendMessageIsRunning();
         }
         // transfer data from queue in to destination device
-        private void transferDataToDestinationDevice(int mode, SerialPort serialPort, ConcurrentQueue<DataProcessed> packetQueue, ModuleObject moduleObject)
+        private void transferDataToDestinationDevice( NodeDevice module, ModuleObject moduleObject)
         {
-            while (State == RUN)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
+                if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
                 {
-                    if (packetQueue.TryDequeue(out DataProcessed packet))
+                    if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
                     {
                         communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
                         {
                             type = "in",
-                            portName = serialPort.PortName,
+                            portName = module.serialport.PortName,
                             packet = packet,
                         }, portClicked);
-                        var inter_packet = ExecuteTransferDataToQueueOut(mode, packet, moduleObject);
+                        var inter_packet = ExecuteTransferDataToQueueOut(module.mode, packet, moduleObject);
                         if (inter_packet != null)
                         {
                             PushPackageIntoDestinationDevice(inter_packet, moduleObject);
@@ -291,12 +303,13 @@ namespace Environment.Base
                     }
                 }
             }
-            while (State == PAUSE)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
                 Pause();
-                communication.sendMessageIsIdle();
+                communication.sendMessageIsPause();
+                break;
             }
-            if (State == IDLE)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -360,6 +373,8 @@ namespace Environment.Base
                 foreach (var hw in Devices)
                 {
                     packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
@@ -477,59 +492,70 @@ namespace Environment.Base
             }
         }
         //Create transmittion with checking collision when pushing data into destinationQueue
-        private async Task createTransmittionAsync(NodeDevice hw, InternalPacket packet)
+        private async Task createTransmittionAsync(NodeDevice desHW, InternalPacket packet)
         {
-            lock (hw.lockObjecCollision)
+            if (desHW.moduleObject.coveringAreaRange > Double.Parse(packet.Distance))
             {
-                hw.flagDataIn++;
-            }
-            await caculateCollisionAsync(hw, packet);
-        }
-        private async Task caculateCollisionAsync(NodeDevice hw, InternalPacket packet)
-        {
-            await Task.Delay(5);
-            lock (hw.lockObjecCollision)
-            {
-                if (hw.flagDataIn > 1)
+                lock (desHW.lockObjecCollision)
                 {
-                    Task collision = Task.Run(() => PushIntoCollidedQueue(hw, packet));
+                    desHW.flagDataIn++;
+                }
+                await caculateCollisionAsync(desHW, packet);
+            }
+            else
+            {
+                Task outRange = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.OUT_OF_RANGE));
+            }
+
+        }
+        private async Task caculateCollisionAsync(NodeDevice desHW, InternalPacket packet)
+        {
+            await Task.Delay(7);
+            lock (desHW.lockObjecCollision)
+            {
+                if (desHW.flagDataIn > 1)
+                {
+                    Task collision = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.COLLIDED));
                 }
                 else
                 {
-                    Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(hw, packet));
+                    Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(desHW, packet));
                 }
             }
         }
-        private void PushIntoCollidedQueue(NodeDevice hw, InternalPacket packet)
+        private void PushIntoErrorQueue(NodeDevice desHW, InternalPacket packet, int typeError)
         {
-            lock (hw.lockObjecCollision)
+            if (typeError == ERROR_TYPE.COLLIDED)
             {
-                hw.flagDataIn--;
+                lock (desHW.lockObjecCollision)
+                {
+                    desHW.flagDataIn--;
+                }
             }
-            hw.collidedPackets.Enqueue(new ErrorPacket()
+            desHW.errorPackets.Enqueue(new ErrorPacket()
             {
-                typeError = "Collided",
+                typeError = typeError,
                 sourceModule = packet.sourceModule,
                 timeUTC = DateTime.Now.ToLocalTime().ToString(),
                 timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
             });
         }
-        private void PushIntoDestinationDeviceQueue(NodeDevice hw, InternalPacket packet)
+        private void PushIntoDestinationDeviceQueue(NodeDevice desHW, InternalPacket packet)
         {
-            lock (hw.lockObjecCollision)
+            lock (desHW.lockObjecCollision)
             {
-                hw.flagDataIn--;
+                desHW.flagDataIn--;
             }
-            hw.packetQueueOut.Enqueue(packet);
+            desHW.packetQueueOut.Enqueue(packet);
         }
         // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
-        private void transferDataToHardware(int mode, SerialPort serialPort, ConcurrentQueue<InternalPacket> packetQueue, ModuleObject moduleObject)
+        private void transferDataToHardware(NodeDevice module, ModuleObject moduleObject)
         {
-            while (State == RUN)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if (mode != NodeDevice.MODE_POWERSAVING && mode != NodeDevice.MODE_SLEEP)
+                if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
                 {
-                    if (packetQueue.TryDequeue(out InternalPacket packet))
+                    if (module.packetQueueOut.TryDequeue(out InternalPacket packet))
                     {
 
                         /*create task to delay time and after that send packet to hardware
@@ -538,23 +564,24 @@ namespace Environment.Base
                         communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
                         {
                             type = "out",
-                            portName = serialPort.PortName,
+                            portName = module.serialport.PortName,
                             packet = packet,
                         }, portClicked);
                         // format packet before send, follow protocol
-                        serialPort.DiscardOutBuffer();
+                        module.serialport.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
                         byte[] data = packetTransmit.getPacket();
-                        serialPort.Write(data, 0, data.Length);
+                        module.serialport.Write(data, 0, data.Length);
                     }
                 }
             }
-            while (State == PAUSE)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
                 Pause();
-                communication.sendMessageIsIdle();
+                communication.sendMessageIsPause();
+                break;
             }
-            if (State == IDLE)
+            while (EnvState.ProgramStatus == PROGRAM_STATUS.IDLE)
             {
                 communication.sendMessageIsStop();
             }
@@ -562,10 +589,10 @@ namespace Environment.Base
         //Pause program ======
         public void Pause()
         {
-            /*foreach (var hw in Devices)
-            {
-                hw.serialport.Close();
-            }*/
+            /* foreach (var hw in Devices)
+             {
+                 hw.serialport.Close();
+             }*/
         }
 
         // Stop program =====
@@ -582,7 +609,7 @@ namespace Environment.Base
         /*//Function listen from hardware
         private string listenConfigFromHardware(SerialPort serialPort)
         {
-            State = IDLE;
+            EnvState.ProgramStatus = PROGRAM_STATUS.IDLE;
             foreach (var hw in Devices)
             {
                 hw.serialport.Close();

@@ -24,6 +24,10 @@ namespace Environment.Model.History
         public string DelayTime { get => delayTime; set { delayTime = value; OnPropertyChanged(); } }
         private string distance { get; set; }
         public string Distance { get => distance; set { distance = value; OnPropertyChanged(); } }
+        private string rssi { get; set; }
+        public string RSSI { get => rssi; set { rssi = value; OnPropertyChanged(); } }
+        private string snr { get; set; }
+        public string SNR { get => snr; set { snr = value; OnPropertyChanged(); } }
 
     }
 }

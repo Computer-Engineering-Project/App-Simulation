@@ -25,13 +25,13 @@ namespace Simulator1.State_Management
         {
             IsRunningNow?.Invoke();
         }
-        public void isIdleNow()
-        {
-            IsIdleNow?.Invoke();
-        }
         public void isPauseNow()
         {
             IsPauseNow?.Invoke();
+        }
+        public void isIdleNow()
+        {
+            IsIdleNow?.Invoke();
         }
         public void changeMode(object data)
         {

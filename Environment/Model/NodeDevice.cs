@@ -23,11 +23,12 @@ namespace Environment.Model
         public object lockObjectChangeMode = new object();
         public int mode { get; set; }
         public int flagDataIn { get; set; }
+        public bool existReadThread { get; set; }
         public Thread readDataFromHardware { get; set; }
         public Thread transferDataIn { get; set; }
         public Thread transferDataOut { get; set; }
         public ModuleObject moduleObject { get; set; }
-        public ConcurrentQueue<ErrorPacket> collidedPackets = new ConcurrentQueue<ErrorPacket>();
+        public ConcurrentQueue<ErrorPacket> errorPackets = new ConcurrentQueue<ErrorPacket>();
 
         public ConcurrentQueue<DataProcessed> packetQueueIn = new ConcurrentQueue<DataProcessed>();
 
