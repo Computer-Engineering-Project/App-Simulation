@@ -45,4 +45,5 @@
 ##13/12/2023
 - tính max range bằng RSSI của module
 - tạo phân phối chuẩn cho việc packet loss
+- lúc config xong, thì k được đóng port
 

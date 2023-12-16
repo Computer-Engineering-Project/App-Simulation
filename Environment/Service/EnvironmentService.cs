@@ -56,8 +56,8 @@ namespace Environment.Service
 
         public void Run()
         {
-            environment.State = environment.RUN;
-            Helper.ENV_STATE = environment.RUN;
+            EnvState.PreProgramStatus = EnvState.ProgramStatus;
+            EnvState.ProgramStatus = PROGRAM_STATUS.RUN;
             environment.createSerialPortInitial();
             environment.RunProgram();
            
@@ -70,8 +70,8 @@ namespace Environment.Service
 
         public void Stop()
         {
-            environment.State = environment.IDLE;
-            Helper.ENV_STATE = environment.IDLE;
+            EnvState.PreProgramStatus = EnvState.ProgramStatus;
+            EnvState.ProgramStatus = PROGRAM_STATUS.IDLE;
         }
 
         public void passPortClicked(string portName)
@@ -81,8 +81,8 @@ namespace Environment.Service
 
         public void Pause()
         {
-            environment.State = environment.PAUSE;
-            Helper.ENV_STATE = environment.PAUSE;
+            EnvState.PreProgramStatus = EnvState.ProgramStatus;
+            EnvState.ProgramStatus = PROGRAM_STATUS.PAUSE;
         }
 
         public void changeModuleObjectsPosition(List<ModuleObject> moduleObjects)
