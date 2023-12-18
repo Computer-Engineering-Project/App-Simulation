@@ -51,6 +51,9 @@ namespace Simulator1.ViewModel
         private string moduleType;
         public string ModuleType { get => moduleType; set { moduleType = value; OnPropertyChanged(); } }
 
+        private string kindOfModule;
+        public string KindOfModule { get => kindOfModule; set { kindOfModule = value; OnPropertyChanged(); } }
+
         private ModuleObject tmp_moduleObject;
         public ModuleObject tmp_ModuleObject { get => tmp_moduleObject; set { tmp_moduleObject = value; OnPropertyChanged(); } }
 
@@ -144,10 +147,19 @@ namespace Simulator1.ViewModel
                     Id = moduleParameterVM.id;
                     IsUpdate = moduleParameterVM.isUpdate;
                     ModuleType = moduleParameterVM.moduleType;
+                    KindOfModule = moduleParameterVM.kindOfModule;
                     tmp_ModuleObject = moduleParameterVM.tmp_moduleObject;
                     IsEnableSave = moduleParameterVM.isEnableSave;
                     IsEnableDelete = moduleParameterVM.isEnableDelete;
                     IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
+                    if (ModuleType == "lora")
+                    {
+                        ((NavigateCommand)LoraParamCommand).Execute(new { });
+                    }
+                    else if (ModuleType == "zigbee")
+                    {
+                        ((NavigateCommand)ZigbeeModuleCommand).Execute(new { });
+                    }
                 }
             }
             catch (Exception e)
@@ -166,6 +178,23 @@ namespace Simulator1.ViewModel
             else
             {
                 ListModuleType = new ObservableCollection<string>() { "DL-22" };
+            }
+        }
+        private void SelectKindOfModule()
+        {
+            if (string.IsNullOrEmpty(ModuleType))
+            {
+                ExecuteChangeModuleType("lora");
+            }
+            if (ModuleType == "lora")
+            {
+                if (string.IsNullOrEmpty(KindOfModule))
+                    KindOfModule = "E32-433T20D";
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(KindOfModule))
+                    KindOfModule = "DL-22";
             }
         }
         private void GenerateModule()
@@ -188,9 +217,9 @@ namespace Simulator1.ViewModel
                     var y = Double.Parse(VerticalY);
                     if (y < 0) y = 0;
                     tmp_ModuleObject.x = x;
-                    tmp_ModuleObject.transformX = x / 10 - tmp_moduleObject.coveringAreaRange + 20;
+                    tmp_ModuleObject.transformX = x / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
                     tmp_ModuleObject.y = y;
-                    tmp_ModuleObject.transformY = y / 10 - tmp_moduleObject.coveringAreaRange + 20;
+                    tmp_ModuleObject.transformY = y / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
                     moduleStore.ModuleObjects.Add(tmp_ModuleObject);
                     historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
@@ -223,12 +252,13 @@ namespace Simulator1.ViewModel
                             m.y = tmp_ModuleObject.y;
                             m.x = tmp_ModuleObject.x;
                             m.coveringAreaRange = tmp_ModuleObject.coveringAreaRange;
-                            m.coveringAreaDiameter = tmp_ModuleObject.coveringAreaRange * 2;
-                            m.transformX = tmp_ModuleObject.x / 10 - tmp_moduleObject.coveringAreaRange + 20;
-                            m.transformY = tmp_ModuleObject.y / 10 - tmp_moduleObject.coveringAreaRange + 20;
+                            m.coveringAreaDiameter = tmp_ModuleObject.coveringAreaRange / 5;
+                            m.transformX = tmp_ModuleObject.x / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
+                            m.transformY = tmp_ModuleObject.y / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
                             m.mode = tmp_ModuleObject.mode;
                             m.parameters = tmp_ModuleObject.parameters;
                             m.type = tmp_ModuleObject.type;
+                            m.kind = tmp_ModuleObject.kind;
                             historyStateManagement.reloadHistoryData(m);
                         }
                     }
@@ -237,6 +267,7 @@ namespace Simulator1.ViewModel
                 }
                 statusStateManagement.statusChanged();
                 CloseModule();
+
             }
             catch (Exception e)
             {
@@ -312,6 +343,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
+                SelectKindOfModule();
                 var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
                 if (moduleObject != null)
                 {
@@ -321,7 +353,8 @@ namespace Simulator1.ViewModel
                         y = moduleObject.y,
                         parameters = moduleObject.parameters,
                         id = moduleObject.id,
-                        type = moduleObject.type,
+                        type = ModuleType,
+                        kind = KindOfModule,
                     };
                     tmp_moduleObject.mode = "MODE 3";
                     tmp_moduleObject.port = Port;
@@ -335,7 +368,9 @@ namespace Simulator1.ViewModel
                     {
                         port = Port,
                         id = id.ToString(),
-                        mode = "MODE 3"
+                        mode = "MODE 3",
+                        type = ModuleType,
+                        kind = KindOfModule,
                     };
                     moduleStateManagement.createLoraParameter(module);
                     /*                moduleStateManagement.configParameter(ModuleType);

@@ -64,5 +64,10 @@ namespace Simulator1.ViewModel
             //Event Delegate
 
         }
+        public override void Dispose()
+        {
+
+            base.Dispose();
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace Environment.Model.VMParameter
         public string isUpdate;
 
         public string moduleType;
+        public string kindOfModule;
 
         public ModuleObject tmp_moduleObject;
 

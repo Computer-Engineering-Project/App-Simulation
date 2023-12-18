@@ -27,11 +27,12 @@ namespace Simulator1.Database
             bool? response = openFileDialog.ShowDialog();
             if (response == true)
             {
-                path = openFileDialog.FileName;
-                if (!path.Contains(".json"))
+                var pathFile = openFileDialog.FileName;
+                if (!pathFile.Contains(".json"))
                 {
                     throw new Exception("File open is not right format, please choose again (.json)");
                 }
+                path = pathFile;
                 string json = File.ReadAllText(path);
                 var nodeJSONList = JsonConvert.DeserializeObject<List<ModuleObject>>(json);
                 if (nodeJSONList != null)
@@ -60,11 +61,12 @@ namespace Simulator1.Database
                 bool? response = saveFileDialog.ShowDialog();
                 if (response == true)
                 {
-                    path = saveFileDialog.FileName;
-                    if (!path.Contains(".json"))
+                    var pathFile = saveFileDialog.FileName;
+                    if (!pathFile.Contains(".json"))
                     {
                         throw new Exception("File is not right format, please save file with right format (.json)");
                     }
+                    path = pathFile;
                     File.WriteAllText(path, json);
                     return true;
                 }

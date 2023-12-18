@@ -90,15 +90,6 @@
                         <Grid Grid.Column="2">
                             <StackPanel Orientation="Horizontal"
                                         Margin="5 0 5 0">
-                                <!--<Button Width="100"
-                                        Content="HISTORY"
-                                        Background="Wheat"
-                                        IsEnabled="{Binding IsEnableHistory}"
-                                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
-                                        Margin="0 0 20 0"
-                                        Command="{Binding LoadHistoryCommand}"
-                                        ToolTip="MaterialDesignFlatLightButton" />-->
-
                                 <Button Width="100"
                                         Background="LightGoldenrodYellow"
                                         IsEnabled="{Binding IsEnablePause}"
@@ -152,7 +143,7 @@
                     </Grid>
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="270"></ColumnDefinition>
                             <ColumnDefinition Width="3"></ColumnDefinition>
                             <ColumnDefinition Width="4*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
@@ -244,28 +235,62 @@
                                             </StackPanel>
                                         </TabItem.Header>
                                         <Grid>
-                                            <Grid Height="156"
-                                                  VerticalAlignment="Center">
+                                            <Grid Margin="0,18,0,112">
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="40"></RowDefinition>
                                                     <RowDefinition></RowDefinition>
                                                 </Grid.RowDefinitions>
                                                 <TextBlock Grid.Row="0"
                                                            Margin="10"
+                                                           FontSize="15"
+                                                           FontWeight="Bold"
                                                            Text="Environment Factors" />
-                                                <Grid Grid.Row="1">
-                                                    <TextBlock  FontSize="12"
-                                                                Margin="15,0,50,0"><Run Text="Noise" /></TextBlock>
-                                                    <TextBox Padding="5 5 5 5"
-                                                             AcceptsReturn="True"
-                                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                                             TextWrapping="Wrap"
-                                                             Margin="12,20,0,65"
-                                                             HorizontalAlignment="Left"
-                                                             Width="138" />
-                                                </Grid>
+                                                <StackPanel Grid.Row="1">
+                                                    <Menu>
+                                                        <MenuItem Padding="0 0 0 0"
+                                                                  Width="187">
+                                                            <MenuItem.Header>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Margin="0,0,-71,0">
+                                                                    <TextBlock Text="Type of SNR"
+                                                                               FontSize="12"
+                                                                               Margin="10" />
+                                                                    <TextBlock FontSize="12"
+                                                                               Text="SNR from dB"
+                                                                               Foreground="Blue"
+                                                                               Margin="10" />
+                                                                </StackPanel>
+                                                            </MenuItem.Header>
+                                                            <MenuItem Header="SNR from dB"
+                                                                      Command="{Binding EnvdBSNRCommand}" />
+                                                            <MenuItem Header="Power SNR"
+                                                                      Command="{Binding EnvPowerSNRCommand}" />
+                                                            <MenuItem Header="Voltage SNR"
+                                                                      Command="{Binding EnvVoltageSNRCommand}" />
+                                                        </MenuItem>
+                                                    </Menu>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                Margin="10"
+                                                                Width="165">
+                                                        <TextBlock  FontSize="12"
+                                                                    VerticalAlignment="Center"><Run Text="Noise" /></TextBlock>
+                                                        <TextBox Margin="10"
+                                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                                                 Width="83"
+                                                                 Padding="0 0 0 0"
+                                                                 Height="23" />
+                                                        <TextBlock Text="dB(s)"
+                                                                   VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <Button Width="84"
+                                                            Padding="0 0 0 0"
+                                                            FontSize="12"
+                                                            Content="SAVE"
+                                                            Margin="20"
+                                                            Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                                                            Height="26" />
+                                                </StackPanel>
                                             </Grid>
-
                                         </Grid>
                                     </TabItem>
                                     <TabItem>
@@ -301,8 +326,7 @@
                                 <ItemsControl x:Name="mycanvas"
                                               MouseWheel="Control_MouseWheel"
                                               ItemsSource="{Binding ModuleObjects}"
-                                              RenderTransformOrigin="0,0"
-                                              Panel.ZIndex="0">
+                                              RenderTransformOrigin="0,0">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <Canvas AllowDrop="True"
@@ -326,7 +350,6 @@
                                                 </i:Interaction.Triggers>
                                             </view:testModule>
                                         </DataTemplate>
-
                                     </ItemsControl.ItemTemplate>
 
                                     <ItemsControl.ItemContainerStyle>
@@ -335,8 +358,14 @@
                                                     Value="{Binding transformX, Mode=TwoWay}" />
                                             <Setter Property="Canvas.Top"
                                                     Value="{Binding transformY, Mode=TwoWay}" />
-                                            <Setter Property="Tag"
-                                                    Value="{Binding port, Mode=TwoWay}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver"
+                                                         Value="True">
+                                                    <Setter Property="Panel.ZIndex"
+                                                            Value="1" />
+                                                </Trigger>
+                                            </Style.Triggers>
+
                                         </Style>
                                     </ItemsControl.ItemContainerStyle>
                                 </ItemsControl>
@@ -414,7 +443,6 @@
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
                                                                 <GridViewColumn Header="Source"
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
-
                                                             </GridView>
                                                         </ListView.View>
                                                         <ListView.Resources>
@@ -471,7 +499,7 @@
                                                         <ListView.View>
                                                             <GridView>
                                                                 <GridViewColumn Header="Event"
-                                                                                DisplayMemberBinding="{Binding Id}"></GridViewColumn>
+                                                                                DisplayMemberBinding="{Binding Time}"></GridViewColumn>
                                                                 <GridViewColumn Header="Source"
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
                                                                 <GridViewColumn Header="Data"
@@ -535,18 +563,19 @@
                                                 </TabItem.Header>
                                                 <ScrollViewer VerticalScrollBarVisibility="
                                                              Auto">
-
-                                                    <ListView x:Name="historyError">
+                                                    <ListView x:Name="historyError"
+                                                              ItemsSource="{Binding HistoryObjectErrors}"
+                                                              SelectedItem="{Binding SelectedItemHistory, Mode=OneWayToSource}">
                                                         <ListView.View>
                                                             <GridView>
-                                                                <GridViewColumn Header="Event"
-                                                                                DisplayMemberBinding="{Binding Id}"></GridViewColumn>
+                                                                <GridViewColumn Header="Time"
+                                                                                DisplayMemberBinding="{Binding Time}"></GridViewColumn>
                                                                 <GridViewColumn Header="Source"
                                                                                 DisplayMemberBinding="{Binding Source}"></GridViewColumn>
                                                                 <GridViewColumn Header="Data"
                                                                                 DisplayMemberBinding="{Binding Data}"></GridViewColumn>
                                                                 <GridViewColumn Header="Reason"
-                                                                                DisplayMemberBinding="{Binding Reason}"></GridViewColumn>
+                                                                                DisplayMemberBinding="{Binding TypeError}"></GridViewColumn>
                                                                 <GridViewColumn Header="Distance"
                                                                                 DisplayMemberBinding="{Binding Distance}"></GridViewColumn>
                                                             </GridView>
@@ -587,7 +616,6 @@
                                                 </ScrollViewer>
                                             </TabItem>
                                         </TabControl>
-
                                     </Grid>
 
                                     <Grid Grid.Column="2">
@@ -605,6 +633,8 @@
                                         <Grid Grid.Row="1"
                                               Margin="10 0 0 0">
                                             <Grid.RowDefinitions>
+                                                <RowDefinition Height="30"></RowDefinition>
+                                                <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
                                                 <RowDefinition Height="30"></RowDefinition>
@@ -648,7 +678,18 @@
                                                            Width="80">SNR</TextBlock>
                                                 <TextBlock Text="{Binding SNRHistory}"></TextBlock>
                                             </StackPanel>
-
+                                            <StackPanel Orientation="Horizontal"
+                                                        Grid.Row="6">
+                                                <TextBlock Padding="0 0 10 0"
+                                                           Width="80">Type Error</TextBlock>
+                                                <TextBlock Text="{Binding TypeErrorHistory}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal"
+                                                        Grid.Row="7">
+                                                <TextBlock Padding="0 0 10 0"
+                                                           Width="80">Time</TextBlock>
+                                                <TextBlock Text="{Binding TimeHistory}"></TextBlock>
+                                            </StackPanel>
                                         </Grid>
                                     </Grid>
 

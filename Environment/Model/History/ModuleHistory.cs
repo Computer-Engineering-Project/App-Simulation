@@ -13,5 +13,6 @@ namespace Environment.Model.History
         public ModuleObject moduleObject { get; set; }
         public ConcurrentQueue<HistoryObject> historyObjectIns= new ConcurrentQueue<HistoryObject>();
         public ConcurrentQueue<HistoryObject> historyObjectOuts= new ConcurrentQueue<HistoryObject>();
+        public ConcurrentQueue<HistoryObject> historyObjectErrors = new ConcurrentQueue<HistoryObject>();
     }
 }

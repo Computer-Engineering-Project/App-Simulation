@@ -11,11 +11,11 @@
     <Grid HorizontalAlignment="Center"
           VerticalAlignment="Center">
         <Ellipse Fill="Yellow"
-                 Opacity="0.3"
+                 Opacity="0.2"
                  Width="{Binding Path=CoveringArea, ElementName=module}"
                  Height="{Binding Path=CoveringArea, ElementName=module}" />
         <Ellipse Fill="LightGreen"
-                 Opacity="0.7"
+                 Opacity="0.4"
                  Width="{Binding Path=CoveringArea, ElementName=module}"
                  Height="{Binding Path=CoveringArea, ElementName=module}" />
         <Grid x:Name="device"
@@ -35,10 +35,10 @@
                             HorizontalAlignment="Center"
                             Width="50">
                     <TextBlock Margin="4 0 4 0"
-                               FontSize="6"
+                               FontSize="5"
                                Text="{Binding Path=PortModule, ElementName=module}" />
                     <TextBlock Margin="4 0 4 0"
-                               FontSize="6"
+                               FontSize="5"
                                Text="{Binding Path=ModeModule, ElementName=module}" />
                 </StackPanel>
             </StackPanel>

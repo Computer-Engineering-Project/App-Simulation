@@ -80,7 +80,6 @@ namespace Simulator1.View
             DependencyProperty.Register("CoveringArea", typeof(double), typeof(testModule), new PropertyMetadata(null));
 
 
-
         public ICommand DropModuleCommand
         {
             get { return (ICommand)GetValue(DropModuleCommandProperty); }
@@ -100,7 +99,6 @@ namespace Simulator1.View
         }
         private void Control_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
             var draggableControl = sender as UserControl;
             if (draggableControl != null)
             {

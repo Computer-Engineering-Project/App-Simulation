@@ -2,6 +2,7 @@
 using Environment.Model.Module;
 using Environment.Model.Packet;
 using Environment.Service.Interface;
+using MathNet.Numerics;
 using System.Collections.Concurrent;
 using System.IO.Ports;
 
@@ -41,12 +42,14 @@ namespace Environment.Base
             if (serialPort == null)
             {
                 serialPort = new SerialPort(port, 115200);
+                SerialPorts.Add(serialPort);
+                serialPort.ReadTimeout = 1000;
             }
             if (!serialPort.IsOpen)
             {
                 serialPort.Open();
             }
-            SerialPorts.Add(serialPort);
+
         }
         public void ClosePort(string port)
         {
@@ -132,7 +135,7 @@ namespace Environment.Base
                 if (!serialport.IsOpen)
                 {
                     serialport.Open();
-                    if(EnvState.PreProgramStatus == PROGRAM_STATUS.IDLE)
+                    if (EnvState.PreProgramStatus == PROGRAM_STATUS.IDLE)
                     {
                         var device = new NodeDevice()
                         {
@@ -150,12 +153,12 @@ namespace Environment.Base
 
                         Devices.Add(device);
                     }
-                    
+
                 }
             }
             foreach (NodeDevice hw in Devices)
             {
-                if(hw.existReadThread == false)
+                if (hw.existReadThread == false)
                 {
                     hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
                     hw.readDataFromHardware.Name = "readData";
@@ -266,10 +269,11 @@ namespace Environment.Base
             transferDataToView.Start();*/
             foreach (var hw in Devices)
             {
-                hw.mode = 0;
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
+                    hw.mode = 0;
+                    communication.deviceChangeMode(0, hw.moduleObject.id);
                     hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw, moduleObject));
                     hw.transferDataIn.Name = "datain";
                     hw.transferDataIn.Start();
@@ -281,7 +285,7 @@ namespace Environment.Base
             communication.sendMessageIsRunning();
         }
         // transfer data from queue in to destination device
-        private void transferDataToDestinationDevice( NodeDevice module, ModuleObject moduleObject)
+        private void transferDataToDestinationDevice(NodeDevice module, ModuleObject moduleObject)
         {
             while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
@@ -372,40 +376,56 @@ namespace Environment.Base
 
                 foreach (var hw in Devices)
                 {
-                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
-
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
+                        var tmp_packet = new InternalPacket()
+                        {
+                            packet = packet.packet,
+                            DelayTime = packet.DelayTime,
+                            PreambleCode = packet.PreambleCode,
+                            RSSI = packet.RSSI,
+                            PathLoss = packet.PathLoss,
+                            SNR = packet.SNR,
+                            Distance = packet.Distance,
+                            sourceModule = packet.sourceModule,
+                            receivedModule = hw.moduleObject,
+                            timeUTC = DateTime.Now.ToLocalTime().ToString(),
+                            timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
+                        };
+
+                        tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                        tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
                             {
                                 var hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
-                                if (hw_loraParameters.Channel == packet.packet.channel && hw_loraParameters.Address != packet.packet.address)
+                                if (hw_loraParameters.Channel == tmp_packet.packet.channel && hw_loraParameters.Address != tmp_packet.packet.address)
                                 {
+
+
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
                                         {
-                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                            await Task.Delay(Convert.ToInt32(tmp_packet.DelayTime));
 
                                             // Execute work: enqueue and handle collision
-                                            await createTransmittionAsync(hw, packet);
+                                            await createTransmittionAsync(hw, tmp_packet);
                                         });
                                     }
                                     else if (hw.mode == NodeDevice.MODE_POWERSAVING)
                                     {
                                         // check preamble code
-                                        if (packet.PreambleCode != null)
+                                        if (tmp_packet.PreambleCode != null)
                                         {
                                             Task task = Task.Run(async () =>
                                             {
-                                                await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                                await Task.Delay(Convert.ToInt32(tmp_packet.DelayTime));
 
                                                 // Execute work: enqueue and handle collision
-                                                await createTransmittionAsync(hw, packet);
+                                                await createTransmittionAsync(hw, tmp_packet);
                                             });
 
                                         }
@@ -423,30 +443,32 @@ namespace Environment.Base
                                     hw_loraParameters = (LoraParameterObject)hw.moduleObject.parameters;
                                 }
 
-                                if (hw_loraParameters.Address == packet.packet.address && hw_loraParameters.Channel == packet.packet.channel)
+                                if (hw_loraParameters.Address == tmp_packet.packet.address && hw_loraParameters.Channel == tmp_packet.packet.channel)
                                 {
+                                    tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
                                         {
-                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                            await Task.Delay(Convert.ToInt32(tmp_packet.DelayTime));
 
                                             // Execute work: enqueue and handle collision
-                                            await createTransmittionAsync(hw, packet);
+                                            await createTransmittionAsync(hw, tmp_packet);
                                         });
                                     }
                                     else if (hw.mode == NodeDevice.MODE_POWERSAVING)
                                     {
                                         // check preamble code
-                                        if (packet.PreambleCode != null)
+                                        if (tmp_packet.PreambleCode != null)
                                         {
                                             Task task = Task.Run(async () =>
                                             {
-                                                await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                                await Task.Delay(Convert.ToInt32(tmp_packet.DelayTime));
 
                                                 // Execute work: enqueue and handle collision
-                                                await createTransmittionAsync(hw, packet);
+                                                await createTransmittionAsync(hw, tmp_packet);
                                             });
                                         }
                                     }
@@ -532,13 +554,8 @@ namespace Environment.Base
                     desHW.flagDataIn--;
                 }
             }
-            desHW.errorPackets.Enqueue(new ErrorPacket()
-            {
-                typeError = typeError,
-                sourceModule = packet.sourceModule,
-                timeUTC = DateTime.Now.ToLocalTime().ToString(),
-                timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
-            });
+            packet.typeError = typeError;
+            desHW.errorPackets.Enqueue(packet);
         }
         private void PushIntoDestinationDeviceQueue(NodeDevice desHW, InternalPacket packet)
         {
@@ -564,16 +581,26 @@ namespace Environment.Base
                         communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
                         {
                             type = "out",
-                            portName = module.serialport.PortName,
                             packet = packet,
                         }, portClicked);
+
                         // format packet before send, follow protocol
                         module.serialport.DiscardOutBuffer();
                         PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
                         byte[] data = packetTransmit.getPacket();
                         module.serialport.Write(data, 0, data.Length);
                     }
+                    if (module.errorPackets.TryDequeue(out InternalPacket errPacket))
+                    {
+                        communication.showQueueError(new PacketReceivedTransferToView()
+                        {
+                            type = "error",
+                            packet = errPacket,
+                        }, portClicked);
+                    }
+
                 }
+
             }
             while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {

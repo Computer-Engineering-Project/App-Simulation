@@ -115,7 +115,7 @@ namespace Environment.Base
             }
             return false;
         }
-        public static byte[] GetDataFromHardware(SerialPort serialPort)
+        /*public static byte[] GetDataFromHardware(SerialPort serialPort)
         {
             // read data from hardware until end byte
             byte[] data = new byte[1024];
@@ -126,6 +126,7 @@ namespace Environment.Base
             while (true)
             {
                 byte[] temp = new byte[1];
+             
                 serialPort.Read(temp, 0, 1);
 
                 bool check = checkStartByte(temp);
@@ -143,6 +144,53 @@ namespace Environment.Base
                     break;
                 }
                 count++;
+            }
+            return data;
+        }*/
+        public static byte[] GetDataFromHardware(SerialPort serialPort)
+        {
+            // read data from hardware until end byte
+            byte[] data = new byte[1024];
+            bool startByte = false;
+            // read data from hardware until end byte
+            int i = 0;
+            int count = 0;
+
+            while (true)
+            {
+                if (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE && EnvState.ModeModule != MODE_MODULE.CONFIG && EnvState.ModeModule != MODE_MODULE.READ_CONFIG)
+                {
+                    break;
+                }
+                byte[] temp = new byte[1];
+                int numByte = 0;
+                try
+                {
+                    numByte = serialPort.Read(temp, 0, 1);
+                }
+                catch (Exception e)
+                {
+
+                }
+                //numByte = serialPort.Read(temp, 0, 1);
+                if (numByte > 0)
+                {
+                    bool check = checkStartByte(temp);
+                    if (startByte == false && check == true)
+                    {
+                        startByte = true;
+                    }
+                    if (startByte == true)
+                    {
+                        data[i] = temp[0];
+                        i++;
+                    }
+                    if (temp[0] == PacketTransmit.ENDBYTE)
+                    {
+                        break;
+                    }
+                    count++;
+                }
             }
             return data;
         }

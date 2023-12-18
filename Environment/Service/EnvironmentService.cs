@@ -31,6 +31,7 @@ namespace Environment.Service
         }
         public bool configHardware(string portName, object parameters)
         {
+            EnvState.ModeModule = MODE_MODULE.CONFIG;
             string json = JsonConvert.SerializeObject(parameters);
             Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             if (listParams != null)
@@ -58,6 +59,7 @@ namespace Environment.Service
         {
             EnvState.PreProgramStatus = EnvState.ProgramStatus;
             EnvState.ProgramStatus = PROGRAM_STATUS.RUN;
+            EnvState.ModeModule = MODE_MODULE.SEND_DATA;    
             environment.createSerialPortInitial();
             environment.RunProgram();
            
