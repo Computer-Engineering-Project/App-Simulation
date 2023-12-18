@@ -16,7 +16,6 @@ namespace Environment.Base
 {
     public static class Helper
     {
-        public static int ENV_STATE = 0;
         public static byte[] CmdActiveHardware()
         {
             byte module = 0xff;
@@ -197,24 +196,33 @@ namespace Environment.Base
 
         public static PacketTransmit HandleMessFromHardware(byte[] data)
         {
-            byte module = data[0];
-            byte cmdWord = data[1];
-            byte[] dataLength = { data[3], data[2] };
-            byte[] dataRaw;
-            if (cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
+            try
             {
-                dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
+                byte module = data[0];
+                byte cmdWord = data[1];
+                byte[] dataLength = { data[3], data[2] };
+                byte[] dataRaw;
+                if (cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
+                {
+                    dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
+                }
+                else
+                {
+                    dataRaw = new byte[dataLength[1] * 256 + dataLength[0]];
+                }
+                for (int i = 0; i < dataRaw.Length; i++)
+                {
+                    dataRaw[i] = data[4 + i];
+                }
+                PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, dataRaw);
+                return packetTransmit;
             }
-            else
+            catch (Exception e)
             {
-                dataRaw = new byte[dataLength[1] * 256 + dataLength[0]];
+
             }
-            for (int i = 0; i < dataRaw.Length; i++)
-            {
-                dataRaw[i] = data[4 + i];
-            }
-            PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, dataRaw);
-            return packetTransmit;
+            return null;
+
         }
         public static string DecodeMessage(byte[] input)
         {

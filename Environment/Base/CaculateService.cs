@@ -109,16 +109,14 @@ namespace Environment.Base
             }
             else if (sender.type == ModuleObjectType.ZIGBEE && receiver.type == ModuleObjectType.ZIGBEE)
             {
-/*                ZigbeeParameterObject senderParameter = (ZigbeeParameterObject)sender.parameters;
+                ZigbeeParameterObject senderParameter = (ZigbeeParameterObject)sender.parameters;
                 ZigbeeParameterObject receiverParameter = (ZigbeeParameterObject)receiver.parameters;
                 double distance = computeDistance2Device(sender, receiver);
-                double frequency = Double.Parse(senderParameter.Frequency);
+                double frequency = 2400 + (int.Parse(senderParameter.Channel, NumberStyles.Integer) - 10) * 5;
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
                 double noise = 0;
-                double rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
-*/
                 return rssi;
             }
             else
