@@ -110,8 +110,13 @@ namespace Environment.Base
                 }
                 else if (module == ModuleObjectType.ZIGBEE)
                 {
-                    /*                    var data = Helper.GenerateDataConfigZigbee(id, baudrate);
-                                        return Helper.SendCmdConfigToHardware(serialport, module, data);*/
+                    byte moduleType = 0x02;
+                    byte[] data = new byte[3];
+                    data[0] = Convert.ToByte(id);
+                    data[1] = Helper.ConvertSpeedrate(baudrate);
+                    data[2] = PacketTransmit.ENDBYTE;
+
+                    return Helper.SendCmdConfigToHardware(serialport, moduleType, data);
                 }
             }
             return false;
@@ -132,12 +137,11 @@ namespace Environment.Base
                 if (!serialport.IsOpen)
                 {
                     serialport.Open();
-                    if(EnvState.PreProgramStatus == PROGRAM_STATUS.IDLE)
+                    if (EnvState.PreProgramStatus == PROGRAM_STATUS.IDLE)
                     {
                         var device = new NodeDevice()
                         {
                             serialport = serialport,
-                            mode = NodeDevice.MODE_SLEEP,
                             existReadThread = false,
                         };
                         foreach (var module in ModuleObjects)
@@ -150,12 +154,12 @@ namespace Environment.Base
 
                         Devices.Add(device);
                     }
-                    
+
                 }
             }
             foreach (NodeDevice hw in Devices)
             {
-                if(hw.existReadThread == false)
+                if (hw.existReadThread == false)
                 {
                     hw.readDataFromHardware = new Thread(() => readData(hw.serialport));
                     hw.readDataFromHardware.Name = "readData";
@@ -233,6 +237,17 @@ namespace Environment.Base
                                 DataProcessed data = new DataProcessed(loraParameters.FixedMode, packet.data);
                                 hardware.packetQueueIn.Enqueue(data);
                             }
+                            else if (hardware.moduleObject.type == ModuleObjectType.ZIGBEE)
+                            {
+                                var zigbeeParameters = new ZigbeeParameterObject();
+                                lock (lockObjectSetParams)
+                                {
+                                    zigbeeParameters = (ZigbeeParameterObject)hardware.moduleObject.parameters;
+                                }
+
+                                DataProcessed data = new DataProcessed(packet.data);
+                                hardware.packetQueueIn.Enqueue(data);
+                            }
 
                         }
                     }
@@ -266,7 +281,8 @@ namespace Environment.Base
             transferDataToView.Start();*/
             foreach (var hw in Devices)
             {
-                hw.mode = 0;
+                if(hw.moduleObject.type == ModuleObjectType.LORA)
+                    hw.mode = 0;
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
                 {
@@ -281,11 +297,31 @@ namespace Environment.Base
             communication.sendMessageIsRunning();
         }
         // transfer data from queue in to destination device
-        private void transferDataToDestinationDevice( NodeDevice module, ModuleObject moduleObject)
+        private void transferDataToDestinationDevice(NodeDevice module, ModuleObject moduleObject)
         {
             while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
+                if(module.moduleObject.type == ModuleObjectType.LORA)
+                {
+                    if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
+                    {
+                        if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
+                        {
+                            communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
+                            {
+                                type = "in",
+                                portName = module.serialport.PortName,
+                                packet = packet,
+                            }, portClicked);
+                            var inter_packet = ExecuteTransferDataToQueueOut(module.mode, packet, moduleObject);
+                            if (inter_packet != null)
+                            {
+                                PushPackageIntoDestinationDevice(inter_packet, moduleObject);
+                            }
+                        }
+                    }
+                }
+                else if(module.moduleObject.type == ModuleObjectType.ZIGBEE)
                 {
                     if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
                     {
@@ -302,6 +338,8 @@ namespace Environment.Base
                         }
                     }
                 }
+                
+                
             }
             while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
@@ -350,14 +388,34 @@ namespace Environment.Base
                             PreambleCode = preambleCode,
                             DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data, preambleCode, parameter.FEC),
                         };
-                    default:
-                        return null;
                 }
             }
-            else
+            else if(moduleObject.type == ModuleObjectType.ZIGBEE)
             {
-                return null;
+                var parameter = new ZigbeeParameterObject();
+                lock (lockObjectSetParams)
+                {
+                    parameter = (ZigbeeParameterObject)moduleObject.parameters;
+                }
+
+                if(parameter.TransmitMode == TransmitMode.BROADCAST)
+                {
+                    packet.channel = parameter.Channel;
+                }
+                else if(parameter.TransmitMode == TransmitMode.POINT_TO_POINT)
+                {
+                    packet.address = parameter.Address;
+                    packet.channel = parameter.Channel;
+                }
+
+                return new InternalPacket()
+                {
+                    packet = packet,
+                    sourceModule = moduleObject,
+                    DelayTime = CaculateService.caculateDelayTime(parameter.AirRate, packet.data, "", ""),
+                };
             }
+            return null;
         }
         // Push package into destination device
         private void PushPackageIntoDestinationDevice(InternalPacket packet, ModuleObject moduleObject)
@@ -372,9 +430,6 @@ namespace Environment.Base
 
                 foreach (var hw in Devices)
                 {
-                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
-
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
@@ -385,6 +440,8 @@ namespace Environment.Base
                                 if (hw_loraParameters.Channel == packet.packet.channel && hw_loraParameters.Address != packet.packet.address)
                                 {
                                     // check mode of destination device
+                                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
@@ -426,6 +483,8 @@ namespace Environment.Base
                                 if (hw_loraParameters.Address == packet.packet.address && hw_loraParameters.Channel == packet.packet.channel)
                                 {
                                     // check mode of destination device
+                                    packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                                    packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
                                         Task task = Task.Run(async () =>
@@ -458,37 +517,73 @@ namespace Environment.Base
             }
             else if (moduleObject.type == "zigbee")
             {
-                /*                var zigbeeParameters = (ZigbeeParameterObject)moduleObject.parameters;
-                                var destinationAddress = zigbeeParameters.DestinationAddress;
-                                var destinationChannel = zigbeeParameters.DestinationChannel;
-                                foreach (var hw in Devices)
+                var zigbeeParameters = new ZigbeeParameterObject();
+                lock (lockObjectSetParams)
+                {
+                    zigbeeParameters = (ZigbeeParameterObject)moduleObject.parameters;
+                }
+                // check mode broadcast or point to point
+                if (zigbeeParameters.TransmitMode == TransmitMode.BROADCAST)
+                {
+                    foreach (var hw in Devices)
+                    {
+                        if (hw.moduleObject.type == ModuleObjectType.ZIGBEE)
+                        {
+                            if (zigbeeParameters.Channel == packet.packet.channel)
+                            {
+                                // check mode of destination device
+                                packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                 {
-                                    if (hw.moduleObject.type == "zigbee")
+                                    Task task = Task.Run(async () =>
                                     {
-                                        if (zigbeeParameters.FixedMode == "0") // broadcast
+                                        await Task.Delay(Convert.ToInt32(packet.DelayTime));
+
+                                        // Execute work: enqueue and handle collision
+                                        await createTransmittionAsync(hw, packet);
+                                    });
+                                }
+                                else if (hw.mode == NodeDevice.MODE_POWERSAVING)
+                                {
+                                    // check preamble code
+                                    if (packet.PreambleCode != null)
+                                    {
+                                        Task task = Task.Run(async () =>
                                         {
-                                            if (hw.moduleObject.parameters is ZigbeeParameterObject)
-                                            {
-                                                var hw_zigbeeParameters = (ZigbeeParameterObject)hw.moduleObject.parameters;
-                                                if (hw_zigbeeParameters.DestinationChannel == destinationChannel)
-                                                {
-                                                    hw.packetQueueOut.Enqueue(packet);
-                                                }
-                                            }
-                                        }
-                                        else // fixed
-                                        {
-                                            if (hw.moduleObject.parameters is ZigbeeParameterObject)
-                                            {
-                                                var hw_zigbeeParameters = (ZigbeeParameterObject)hw.moduleObject.parameters;
-                                                if (hw_zigbeeParameters.DestinationAddress == destinationAddress && hw_zigbeeParameters.DestinationChannel == destinationChannel)
-                                                {
-                                                    hw.packetQueueOut.Enqueue(packet);
-                                                }
-                                            }
-                                        }
+                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
+
+                                            // Execute work: enqueue and handle collision
+                                            await createTransmittionAsync(hw, packet);
+                                        });
                                     }
-                                }*/
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (zigbeeParameters.TransmitMode == TransmitMode.POINT_TO_POINT)
+                {
+                    foreach (var hw in Devices)
+                    {
+                        if (hw.moduleObject.type == ModuleObjectType.ZIGBEE)
+                        {
+                            if (zigbeeParameters.Address == packet.packet.address && zigbeeParameters.Channel == packet.packet.channel)
+                            {
+                                // check mode of destination device
+                                packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
+                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                Task task = Task.Run(async () =>
+                                {
+                                    await Task.Delay(Convert.ToInt32(packet.DelayTime));
+
+                                    // Execute work: enqueue and handle collision
+                                    await createTransmittionAsync(hw, packet);
+                                });
+                            }
+                        }
+                    }
+                }
             }
         }
         //Create transmittion with checking collision when pushing data into destinationQueue
