@@ -902,7 +902,18 @@ namespace Simulator1.ViewModel
                     }
                     else
                     {
-
+                        var paras = (ZigbeeParameterObject)errorPacket.packet.sourceModule.parameters;
+                        if (paras != null)
+                        {
+                            errorHisObj.Time = errorPacket.packet.timeUTC;
+                            errorHisObj.Source = "Address: " + paras.Address + "--- Channel: " + paras.Channel;
+                            errorHisObj.TypeError = errorPacket.packet.typeError;
+                            errorHisObj.Data = errorPacket.packet.packet.data;
+                            errorHisObj.DelayTime = errorPacket.packet.DelayTime.ToString();
+                            errorHisObj.Distance = errorPacket.packet.Distance;
+                            errorHisObj.RSSI = errorPacket.packet.RSSI;
+                            errorHisObj.SNR = errorPacket.packet.SNR;
+                        }
                     }
                     moduleHistory.historyObjectErrors.Enqueue(errorHisObj);
                     mainStateManagement.updateHistoryError(portClicked);
