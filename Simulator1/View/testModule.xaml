@@ -5,26 +5,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Simulator1.View"
              mc:Ignorable="d"
-             d:DesignHeight="600"
+             d:DesignHeight="450"
              Name="module"
              d:DesignWidth="800">
     <Grid HorizontalAlignment="Center"
           VerticalAlignment="Center">
         <Ellipse Fill="Yellow"
-                 Opacity="0.3"
-                 Width="600"
-                 Height="600" />
+                 Opacity="0.2"
+                 Width="{Binding Path=CoveringArea, ElementName=module}"
+                 Height="{Binding Path=CoveringArea, ElementName=module}" />
         <Ellipse Fill="LightGreen"
-                 Opacity="0.7"
+                 Opacity="0.4"
                  Width="{Binding Path=CoveringArea, ElementName=module}"
                  Height="{Binding Path=CoveringArea, ElementName=module}" />
         <Grid x:Name="device"
-              Height="15"
-              Width="25">
+              Height="30"
+              Width="50">
             <StackPanel VerticalAlignment="Center"
-                        Height="15">
-                <Grid Width="10"
-                      Height="10"
+                        Height="30">
+                <Grid Width="20"
+                      Height="20"
                       Background="White">
                     <Image Grid.Row="0"
                            Source="../static/img/lora.png"
@@ -33,12 +33,12 @@
                 </Grid>
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"
-                            Width="25">
-                    <TextBlock Margin="2 0 2 0"
-                               FontSize="3"
+                            Width="50">
+                    <TextBlock Margin="4 0 4 0"
+                               FontSize="5"
                                Text="{Binding Path=PortModule, ElementName=module}" />
-                    <TextBlock Margin="2 0 2 0"
-                               FontSize="3"
+                    <TextBlock Margin="4 0 4 0"
+                               FontSize="5"
                                Text="{Binding Path=ModeModule, ElementName=module}" />
                 </StackPanel>
             </StackPanel>

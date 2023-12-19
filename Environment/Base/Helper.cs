@@ -114,7 +114,7 @@ namespace Environment.Base
             }
             return false;
         }
-        public static byte[] GetDataFromHardware(SerialPort serialPort)
+        /*public static byte[] GetDataFromHardware(SerialPort serialPort)
         {
             // read data from hardware until end byte
             byte[] data = new byte[1024];
@@ -125,6 +125,7 @@ namespace Environment.Base
             while (true)
             {
                 byte[] temp = new byte[1];
+             
                 serialPort.Read(temp, 0, 1);
 
                 bool check = checkStartByte(temp);
@@ -144,28 +145,84 @@ namespace Environment.Base
                 count++;
             }
             return data;
+        }*/
+        public static byte[] GetDataFromHardware(SerialPort serialPort)
+        {
+            // read data from hardware until end byte
+            byte[] data = new byte[1024];
+            bool startByte = false;
+            // read data from hardware until end byte
+            int i = 0;
+            int count = 0;
+
+            while (true)
+            {
+                if (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE && EnvState.ModeModule != MODE_MODULE.CONFIG && EnvState.ModeModule != MODE_MODULE.READ_CONFIG)
+                {
+                    break;
+                }
+                byte[] temp = new byte[1];
+                int numByte = 0;
+                try
+                {
+                    numByte = serialPort.Read(temp, 0, 1);
+                }
+                catch (Exception e)
+                {
+
+                }
+                //numByte = serialPort.Read(temp, 0, 1);
+                if (numByte > 0)
+                {
+                    bool check = checkStartByte(temp);
+                    if (startByte == false && check == true)
+                    {
+                        startByte = true;
+                    }
+                    if (startByte == true)
+                    {
+                        data[i] = temp[0];
+                        i++;
+                    }
+                    if (temp[0] == PacketTransmit.ENDBYTE)
+                    {
+                        break;
+                    }
+                    count++;
+                }
+            }
+            return data;
         }
 
         public static PacketTransmit HandleMessFromHardware(byte[] data)
         {
-            byte module = data[0];
-            byte cmdWord = data[1];
-            byte[] dataLength = { data[3], data[2] };
-            byte[] dataRaw;
-            if (cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
+            try
             {
-                dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
+                byte module = data[0];
+                byte cmdWord = data[1];
+                byte[] dataLength = { data[3], data[2] };
+                byte[] dataRaw;
+                if (cmdWord == PacketTransmit.SENDDATA || cmdWord == PacketTransmit.CHANGEMODE)
+                {
+                    dataRaw = new byte[dataLength[0] * 256 + dataLength[1]];
+                }
+                else
+                {
+                    dataRaw = new byte[dataLength[1] * 256 + dataLength[0]];
+                }
+                for (int i = 0; i < dataRaw.Length; i++)
+                {
+                    dataRaw[i] = data[4 + i];
+                }
+                PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, dataRaw);
+                return packetTransmit;
             }
-            else
+            catch (Exception e)
             {
-                dataRaw = new byte[dataLength[1] * 256 + dataLength[0]];
+
             }
-            for (int i = 0; i < dataRaw.Length; i++)
-            {
-                dataRaw[i] = data[4 + i];
-            }
-            PacketTransmit packetTransmit = new PacketTransmit(module, cmdWord, dataLength, dataRaw);
-            return packetTransmit;
+            return null;
+
         }
         public static string DecodeMessage(byte[] input)
         {
@@ -176,7 +233,7 @@ namespace Environment.Base
             string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>? ";
             Random random = new Random();
             var length = BitConverter.GetBytes(worTime).Length;
-            
+
 
             char[] preambleArray = new char[length];
             for (int i = 0; i < length; i++)

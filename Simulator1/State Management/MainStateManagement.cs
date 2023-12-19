@@ -15,6 +15,7 @@ namespace Simulator1.State_Management
         public event Action IsPauseNow;
         public event Action<string> UpdateHistoryOut;
         public event Action<string> UpdateHitoryIn;
+        public event Action<string> UpdateHitoryError;
         public event Action ResetAll;
         public event Action<object> ChangeMode;
         public void loadHistoryFromDB()
@@ -44,6 +45,10 @@ namespace Simulator1.State_Management
         public void updateHistoryIn(string portName)
         {
             UpdateHitoryIn?.Invoke(portName);
+        }
+        public void updateHistoryError(string portName)
+        {
+            UpdateHitoryError?.Invoke(portName);
         }
         public void resetAll()
         {

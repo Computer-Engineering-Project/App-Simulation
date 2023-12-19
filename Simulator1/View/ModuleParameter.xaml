@@ -74,7 +74,8 @@
                                       Height="30"
                                       Padding="5 0 5 0"
                                       ItemsSource="{Binding ListModuleType}"
-                                      materialDesign:HintAssist.Hint="Choose type of module"
+                                      SelectedValue="{Binding KindOfModule, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
+                                      materialDesign:HintAssist.Hint="Choose kind of module"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}">
 
                             </ComboBox>

@@ -24,13 +24,14 @@ using Environment.Model.VMParameter;
 using System.Media;
 using Simulator1.Database;
 using System.Xml.Serialization;
+using Environment;
 
 namespace Simulator1.ViewModel
 {
     public class MainViewModel : BaseViewModel, ICommunication
     {
         private ObservableCollection<ModuleObject> moduleObjects = new ObservableCollection<ModuleObject>();
-        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged();} }
+        public ObservableCollection<ModuleObject> ModuleObjects { get => moduleObjects; set { moduleObjects = value; OnPropertyChanged(); } }
 
         private ObservableCollection<ButtonPort> ports;
         public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
@@ -52,8 +53,9 @@ namespace Simulator1.ViewModel
         private bool isDialogOpen = false;
         public bool IsDialogOpen { get => isDialogOpen; set { isDialogOpen = value; OnPropertyChanged(); } }
 
-        private HistoryObject selectedItemHistory;
-        public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
+        //Animation
+        private Visibility isLoadingPort = Visibility.Hidden;
+        public Visibility IsLoadingPort { get => isLoadingPort; set { isLoadingPort = value; OnPropertyChanged(); } }
 
         //History Data
         private string informationCom;
@@ -61,8 +63,10 @@ namespace Simulator1.ViewModel
 
         private string sourceHistory;
         public string SourceHistory { get => sourceHistory; set { sourceHistory = value; OnPropertyChanged(); } }
+
         private string dataHistory;
         public string DataHistory { get => dataHistory; set { dataHistory = value; OnPropertyChanged(); } }
+
         private string delayTimeHistory;
         public string DelayTimeHistory { get => delayTimeHistory; set { delayTimeHistory = value; OnPropertyChanged(); } }
 
@@ -75,17 +79,23 @@ namespace Simulator1.ViewModel
         private string snrHistory;
         public string SNRHistory { get => snrHistory; set { snrHistory = value; OnPropertyChanged(); } }
 
+        private string typeErrorHistory;
+        public string TypeErrorHistory { get => typeErrorHistory; set { typeErrorHistory = value; OnPropertyChanged(); } }
 
-        //Animation
-        private Visibility isLoadingPort = Visibility.Hidden;
-        public Visibility IsLoadingPort { get => isLoadingPort; set { isLoadingPort = value; OnPropertyChanged(); } }
+        private string timeHistory;
+        public string TimeHistory { get => timeHistory; set { timeHistory = value; OnPropertyChanged(); } }
 
+        private HistoryObject selectedItemHistory;
+        public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
 
         private ObservableCollection<HistoryObject> historyObjectIns;
         public ObservableCollection<HistoryObject> HistoryObjectIns { get => historyObjectIns; set { historyObjectIns = value; OnPropertyChanged(); } }
 
         private ObservableCollection<HistoryObject> historyObjectOuts;
         public ObservableCollection<HistoryObject> HistoryObjectOuts { get => historyObjectOuts; set { historyObjectOuts = value; OnPropertyChanged(); } }
+
+        private ObservableCollection<HistoryObject> historyObjectErrors;
+        public ObservableCollection<HistoryObject> HistoryObjectErrors { get => historyObjectErrors; set { historyObjectErrors = value; OnPropertyChanged(); } }
 
         private readonly MainViewStore mainStore;
         private readonly ModuleStore moduleStore;
@@ -112,7 +122,6 @@ namespace Simulator1.ViewModel
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
         public ICommand SelectionChangedCommand { get; set; }
-        public ICommand ZoomCommand { get; set; }
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
@@ -133,6 +142,7 @@ namespace Simulator1.ViewModel
             Ports = new ObservableCollection<ButtonPort>();
             HistoryObjectIns = new ObservableCollection<HistoryObject>();
             HistoryObjectOuts = new ObservableCollection<HistoryObject>();
+            historyObjectErrors = new ObservableCollection<HistoryObject>();
             ProgramName = "Software Simulator";
 
             //Event delegate
@@ -148,7 +158,7 @@ namespace Simulator1.ViewModel
             this.mainStateManagement.ChangeMode += OnChangeMode;
 
             this.statusStateManagement.StatusChanged += OnStatusChanged;
-            
+
             //Command
             OpenDialogCommand = new ParameterRelayCommand<string>((p) => { return true; }, (port) => ExecuteClickPort(port));
             UpdateModuleCommand = new ParameterRelayCommand<ModuleObject>((module) => { return true; }, (module) =>
@@ -167,17 +177,12 @@ namespace Simulator1.ViewModel
             {
                 ExecuteAutoSavePosition(o);
             });
-
             SelectionChangedCommand = new RelayCommand(() => DectectActionSelectedColumn());
 
             RunEnvironmentCommand = new RelayCommand(() => ExecuteRunEnvironment());
             StopEnvironmentCommand = new RelayCommand(() => ExecuteStopEnvironment());
             PauseEnvironmentCommand = new RelayCommand(() => ExecutePauseEnvironment());
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
-            ZoomCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
-            {
-                ExecuteZoomCommand(o);
-            });
         }
         //Delegate handler
         private void OnStatusChanged()
@@ -305,10 +310,6 @@ namespace Simulator1.ViewModel
             Reset();
         }
         //Command handler
-        private void ExecuteZoomCommand(object o)
-        {
-            var p = o;
-        }
         private void ExecuteSaveHistory()
         {
             try
@@ -365,15 +366,14 @@ namespace Simulator1.ViewModel
                     {
                         if (module.port == listParams["port"])
                         {
-                            
                             var x = Double.Parse(listParams["x"]);
                             if (x < 0) x = 0;
                             module.x = x;
-                            module.transformX = x - 70;
+                            module.transformX = x / 10 + 20 - module.coveringAreaDiameter / 2;
                             var y = Double.Parse(listParams["y"]);
                             if (y < 0) y = 0;
                             module.y = y;
-                            module.transformY = y - 72;
+                            module.transformY = y / 10 + 20 - module.coveringAreaDiameter / 2;
 
                         }
                     }
@@ -411,6 +411,7 @@ namespace Simulator1.ViewModel
                         {
                             HistoryObjectIns = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectIns);
                             HistoryObjectOuts = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectOuts);
+                            HistoryObjectErrors = new ObservableCollection<HistoryObject>(moduleHistory.historyObjectErrors);
                         }
                     }
                 }
@@ -444,6 +445,8 @@ namespace Simulator1.ViewModel
                         listPort = tmp_Ports,
                         isEnableDelete = false,
                         isEnablePortSelect = false,
+                        kindOfModule = "",
+                        moduleType = ""
                     });
                 }
             }
@@ -477,7 +480,9 @@ namespace Simulator1.ViewModel
                         id = module.id,
                         isEnableDelete = true,
                         listPort = tmp_Ports,
-                        isUpdate = "true"
+                        isUpdate = "true",
+                        moduleType = module.type,
+                        kindOfModule = module.kind
                     };
 
                     if (module.port != null)
@@ -603,6 +608,23 @@ namespace Simulator1.ViewModel
                     DistanceHistory = SelectedItemHistory.Distance == null ? "Na/N" : SelectedItemHistory.Distance;
                     RSSIHistory = SelectedItemHistory.RSSI == null ? "Na/N" : SelectedItemHistory.RSSI;
                     SNRHistory = SelectedItemHistory.SNR == null ? "Na/N" : SelectedItemHistory.SNR;
+                    TimeHistory = SelectedItemHistory.Time == null ? "Na/N" : SelectedItemHistory.Time;
+                    if (SelectedItemHistory.TypeError == ERROR_TYPE.OUT_OF_RANGE)
+                    {
+                        TypeErrorHistory = "Out of range";
+                    }
+                    else if (SelectedItemHistory.TypeError == ERROR_TYPE.PATH_LOSS)
+                    {
+                        TypeErrorHistory = "Path loss";
+                    }
+                    else if (SelectedItemHistory.TypeError == ERROR_TYPE.COLLIDED)
+                    {
+                        TypeErrorHistory = "Collided";
+                    }
+                    else
+                    {
+                        TypeErrorHistory = "Na/N";
+                    }
                 }
             }
             catch (Exception e)
@@ -731,11 +753,15 @@ namespace Simulator1.ViewModel
                     {
                         var length = moduleHistory.historyObjectOuts.Count;
                         var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
-
+                        if(string.IsNullOrEmpty(transferedPacket.packet.address))
+                        {
+                            transferedPacket.packet.address = loraParams.Address;
+                            transferedPacket.packet.channel = loraParams.Channel;
+                        }
                         newHistoryObject = new HistoryObject()
                         {
                             Id = length + 1,
-                            Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel,
+                            Source = "Address: 0x" + transferedPacket.packet.address + "--- Channel: 0x" + loraParams.Channel,
                         };
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
@@ -757,20 +783,21 @@ namespace Simulator1.ViewModel
         {
             try
             {
-                var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.portName);
+                var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == transferedPacket.packet.receivedModule.port);
                 if (moduleHistory != null)
                 {
                     var newHistoryObject = new HistoryObject();
                     if (moduleHistory.moduleObject.type == ModuleObjectType.LORA)
                     {
-                        var length = moduleHistory.historyObjectIns.Count;
-                        var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
-
-                        newHistoryObject = new HistoryObject()
+                        var loraParams = (LoraParameterObject)transferedPacket.packet.sourceModule.parameters;
+                        if (loraParams != null)
                         {
-                            Id = length + 1,
-                            Source = "Port: " + transferedPacket.packet.sourceModule.port
-                        };
+                            newHistoryObject = new HistoryObject()
+                            {
+                                Time = transferedPacket.packet.timeUTC,
+                                Source = "Address: 0x" + loraParams.Address + "--- Channel: 0x" + loraParams.Channel,
+                            };
+                        }
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
                     {
@@ -790,6 +817,42 @@ namespace Simulator1.ViewModel
                 MessageBox.Show("Main view model " + "showQueueReceivedFromOtherDevice " + e);
             }
 
+        }
+        public void showQueueError(PacketReceivedTransferToView errorPacket, string portClicked)
+        {
+            try
+            {
+                var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == errorPacket.packet.receivedModule.port);
+                if (moduleHistory != null)
+                {
+                    var errorHisObj = new HistoryObject();
+                    if (moduleHistory.moduleObject.type == ModuleObjectType.LORA)
+                    {
+                        var paras = (LoraParameterObject)errorPacket.packet.sourceModule.parameters;
+                        if (paras != null)
+                        {
+                            errorHisObj.Time = errorPacket.packet.timeUTC;
+                            errorHisObj.Source = "Address: 0x" + paras.Address + "--- Channel: 0x" + paras.Channel;
+                            errorHisObj.TypeError = errorPacket.packet.typeError;
+                            errorHisObj.Data = errorPacket.packet.packet.data;
+                            errorHisObj.DelayTime = errorPacket.packet.DelayTime.ToString();
+                            errorHisObj.Distance = errorPacket.packet.Distance;
+                            errorHisObj.RSSI = errorPacket.packet.RSSI;
+                            errorHisObj.SNR = errorPacket.packet.SNR;
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                    moduleHistory.historyObjectErrors.Enqueue(errorHisObj);
+                    mainStateManagement.updateHistoryError(portClicked);
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Main view model " + "showQueueError " + e);
+            }
         }
         public void deviceChangeMode(int mode, string id)
         {
@@ -815,12 +878,14 @@ namespace Simulator1.ViewModel
         public void sendMessageIsPause()
         {
             mainStateManagement.isPauseNow();
-            
+
         }
 
         public void sendMessageIsStop()
         {
             mainStateManagement.isIdleNow();
         }
+
+
     }
 }

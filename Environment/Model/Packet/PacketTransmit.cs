@@ -1,9 +1,5 @@
 ﻿using Environment.Model.Module;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Environment.Model.Packet
 {
@@ -39,7 +35,7 @@ namespace Environment.Model.Packet
             byte[] packet = new byte[4 + data.Length];
             packet[0] = module;
             packet[1] = cmdWord;
-            if(cmdWord == PacketTransmit.SENDDATA)
+            if (cmdWord == PacketTransmit.SENDDATA)
             {
                 packet[2] = dataLength[1];
                 packet[3] = dataLength[0];
@@ -63,7 +59,7 @@ namespace Environment.Model.Packet
         public string channel; // 1 byte
         public string data; // data.Length - 3 byte
 
-        public DataProcessed( byte[] data )
+        public DataProcessed(byte[] data)
         {
             this.address = "";
             this.channel = "";
@@ -71,7 +67,7 @@ namespace Environment.Model.Packet
         }
         public DataProcessed(string fixedMode, byte[] data)
         {
-            if(fixedMode == FixedMode.FIXED)
+            if (fixedMode == FixedMode.FIXED)
             {
                 this.address = data[1].ToString("X2") + data[0].ToString("X2");
                 this.channel = data[2].ToString("X2");
@@ -95,26 +91,21 @@ namespace Environment.Model.Packet
     public class PacketReceivedTransferToView
     {
         public string type { get; set; }
-        public string portName { get; set; }
         public InternalPacket packet { get; set; }
     }
     public class InternalPacket
     {
-        public DataProcessed packet { get; set;}
-        public double DelayTime { get; set;}
-        public string? PreambleCode { get; set;}
-        public string RSSI { get; set;}
-        public string PathLoss { get; set;}
+        public DataProcessed packet { get; set; }
+        public double DelayTime { get; set; }
+        public string? PreambleCode { get; set; }
+        public string RSSI { get; set; }
+        public string PathLoss { get; set; }
         public string SNR = "20";
-        public string Distance { get; set;}
-        public bool IsCoverageArea { get; set;}
-        public ModuleObject sourceModule { get; set;}
-    }
-    public class ErrorPacket
-    {
-        public int typeError { get; set;}
-        public ModuleObject sourceModule { get; set;}
-        public string timeUTC { get; set;}
-        public string timeMilisecond { get; set;}
+        public string Distance { get; set; }
+        public int typeError { get; set; }
+        public ModuleObject sourceModule { get; set; }
+        public ModuleObject receivedModule { get; set; }
+        public string timeUTC { get; set; }
+        public string timeMilisecond { get; set; }
     }
 }

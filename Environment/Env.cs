@@ -22,9 +22,9 @@ namespace Environment
     }
     public static class ERROR_TYPE
     {
-        public static readonly int OUT_OF_RANGE = 0;
-        public static readonly int PATH_LOSS = 1;
-        public static readonly int COLLIDED = 2;
+        public static readonly int OUT_OF_RANGE = 1;
+        public static readonly int PATH_LOSS = 2;
+        public static readonly int COLLIDED = 3;
     }
     
     public static class EnvState

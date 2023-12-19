@@ -82,8 +82,6 @@ namespace Simulator1.ViewModel
         public string AntennaGain { get => antennaGain; set { antennaGain = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
 
-
-
         private readonly ModuleStateManagement moduleStateManagement;
         private readonly ModuleStore moduleStore;
         private readonly IServiceProvider serviceProvider;
@@ -129,7 +127,7 @@ namespace Simulator1.ViewModel
                 WORTime = WORTime == null ? "250" : WORTime;
                 Parity = Parity == null ? "8N1" : Parity;
                 IOMode = IOMode == null ? "1" : IOMode;
-                FEC = FEC == null ? "2.4" : FEC;
+                FEC = FEC == null ? "1" : FEC;
                 AntennaGain = AntennaGain == "" || AntennaGain == null ? "0" : AntennaGain;
 
                 return new LoraParameterObject()
@@ -163,8 +161,8 @@ namespace Simulator1.ViewModel
                 module.parameters = loraParams;
                 module.type = "lora";
                 module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
-
-                /*            moduleStore.ModuleObjects.Add(module);*/
+                module.coveringAreaDiameter = module.coveringAreaRange / 5;
+                module.zIndex = 0;
 
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
                 {
@@ -192,6 +190,7 @@ namespace Simulator1.ViewModel
                     var loraParams = createLoraParamsObject();
                     moduleObject.parameters = loraParams;
                     moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
+                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / 5;
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {

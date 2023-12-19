@@ -69,7 +69,7 @@ namespace Environment.Base
             double productAntenaGain = 5;
             double productMaxRange = 3000;
             var val1 = (Double.Parse(transmissionPower) + Double.Parse(antenaGain) - maxTransmitPower - productAntenaGain + 20 * Math.Log10(productMaxRange)) / 20;
-            return Math.Pow(10, val1) / 10;
+            return Math.Pow(10, val1);
         }
         public static double computeMaxRange(string antenaGain, string transmissionPower)
         {

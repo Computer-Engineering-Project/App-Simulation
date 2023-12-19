@@ -59,10 +59,15 @@ namespace Simulator1.ViewModel
 
             ListUartRate = new ObservableCollection<string>() { "2400", "4800", "9600", "19200", "38400", "57600", "115200" };
 
-            ListFixedMode = new ObservableCollection<string>() { "Point-To-Point", "Broadcast" };
+            ListFixedMode = new ObservableCollection<string>() { "0", "1" };
 
             //Event Delegate
 
+        }
+        public override void Dispose()
+        {
+
+            base.Dispose();
         }
     }
 }

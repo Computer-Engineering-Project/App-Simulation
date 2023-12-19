@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Environment.Model.Module;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,10 +10,13 @@ using System.Threading.Tasks;
 
 namespace Environment.Model.History
 {
-    public class HistoryObject: BaseModel
+    public class HistoryObject : BaseModel
     {
-        private int id;
+        public int id;
         public int Id { get => id; set { id = value; OnPropertyChanged(); } }
+
+        public string time;
+        public string Time { get => time; set { time = value; OnPropertyChanged(); } }
 
         private string source;
         public string Source { get => source; set { source = value; OnPropertyChanged(); } }
@@ -28,6 +32,9 @@ namespace Environment.Model.History
         public string RSSI { get => rssi; set { rssi = value; OnPropertyChanged(); } }
         private string snr { get; set; }
         public string SNR { get => snr; set { snr = value; OnPropertyChanged(); } }
+
+        public int typeError;
+        public int TypeError { get => typeError; set { typeError = value; OnPropertyChanged(); } }
 
     }
 }
