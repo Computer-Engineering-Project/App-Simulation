@@ -19,6 +19,7 @@ namespace Environment.Model.Module
         public string AirRate { get; set; }
         public string Channel { get; set; }
         public string Address { get; set; }
+        public string DestinationAddress { get; set; }
         public string Power { get; set; }
         public string TransmitMode { get; set; }
         public string AntennaGain { get; set; }

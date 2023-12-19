@@ -85,7 +85,18 @@
 
                     </ComboBox>
                 </Grid>
-
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="Destination MAC" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="{Binding DestinationAddress}"
+                             materialDesign:HintAssist.Hint="0000-FFFF"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
             </WrapPanel>
         </Grid>
         <Grid Grid.Column="2">

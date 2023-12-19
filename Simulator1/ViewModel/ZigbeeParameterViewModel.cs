@@ -28,6 +28,9 @@ namespace Simulator1.ViewModel
         private string address;
         public string Address { get => address; set { address = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
+        private string destinationAddress;
+        public string DestinationAddress { get => destinationAddress; set { destinationAddress = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+
         private string channel;
         public string Channel { get => channel; set { channel = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
@@ -93,7 +96,8 @@ namespace Simulator1.ViewModel
                     AirRate = AirRate,
                     Power = PowerTransmit,
                     TransmitMode = FixedMode,
-                    AntennaGain = AntennaGain
+                    AntennaGain = AntennaGain,
+                    DestinationAddress= DestinationAddress,
                 };
             }
             catch (Exception e)
@@ -170,6 +174,7 @@ namespace Simulator1.ViewModel
                 FixedMode = listParams["TransmitMode"];
                 UartRate = listParams["UartRate"];
                 AntennaGain = listParams["AntennaGain"];
+                DestinationAddress = listParams["DestinationAddress"];
             }
             catch (Exception e)
             {
@@ -186,6 +191,7 @@ namespace Simulator1.ViewModel
             FixedMode = null;
             UartRate = null;
             AntennaGain = null;
+            DestinationAddress = null;
         }
         private void OnOpenUpdateZigbeeParamter(ZigbeeParameterObject zigbeeParams)
         {
@@ -198,6 +204,7 @@ namespace Simulator1.ViewModel
                 FixedMode = zigbeeParams.TransmitMode;
                 UartRate = zigbeeParams.UartRate;
                 AntennaGain = zigbeeParams.AntennaGain;
+                DestinationAddress = zigbeeParams.DestinationAddress;
             }
             catch (Exception e)
             {
