@@ -83,7 +83,7 @@
                 <Grid Height="60"
                       Width="180">
                     <TextBlock FontSize="12"
-                               Margin="10,0,22,10"><Run Text="Data Rate (bps)" /></TextBlock>
+                               Margin="10,0,22,10"><Run Text="Data Rate (Bps)" /></TextBlock>
                     <TextBox Width="180"
                              Height="30"
                              Padding="5 5 5 0"

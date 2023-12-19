@@ -23,7 +23,6 @@ namespace Environment.Model.Module
         public double transformY { get; set; }
         public double coveringAreaRange { get; set; }
         public double coveringAreaDiameter { get; set; }
-        public int zIndex { get; set; }
         public string type { get; set; }
         public string kind { get; set; }
         public object parameters { get; set; }

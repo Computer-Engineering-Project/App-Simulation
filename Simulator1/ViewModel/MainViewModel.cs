@@ -25,6 +25,7 @@ using System.Media;
 using Simulator1.Database;
 using System.Xml.Serialization;
 using Environment;
+using Simulator1.View;
 
 namespace Simulator1.ViewModel
 {
@@ -501,12 +502,24 @@ namespace Simulator1.ViewModel
                 if (module.parameters != null)
                 {
                     string jsonParameters = JsonConvert.SerializeObject(module.parameters);
-                    if (module.type == "lora")
+                    if (module.type == ModuleObjectType.LORA)
                     {
                         var loraParameters = JsonConvert.DeserializeObject<LoraParameterObject>(jsonParameters);
                         if (CurrentModuleViewModel is ModuleParameterViewModel)
                         {
                             moduleStateManagement.openUpdateLoraParameter(loraParameters);
+                            moduleStateManagement.updatePosition(new
+                            {
+                                x = module.x,
+                                y = module.y,
+                            });
+                        }
+                    }else if(module.type == ModuleObjectType.ZIGBEE)
+                    {
+                        var zigbeeParameters = JsonConvert.DeserializeObject<ZigbeeParameterObject>(jsonParameters);
+                        if (CurrentModuleViewModel is ModuleParameterViewModel)
+                        {
+                            moduleStateManagement.openUpdateZigbeeParameter(zigbeeParameters);
                             moduleStateManagement.updatePosition(new
                             {
                                 x = module.x,

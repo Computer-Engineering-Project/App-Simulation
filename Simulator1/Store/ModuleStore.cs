@@ -1,5 +1,4 @@
-﻿using Environment.Model.History;
-using Environment.Model.Module;
+﻿using Environment.Model.Module;
 using Environment.Model.Packet;
 using Environment.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,17 +14,17 @@ namespace Simulator1.Store
     public class ModuleStore
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly LoadHistoryFile loadParameter;
+        private readonly LoadHistoryFile loadHistory;
         private readonly MainStateManagement mainStateManagement;
         private readonly HistoryStateManagement historyStateManagement;
 
         public List<ModuleObject> ModuleObjects { get; set; }
         public List<string> Ports { get; set; }
-        public ModuleStore(IServiceProvider serviceProvider, LoadHistoryFile loadParameter, MainStateManagement mainStateManagement,
+        public ModuleStore(IServiceProvider serviceProvider, LoadHistoryFile loadHistory, MainStateManagement mainStateManagement,
             HistoryStateManagement historyStateManagement)
         {
             this.serviceProvider = serviceProvider;
-            this.loadParameter = loadParameter;
+            this.loadHistory = loadHistory;
             this.mainStateManagement = mainStateManagement;
             this.historyStateManagement = historyStateManagement;
 
@@ -42,7 +41,16 @@ namespace Simulator1.Store
         {
             PacketTransmit packet = serviceProvider.GetRequiredService<IEnvironmentService>().getIdTypeFromHardware(portName);
             var id = packet.data[0].ToString();
-            var type = packet.module.ToString();
+            var type = "";
+            if (packet.module == PacketTransmit.LORA)
+            {
+                type = ModuleObjectType.LORA;
+            }
+            else if (packet.module == PacketTransmit.ZIGBEE)
+            {
+                type = ModuleObjectType.ZIGBEE;
+            }
+
             /*foreach (var module in ModuleObjects)
             {
                 if (module.port == portName)
@@ -51,13 +59,21 @@ namespace Simulator1.Store
                     module.type = type;
                 }
             }*/
-            foreach (var module in loadParameter.listInModules)
+            if (loadHistory.readConfigFromFile(id, type))
+            {
+                if (loadHistory.choosenModule == null)
+                {
+                    return null;
+                }
+                return loadHistory.choosenModule.parameters;
+            }
+            /*foreach (var module in loadHistory.listInModules)
             {
                 if (module.id == id && module.type == type)
                 {
                     return module.parameters;
                 }
-            }
+            }*/
             return null;
         }
         public void Reset()
@@ -76,16 +92,16 @@ namespace Simulator1.Store
                 coveringAreaRange = x.coveringAreaRange
             }).ToList();
             string json = JsonConvert.SerializeObject(saveModuleObjects);
-            return loadParameter.SaveJsonFile(json, saveType);
+            return loadHistory.SaveJsonFile(json, saveType);
         }
         private void OnLoadHistory()
         {
             try
             {
-                if (loadParameter.OpenJsonFile())
+                if (loadHistory.OpenJsonFile())
                 {
                     mainStateManagement.resetAll();
-                    ModuleObjects = loadParameter.listInModules;
+                    ModuleObjects = loadHistory.listInModules;
                     historyStateManagement.loadHistoryModuleFromFile();
                 }
             }

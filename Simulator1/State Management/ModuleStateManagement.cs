@@ -12,9 +12,15 @@ namespace Simulator1.State_Management
     {
         public event Action<string> ModuleObjectCreated;
         public event Action<ModuleObject> LoraParamsCreated;
-        public event Action<ModuleObject> UpdateParamsOfModule;
+        public event Action<ModuleObject> UpdateLoraParamsOfModule;
         public event Action<LoraParameterObject> OpenUpdateLoraParams;
         public event Action<Dictionary<string, string>> ReadLoraConfigParams;
+
+        public event Action<ModuleObject> ZigbeeParamsCreated;
+        public event Action<ModuleObject> UpdateZigbeeParamsOfModule;
+        public event Action<ZigbeeParameterObject> OpenUpdateZigbeeParams;
+        public event Action<Dictionary<string, string>> ReadZigbeeConfigParams;
+
         public event Action<string> ConfigParams;
         public event Action<object> UpdatePosition;
         public event Action ResetParameterModule;
@@ -36,18 +42,34 @@ namespace Simulator1.State_Management
         {
             LoraParamsCreated?.Invoke(module);
         }
+        public void createZigbeeParameter(ModuleObject module)
+        {
+            ZigbeeParamsCreated?.Invoke(module);
+        }
         public void openUpdateLoraParameter(LoraParameterObject loraParameter)
         {
             OpenUpdateLoraParams?.Invoke(loraParameter);
         }
-        public void updateParamsOfModule(ModuleObject module)
+        public void openUpdateZigbeeParameter(ZigbeeParameterObject loraParameter)
         {
-            UpdateParamsOfModule?.Invoke(module);
+            OpenUpdateZigbeeParams?.Invoke(loraParameter);
+        }
+        public void updateLoraParamsOfModule(ModuleObject module)
+        {
+            UpdateLoraParamsOfModule?.Invoke(module);
+        }
+        public void updateZigbeeParamsOfModule(ModuleObject module)
+        {
+            UpdateZigbeeParamsOfModule?.Invoke(module);
         }
 
         public void readLoraConfigParameter(Dictionary<string, string> listParams)
         {
             ReadLoraConfigParams?.Invoke(listParams);
+        }
+        public void readZigbeeConfigParameter(Dictionary<string, string> listParams)
+        {
+            ReadZigbeeConfigParams?.Invoke(listParams);
         }
         public void configParameter(string moduleType)
         {
@@ -58,10 +80,10 @@ namespace Simulator1.State_Management
             UpdatePosition?.Invoke(moduleParams);
         }
 
-        public void resetParameterModule() 
-        { 
+        public void resetParameterModule()
+        {
             ResetParameterModule?.Invoke();
-        } 
+        }
 
         public void isActionUpdate(object isUpdated)
         {
