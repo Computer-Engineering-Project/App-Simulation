@@ -17,7 +17,18 @@
         <Grid Grid.Column="0">
             <WrapPanel Orientation="Vertical"
                        Margin="21,30,10,30">
-
+                <Grid Height="60"
+                      Width="180">
+                    <TextBlock FontSize="12"
+                               Margin="10,0,22,10"><Run Text="MAC" /></TextBlock>
+                    <TextBox Width="180"
+                             Height="30"
+                             Padding="5 5 5 0"
+                             Text="{Binding Address}"
+                             materialDesign:HintAssist.Hint="0000-FFFF"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                    </TextBox>
+                </Grid>
                 <Grid Height="60"
                       Width="180">
                     <TextBlock FontSize="12"

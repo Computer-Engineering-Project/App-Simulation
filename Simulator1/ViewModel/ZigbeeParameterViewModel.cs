@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Net;
+using System.Security.Cryptography;
 using System.Windows;
 
 namespace Simulator1.ViewModel
@@ -23,6 +24,9 @@ namespace Simulator1.ViewModel
 
         private string id;
         public string Id { get => id; set { id = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
+
+        private string address;
+        public string Address { get => address; set { address = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
 
         private string channel;
         public string Channel { get => channel; set { channel = value; OnPropertyChanged(); statusStateManagement.statusChanged(); } }
@@ -73,6 +77,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
+                Address = Address == null ? "FFFF" : Address;
                 Channel = Channel == null ? "10" : Channel;
                 UartRate = UartRate == null ? "9600" : UartRate;
                 AirRate = AirRate == null ? "3300" : AirRate;
@@ -82,7 +87,7 @@ namespace Simulator1.ViewModel
 
                 return new ZigbeeParameterObject()
                 {
-                    Address = "MAC",
+                    Address = Address,
                     UartRate = UartRate,
                     Channel = Channel,
                     AirRate = AirRate,
@@ -158,6 +163,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
+                Address = listParams["Address"];
                 Channel = listParams["Channel"];
                 AirRate = listParams["AirRate"];
                 PowerTransmit = listParams["Power"];
@@ -173,7 +179,7 @@ namespace Simulator1.ViewModel
         }
         private void OnResetParameterModule()
         {
-
+            Address = null;
             Channel = null;
             AirRate = null;
             PowerTransmit = null;
@@ -185,6 +191,7 @@ namespace Simulator1.ViewModel
         {
             try
             {
+                Address = zigbeeParams.Address;
                 Channel = zigbeeParams.Channel;
                 AirRate = zigbeeParams.AirRate;
                 PowerTransmit = zigbeeParams.Power;
