@@ -407,10 +407,11 @@ namespace Environment.Base
                 if (parameter.TransmitMode == TransmitMode.BROADCAST)
                 {
                     packet.channel = parameter.Channel;
+                    packet.address = parameter.Address;
                 }
                 else if (parameter.TransmitMode == TransmitMode.POINT_TO_POINT)
                 {
-                    packet.address = parameter.Address;
+                    packet.address = parameter.DestinationAddress;
                     packet.channel = parameter.Channel;
                 }
 
