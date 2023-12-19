@@ -284,7 +284,7 @@ namespace Environment.Base
             transferDataToView.Start();*/
             foreach (var hw in Devices)
             {
-                if(hw.moduleObject.type == ModuleObjectType.LORA)
+                if (hw.moduleObject.type == ModuleObjectType.LORA)
                     hw.mode = 0;
                 var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
                 if (moduleObject != null)
@@ -306,7 +306,7 @@ namespace Environment.Base
         {
             while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if(module.moduleObject.type == ModuleObjectType.LORA)
+                if (module.moduleObject.type == ModuleObjectType.LORA)
                 {
                     if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
                     {
@@ -326,7 +326,7 @@ namespace Environment.Base
                         }
                     }
                 }
-                else if(module.moduleObject.type == ModuleObjectType.ZIGBEE)
+                else if (module.moduleObject.type == ModuleObjectType.ZIGBEE)
                 {
                     if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
                     {
@@ -343,8 +343,8 @@ namespace Environment.Base
                         }
                     }
                 }
-                
-                
+
+
             }
             while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
@@ -395,7 +395,7 @@ namespace Environment.Base
                         };
                 }
             }
-            else if(moduleObject.type == ModuleObjectType.ZIGBEE)
+            else if (moduleObject.type == ModuleObjectType.ZIGBEE)
             {
                 var parameter = new ZigbeeParameterObject();
                 lock (lockObjectSetParams)
@@ -403,11 +403,11 @@ namespace Environment.Base
                     parameter = (ZigbeeParameterObject)moduleObject.parameters;
                 }
 
-                if(parameter.TransmitMode == TransmitMode.BROADCAST)
+                if (parameter.TransmitMode == TransmitMode.BROADCAST)
                 {
                     packet.channel = parameter.Channel;
                 }
-                else if(parameter.TransmitMode == TransmitMode.POINT_TO_POINT)
+                else if (parameter.TransmitMode == TransmitMode.POINT_TO_POINT)
                 {
                     packet.address = parameter.Address;
                     packet.channel = parameter.Channel;

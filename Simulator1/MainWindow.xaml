@@ -304,6 +304,9 @@
                                                            Text="STATISTIC" />
                                             </StackPanel>
                                         </TabItem.Header>
+                                        <Grid Height="500">
+                                            <view:Chart></view:Chart>
+                                        </Grid>
                                     </TabItem>
                                 </TabControl>
                             </materialDesign:Card>
