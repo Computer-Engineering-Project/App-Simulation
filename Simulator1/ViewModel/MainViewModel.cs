@@ -86,6 +86,15 @@ namespace Simulator1.ViewModel
         private string timeHistory;
         public string TimeHistory { get => timeHistory; set { timeHistory = value; OnPropertyChanged(); } }
 
+        private string typeOfNoise = "SNR from dB";
+        public string TypeOfNoise { get => typeOfNoise; set { typeOfNoise = value; OnPropertyChanged(); } }
+
+        private string unitOfNoise = "dB";
+        public string UnitOfNoise { get => unitOfNoise; set { unitOfNoise = value; OnPropertyChanged(); } }
+
+        private string noise;
+        public string Noise { get => noise; set { noise = value; OnPropertyChanged(); } }
+
         private HistoryObject selectedItemHistory;
         public HistoryObject SelectedItemHistory { get => selectedItemHistory; set { selectedItemHistory = value; OnPropertyChanged(); } }
 
@@ -123,6 +132,11 @@ namespace Simulator1.ViewModel
         public ICommand testCommand { get; set; }
         public ICommand autoSaveCommand { get; set; }
         public ICommand SelectionChangedCommand { get; set; }
+
+        public ICommand EnvdBSNRCommand { get; set; }
+        public ICommand EnvPowerSNRCommand { get; set; }
+        public ICommand EnvVoltageSNRCommand { get; set; }
+        public ICommand ConfigENVNoise { get; set; }
 
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
@@ -171,7 +185,6 @@ namespace Simulator1.ViewModel
                 ExecuteOpenUpdateModule(module);
             });
             LoadHistoryFileCommand = new RelayCommand(() => ExecuteLoadHistoryFile());
-            /*NewPageCommand = new RelayCommand(() => ExecuteNewPage());*/
             SaveHistoryCommmand = new RelayCommand(() => ExecuteSaveHistory());
             SaveAsHistoryCommmand = new RelayCommand(() => ExecuteSaveAsHistory());
             autoSaveCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
@@ -184,6 +197,10 @@ namespace Simulator1.ViewModel
             StopEnvironmentCommand = new RelayCommand(() => ExecuteStopEnvironment());
             PauseEnvironmentCommand = new RelayCommand(() => ExecutePauseEnvironment());
             LoadPorts = new RelayCommand(() => ExecuteLoadPorts());
+            EnvdBSNRCommand = new RelayCommand(() => ExecuteChangeTypeOfNoise("dB"));
+            EnvPowerSNRCommand = new RelayCommand(() => ExecuteChangeTypeOfNoise("W"));
+            EnvVoltageSNRCommand = new RelayCommand(() => ExecuteChangeTypeOfNoise("V"));
+            ConfigENVNoise = new RelayCommand(() => ExecuteConfigENVNoise());
         }
         //Delegate handler
         private void OnStatusChanged()
@@ -311,6 +328,27 @@ namespace Simulator1.ViewModel
             Reset();
         }
         //Command handler
+        private void ExecuteConfigENVNoise()
+        {
+            serviceProvider.GetRequiredService<IEnvironmentService>().setNoise(Noise);
+            MessageBox.Show("Config noise success");
+        }
+        private void ExecuteChangeTypeOfNoise(string typeOfNoise)
+        {
+            UnitOfNoise = typeOfNoise;
+            if (typeOfNoise == "W")
+            {
+                TypeOfNoise = "Power SNR";
+            }
+            else if (typeOfNoise == "V")
+            {
+                TypeOfNoise = "Voltage SNR";
+            }
+            else
+            {
+                TypeOfNoise = "SNR from dB";
+            }
+        }
         private void ExecuteSaveHistory()
         {
             try
@@ -514,7 +552,8 @@ namespace Simulator1.ViewModel
                                 y = module.y,
                             });
                         }
-                    }else if(module.type == ModuleObjectType.ZIGBEE)
+                    }
+                    else if (module.type == ModuleObjectType.ZIGBEE)
                     {
                         var zigbeeParameters = JsonConvert.DeserializeObject<ZigbeeParameterObject>(jsonParameters);
                         if (CurrentModuleViewModel is ModuleParameterViewModel)
@@ -762,24 +801,23 @@ namespace Simulator1.ViewModel
                 if (moduleHistory != null)
                 {
                     var newHistoryObject = new HistoryObject();
+                    var length = moduleHistory.historyObjectOuts.Count;
+                    newHistoryObject.Id = length + 1;
                     if (moduleHistory.moduleObject.type == ModuleObjectType.LORA)
                     {
-                        var length = moduleHistory.historyObjectOuts.Count;
                         var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
-                        if(string.IsNullOrEmpty(transferedPacket.packet.address))
+                        if (string.IsNullOrEmpty(transferedPacket.packet.address))
                         {
                             transferedPacket.packet.address = loraParams.Address;
                             transferedPacket.packet.channel = loraParams.Channel;
                         }
-                        newHistoryObject = new HistoryObject()
-                        {
-                            Id = length + 1,
-                            Source = "Address: 0x" + transferedPacket.packet.address + "--- Channel: 0x" + loraParams.Channel,
-                        };
+                        newHistoryObject.Source = "Address: 0x" + transferedPacket.packet.address + "--- Channel: 0x" + loraParams.Channel;
+
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
                     {
-
+                        var zigbeeParams = (ZigbeeParameterObject)moduleHistory.moduleObject.parameters;
+                        newHistoryObject.Source = "Address: " + zigbeeParams.Address + "--- Channel: " + zigbeeParams.Channel;
                     }
                     newHistoryObject.Data = transferedPacket.packet.data;
                     moduleHistory.historyObjectOuts.Enqueue(newHistoryObject);
@@ -814,7 +852,15 @@ namespace Simulator1.ViewModel
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
                     {
-
+                        var zigbeeParams = (ZigbeeParameterObject)transferedPacket.packet.sourceModule.parameters;
+                        if (zigbeeParams != null)
+                        {
+                            newHistoryObject = new HistoryObject()
+                            {
+                                Time = transferedPacket.packet.timeUTC,
+                                Source = "Address: " + zigbeeParams.Address + "--- Channel: " + zigbeeParams.Channel,
+                            };
+                        }
                     }
                     newHistoryObject.Data = transferedPacket.packet.packet.data;
                     newHistoryObject.DelayTime = transferedPacket.packet.DelayTime.ToString();

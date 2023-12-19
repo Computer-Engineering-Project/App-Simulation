@@ -255,7 +255,7 @@
                                                                         Margin="10"
                                                                         FontSize="12"
                                                                         Foreground="Blue"
-                                                                        Text="SNR from dB" />
+                                                                        Text="{Binding TypeOfNoise}" />
                                                                 </StackPanel>
                                                             </MenuItem.Header>
                                                             <MenuItem Command="{Binding EnvdBSNRCommand}" Header="SNR from dB" />
@@ -273,8 +273,9 @@
                                                             Height="23"
                                                             Margin="10"
                                                             Padding="0,0,0,0"
+                                                            Text="{Binding Noise}"
                                                             Style="{StaticResource MaterialDesignOutlinedTextBox}" />
-                                                        <TextBlock VerticalAlignment="Center" Text="dB(s)" />
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding UnitOfNoise}" />
                                                     </StackPanel>
                                                     <Button
                                                         Width="84"
@@ -283,25 +284,13 @@
                                                         Padding="0,0,0,0"
                                                         Content="SAVE"
                                                         FontSize="12"
+                                                        Command="{Binding ConfigENVNoise}"
                                                         Style="{StaticResource MaterialDesignFlatLightBgButton}" />
                                                 </StackPanel>
                                             </Grid>
                                         </Grid>
                                     </TabItem>
-                                    <TabItem>
-                                        <TabItem.Header>
-                                            <StackPanel Width="auto" Height="auto">
-                                                <materialDesign:PackIcon
-                                                    Width="69"
-                                                    Height="27"
-                                                    Kind="ChartBarStacked" />
-                                                <TextBlock HorizontalAlignment="Center" Text="STATISTIC" />
-                                            </StackPanel>
-                                        </TabItem.Header>
-                                        <Grid Height="500">
-                                            <view:Chart></view:Chart>
-                                        </Grid>
-                                    </TabItem>
+                                    
                                 </TabControl>
                             </materialDesign:Card>
 

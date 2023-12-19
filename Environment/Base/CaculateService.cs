@@ -89,10 +89,10 @@ namespace Environment.Base
             double pthLoss = constValue + 20 * Math.Log10(frequency) + 20 * Math.Log10(distance) - gainTx - gainRx;
             return pthLoss;
         }
-        public static double computeRSSI(ModuleObject sender, ModuleObject receiver)
+        public static double computeRSSI(ModuleObject sender, ModuleObject receiver, double noise)
         {
             double rssi = 0;
-            if(sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
+            if (sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
             {
                 LoraParameterObject senderParameter = (LoraParameterObject)sender.parameters;
                 LoraParameterObject receiverParameter = (LoraParameterObject)receiver.parameters;
@@ -101,7 +101,6 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
 
                 rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
                 return rssi;
@@ -115,7 +114,8 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
+
+                rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
                 return rssi;
             }
             else

@@ -14,6 +14,7 @@ namespace Environment.Base
         public List<SerialPort> SerialPorts = new List<SerialPort>();
         public List<NodeDevice> Devices = new List<NodeDevice>();
         public List<ModuleObject> ModuleObjects = new List<ModuleObject>();
+        public double Noise;
         public string portClicked { get; set; }
         public object lockObjectSetParams = new object();
         //public Thread Collision { get; set; }
@@ -453,7 +454,7 @@ namespace Environment.Base
                         };
 
                         tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                        tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                        tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
@@ -505,7 +506,7 @@ namespace Environment.Base
                                 if (hw_loraParameters.Address == tmp_packet.packet.address && hw_loraParameters.Channel == tmp_packet.packet.channel)
                                 {
                                     tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
@@ -555,7 +556,7 @@ namespace Environment.Base
                             {
                                 // check mode of destination device
                                 packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
                                 Task task = Task.Run(async () =>
                                 {
                                     await Task.Delay(Convert.ToInt32(packet.DelayTime));
@@ -577,7 +578,7 @@ namespace Environment.Base
                             {
                                 // check mode of destination device
                                 packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
                                 Task task = Task.Run(async () =>
                                 {
                                     await Task.Delay(Convert.ToInt32(packet.DelayTime));
