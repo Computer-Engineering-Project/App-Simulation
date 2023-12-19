@@ -15,7 +15,7 @@ namespace Environment.Base
 {
     public static class CaculateService
     {
-        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC)
+        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC, ModuleObject module)
         {
             double BW = 0;
             double SF = 0;
@@ -55,12 +55,15 @@ namespace Environment.Base
                     SF = 7;
                     break;
                 default:
+
                     break;
             }
             var Tsym = Math.Pow(2, SF) / BW;
             var Tpreamble = (n_preamble + 4.25) * Tsym;
             var Tpayload = Tsym * (8 + Math.Max(Math.Ceiling((8 * PL - 4 * SF + 28 + 16 * CRC - 20 * IH) / (4 * (SF - 2 * DE))) * (CR + 4), 0));
             var Tpacket = Tpayload + Tpreamble;
+            if (module.type == ModuleObjectType.ZIGBEE)
+                return 10;
             return Tpacket;
         }
         public static double computeRange(string antenaGain, string transmissionPower, double productMaxRange)
