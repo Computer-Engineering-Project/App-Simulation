@@ -766,11 +766,15 @@ namespace Simulator1.ViewModel
                     {
                         var length = moduleHistory.historyObjectOuts.Count;
                         var loraParams = (LoraParameterObject)moduleHistory.moduleObject.parameters;
-
+                        if(string.IsNullOrEmpty(transferedPacket.packet.address))
+                        {
+                            transferedPacket.packet.address = loraParams.Address;
+                            transferedPacket.packet.channel = loraParams.Channel;
+                        }
                         newHistoryObject = new HistoryObject()
                         {
                             Id = length + 1,
-                            Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel,
+                            Source = "Address: 0x" + transferedPacket.packet.address + "--- Channel: 0x" + loraParams.Channel,
                         };
                     }
                     else if (moduleHistory.moduleObject.type == ModuleObjectType.ZIGBEE)
@@ -804,7 +808,7 @@ namespace Simulator1.ViewModel
                             newHistoryObject = new HistoryObject()
                             {
                                 Time = transferedPacket.packet.timeUTC,
-                                Source = "Address: " + loraParams.Address + "--- Channel: " + loraParams.Channel,
+                                Source = "Address: 0x" + loraParams.Address + "--- Channel: 0x" + loraParams.Channel,
                             };
                         }
                     }
@@ -841,7 +845,7 @@ namespace Simulator1.ViewModel
                         if (paras != null)
                         {
                             errorHisObj.Time = errorPacket.packet.timeUTC;
-                            errorHisObj.Source = "Address: " + paras.Address + "--- Channel: " + paras.Channel;
+                            errorHisObj.Source = "Address: 0x" + paras.Address + "--- Channel: 0x" + paras.Channel;
                             errorHisObj.TypeError = errorPacket.packet.typeError;
                             errorHisObj.Data = errorPacket.packet.packet.data;
                             errorHisObj.DelayTime = errorPacket.packet.DelayTime.ToString();

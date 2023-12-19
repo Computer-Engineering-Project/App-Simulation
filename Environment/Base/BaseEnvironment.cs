@@ -556,30 +556,13 @@ namespace Environment.Base
                                 // check mode of destination device
                                 packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
                                 packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
-                                if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
+                                Task task = Task.Run(async () =>
                                 {
-                                    Task task = Task.Run(async () =>
-                                    {
-                                        await Task.Delay(Convert.ToInt32(packet.DelayTime));
+                                    await Task.Delay(Convert.ToInt32(packet.DelayTime));
 
-                                        // Execute work: enqueue and handle collision
-                                        await createTransmittionAsync(hw, packet);
-                                    });
-                                }
-                                else if (hw.mode == NodeDevice.MODE_POWERSAVING)
-                                {
-                                    // check preamble code
-                                    if (packet.PreambleCode != null)
-                                    {
-                                        Task task = Task.Run(async () =>
-                                        {
-                                            await Task.Delay(Convert.ToInt32(packet.DelayTime));
-
-                                            // Execute work: enqueue and handle collision
-                                            await createTransmittionAsync(hw, packet);
-                                        });
-                                    }
-                                }
+                                    // Execute work: enqueue and handle collision
+                                    await createTransmittionAsync(hw, packet);
+                                });
                             }
                         }
                     }
