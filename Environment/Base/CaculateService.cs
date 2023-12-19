@@ -15,7 +15,7 @@ namespace Environment.Base
 {
     public static class CaculateService
     {
-        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC)
+        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC, ModuleObject module)
         {
             double BW = 0;
             double SF = 0;
@@ -55,12 +55,15 @@ namespace Environment.Base
                     SF = 7;
                     break;
                 default:
+
                     break;
             }
             var Tsym = Math.Pow(2, SF) / BW;
             var Tpreamble = (n_preamble + 4.25) * Tsym;
             var Tpayload = Tsym * (8 + Math.Max(Math.Ceiling((8 * PL - 4 * SF + 28 + 16 * CRC - 20 * IH) / (4 * (SF - 2 * DE))) * (CR + 4), 0));
             var Tpacket = Tpayload + Tpreamble;
+            if (module.type == ModuleObjectType.ZIGBEE)
+                return 10;
             return Tpacket;
         }
         public static double computeRange(string antenaGain, string transmissionPower, double productMaxRange)
@@ -89,10 +92,10 @@ namespace Environment.Base
             double pthLoss = constValue + 20 * Math.Log10(frequency) + 20 * Math.Log10(distance) - gainTx - gainRx;
             return pthLoss;
         }
-        public static double computeRSSI(ModuleObject sender, ModuleObject receiver)
+        public static double computeRSSI(ModuleObject sender, ModuleObject receiver, double noise)
         {
             double rssi = 0;
-            if(sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
+            if (sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
             {
                 LoraParameterObject senderParameter = (LoraParameterObject)sender.parameters;
                 LoraParameterObject receiverParameter = (LoraParameterObject)receiver.parameters;
@@ -101,7 +104,6 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
 
                 rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
                 return rssi;
@@ -115,7 +117,8 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
+
+                rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
                 return rssi;
             }
             else

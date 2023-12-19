@@ -152,13 +152,13 @@ namespace Simulator1.ViewModel
                     IsEnableSave = moduleParameterVM.isEnableSave;
                     IsEnableDelete = moduleParameterVM.isEnableDelete;
                     IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
-                    if (ModuleType == "lora")
-                    {
-                        ((NavigateCommand)LoraParamCommand).Execute(new { });
-                    }
-                    else if (ModuleType == "zigbee")
+                    if (ModuleType == "zigbee")
                     {
                         ((NavigateCommand)ZigbeeParamCommand).Execute(new { });
+                    }
+                    else
+                    {
+                        ((NavigateCommand)LoraParamCommand).Execute(new { });
                     }
                 }
             }

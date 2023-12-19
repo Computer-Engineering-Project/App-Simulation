@@ -59,10 +59,10 @@ namespace Environment.Service
         {
             EnvState.PreProgramStatus = EnvState.ProgramStatus;
             EnvState.ProgramStatus = PROGRAM_STATUS.RUN;
-            EnvState.ModeModule = MODE_MODULE.SEND_DATA;    
+            EnvState.ModeModule = MODE_MODULE.SEND_DATA;
             environment.createSerialPortInitial();
             environment.RunProgram();
-           
+
         }
         public List<string> loadPorts()
         {
@@ -95,13 +95,17 @@ namespace Environment.Service
 
         public void closeThreads()
         {
-           /* foreach(var hw in environment.Devices)
-            {
-                hw.readDataFromHardware.Join();
-                hw.transferDataIn.Join();
-                hw.transferDataOut.Join();
-                environment.Devices.Remove(hw);
-            }*/
+            /* foreach(var hw in environment.Devices)
+             {
+                 hw.readDataFromHardware.Join();
+                 hw.transferDataIn.Join();
+                 hw.transferDataOut.Join();
+                 environment.Devices.Remove(hw);
+             }*/
+        }
+        public void setNoise(string noise)
+        {
+            environment.Noise = Double.Parse(noise);
         }
     }
 }

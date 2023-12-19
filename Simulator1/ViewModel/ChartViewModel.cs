@@ -8,5 +8,6 @@ namespace Simulator1.ViewModel
 {
     public class ChartViewModel : BaseViewModel
     {
+
     }
 }
