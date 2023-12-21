@@ -627,13 +627,38 @@
                                             <RowDefinition Height="40" />
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="3*"></ColumnDefinition>
+                                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                                <ColumnDefinition Width="3*"></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Margin="10,10,0,0"
+                                                       Padding="0,0,0,0"
+                                                       FontSize="12"
+                                                       FontWeight="Bold"
+                                                       Text="Detail Information" />
+                                            <StackPanel Grid.Column="2"
+                                                        Orientation="Horizontal">
+                                                <TextBlock Foreground="Green"
+                                                           FontSize="10"
+                                                           Text="String"
+                                                           VerticalAlignment="Center"
+                                                           Width="31" />
+                                                <ToggleButton Command="{Binding ToggleDataTypeCommand}"
+                                                              CommandParameter="{Binding IsChecked,RelativeSource={RelativeSource Self}}"
+                                                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                              ToolTip="MaterialDesignSwitchToggleButton" />
+                                                <TextBlock Foreground="Purple"
+                                                           FontSize="10"
+                                                           Text="Hex"
+                                                           VerticalAlignment="Center"
+                                                           Width="20" />
+                                            </StackPanel>
+                                        </Grid>
 
-                                        <TextBlock Grid.Row="0"
-                                                   Margin="10,10,10,0"
-                                                   Padding="0,0,0,0"
-                                                   FontSize="15"
-                                                   FontWeight="Bold"
-                                                   Text="Detail Information" />
+
                                         <Grid Grid.Row="1"
                                               Margin="10,0,0,0">
                                             <Grid.RowDefinitions>
