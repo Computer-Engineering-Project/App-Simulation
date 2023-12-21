@@ -50,8 +50,9 @@ namespace Simulator1.Store
         {
             foreach(var history in ModuleHistories)
             {
-                history.historyObjectOuts.Clear();
-                history.historyObjectIns.Clear();
+                history.UI_historyObjectOuts.Clear();
+                history.UI_historyObjectIns.Clear();
+                history.UI_historyObjectErrors.Clear();
             }
         }
     }

@@ -114,8 +114,10 @@ namespace Simulator1.ViewModel
                 var zigbeeParams = createZigbeeParamsObject();
                 moduleObject.parameters = zigbeeParams;
                 moduleObject.type = ModuleObjectType.ZIGBEE;
-                moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 250);
+                moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 100);
                 moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / 5;
+                moduleObject.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 250);
+                moduleObject.coveringLossDiameter = moduleObject.coveringLossRange / 5;
 
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                 {
@@ -142,8 +144,10 @@ namespace Simulator1.ViewModel
                 {
                     var zigbeeParams = createZigbeeParamsObject();
                     moduleObject.parameters = zigbeeParams;
-                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 250);
+                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 100);
                     moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / 5;
+                    moduleObject.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 250);
+                    moduleObject.coveringLossDiameter = moduleObject.coveringLossRange / 5;
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {

@@ -456,7 +456,7 @@ namespace Environment.Base
                             timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
                         };
                         tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                        tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
+                        tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
@@ -508,7 +508,7 @@ namespace Environment.Base
                                 if (hw_loraParameters.Address == tmp_packet.packet.address && hw_loraParameters.Channel == tmp_packet.packet.channel)
                                 {
                                     tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
+                                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
@@ -567,11 +567,11 @@ namespace Environment.Base
                         timeMilisecond = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
                     };
                     tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
-                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject, Noise).ToString("F3");
+                    tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
 
                     if (zigbeeParameters.TransmitMode == TransmitMode.BROADCAST)
                     {
-                        
+
 
                         if (hw.moduleObject.type == ModuleObjectType.ZIGBEE)
                         {
@@ -603,15 +603,16 @@ namespace Environment.Base
                             }
                         }
                     }
-                }   
-                
+                }
+
             }
         }
         //Create transmittion with checking collision when pushing data into destinationQueue
         private async Task createTransmittionAsync(NodeDevice desHW, InternalPacket packet)
         {
-            if (desHW.moduleObject.coveringAreaRange > Double.Parse(packet.Distance))
+            if (desHW.moduleObject.coveringLossRange > Double.Parse(packet.Distance))
             {
+                if (caculateIsPacketLoss(desHW, packet)) return;
                 lock (desHW.lockObjecCollision)
                 {
                     desHW.flagDataIn++;
@@ -620,9 +621,9 @@ namespace Environment.Base
             }
             else
             {
-                Task outRange = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.OUT_OF_RANGE));
+                packet.lossProbality = "100";
+                Task packetLoss = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.OUT_OF_RANGE));
             }
-
         }
         private async Task caculateCollisionAsync(NodeDevice desHW, InternalPacket packet)
         {
@@ -638,6 +639,17 @@ namespace Environment.Base
                     Task sendToDestination = Task.Run(() => PushIntoDestinationDeviceQueue(desHW, packet));
                 }
             }
+        }
+        private bool caculateIsPacketLoss(NodeDevice desHW, InternalPacket packet)
+        {
+            var lossProbality = CaculateService.caculatePacketLossProbality(packet.Distance, packet.sourceModule.coveringAreaRange, packet.sourceModule.coveringLossRange);
+            packet.lossProbality = lossProbality.ToString("F3");
+            if (CaculateService.isPacketLoss(lossProbality))
+            {
+                Task outRange = Task.Run(() => PushIntoErrorQueue(desHW, packet, ERROR_TYPE.PATH_LOSS));
+                return true;
+            }
+            return false;
         }
         private void PushIntoErrorQueue(NodeDevice desHW, InternalPacket packet, int typeError)
         {

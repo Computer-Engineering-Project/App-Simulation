@@ -12,8 +12,8 @@
           VerticalAlignment="Center">
         <Ellipse Fill="Yellow"
                  Opacity="0.2"
-                 Width="{Binding Path=CoveringArea, ElementName=module}"
-                 Height="{Binding Path=CoveringArea, ElementName=module}" />
+                 Width="{Binding Path=CoveringLoss, ElementName=module}"
+                 Height="{Binding Path=CoveringLoss, ElementName=module}" />
         <Ellipse Fill="LightGreen"
                  Opacity="0.4"
                  Width="{Binding Path=CoveringArea, ElementName=module}"

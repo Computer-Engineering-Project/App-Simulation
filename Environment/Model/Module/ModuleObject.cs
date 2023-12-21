@@ -12,6 +12,10 @@ namespace Environment.Model.Module
         public const string WIFI = "wifi";
         public const string ZIGBEE = "zigbee";
     }
+    public class Ratio
+    {
+        public const int value = 10;
+    }
     public class ModuleObject
     {
         public string id { get; set; }
@@ -23,6 +27,8 @@ namespace Environment.Model.Module
         public double transformY { get; set; }
         public double coveringAreaRange { get; set; }
         public double coveringAreaDiameter { get; set; }
+        public double coveringLossRange { get; set; }
+        public double coveringLossDiameter { get; set; }
         public string type { get; set; }
         public string kind { get; set; }
         public object parameters { get; set; }

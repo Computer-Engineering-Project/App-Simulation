@@ -36,5 +36,9 @@ namespace Environment.Model.History
         public int typeError;
         public int TypeError { get => typeError; set { typeError = value; OnPropertyChanged(); } }
 
+        public string lossProbality;
+        public string LossProbality { get => lossProbality; set { lossProbality = value; OnPropertyChanged(); } }
+
+
     }
 }

@@ -95,7 +95,7 @@ namespace Simulator1.ViewModel
             this.serviceProvider = serviceProvider;
             this.statusStateManagement = statusStateManagement;
 
-            
+
             /*            this.moduleStateManagement.ConfigParams += OnConfigParameterToHardware;*/
 
             ListPower = new ObservableCollection<string>() { "20", "17", "14", "10" };
@@ -161,8 +161,10 @@ namespace Simulator1.ViewModel
                 var loraParams = createLoraParamsObject();
                 module.parameters = loraParams;
                 module.type = "lora";
-                module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
-                module.coveringAreaDiameter = module.coveringAreaRange / 5;
+                module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 1000);
+                module.coveringAreaDiameter = module.coveringAreaRange / Ratio.value * 2;
+                module.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
+                module.coveringLossDiameter = module.coveringLossRange / Ratio.value * 2;
 
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
                 {
@@ -189,8 +191,10 @@ namespace Simulator1.ViewModel
                 {
                     var loraParams = createLoraParamsObject();
                     moduleObject.parameters = loraParams;
-                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
-                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / 5;
+                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 1000);
+                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / Ratio.value * 2;
+                    moduleObject.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
+                    moduleObject.coveringLossDiameter = moduleObject.coveringLossRange / Ratio.value * 2;
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {
