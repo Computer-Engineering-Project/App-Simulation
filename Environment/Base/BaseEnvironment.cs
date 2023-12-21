@@ -458,6 +458,7 @@ namespace Environment.Base
                         };
                         tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
                         tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                        tmp_packet.SNR = CaculateService.computeSNR(tmp_packet.RSSI, Noise).ToString("F3");
                         if (loraParameters.FixedMode == FixedMode.BROARDCAST) // broadcast
                         {
                             if (hw.moduleObject.parameters is LoraParameterObject)
@@ -510,6 +511,7 @@ namespace Environment.Base
                                 {
                                     tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
                                     tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
+                                    tmp_packet.SNR = CaculateService.computeSNR(tmp_packet.RSSI, Noise).ToString("F3");
                                     // check mode of destination device
                                     if (hw.mode == NodeDevice.MODE_NORMAL || hw.mode == NodeDevice.MODE_WAKEUP)
                                     {
@@ -569,11 +571,9 @@ namespace Environment.Base
                     };
                     tmp_packet.Distance = CaculateService.computeDistance2Device(moduleObject, hw.moduleObject).ToString("F3");
                     tmp_packet.RSSI = CaculateService.computeRSSI(moduleObject, hw.moduleObject).ToString("F3");
-
+                    tmp_packet.SNR = CaculateService.computeSNR(tmp_packet.RSSI, Noise).ToString("F3");
                     if (zigbeeParameters.TransmitMode == TransmitMode.BROADCAST)
                     {
-
-
                         if (hw.moduleObject.type == ModuleObjectType.ZIGBEE)
                         {
                             if (zigbeeParameters.Channel == tmp_packet.packet.channel && hw_zigbeeParameters.Address != tmp_packet.packet.address)

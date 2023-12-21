@@ -66,9 +66,9 @@ namespace Environment.Base
                 return 10;
             return Tpacket;
         }
-        public static double computeSNR(double RSSI, double noise)
+        public static double computeSNR(string RSSI, double noise)
         {
-            return RSSI - noise;
+            return Double.Parse(RSSI) - noise;
         }
         public static double computeRange(string antenaGain, string transmissionPower, double productMaxRange)
         {
