@@ -287,7 +287,16 @@ namespace Environment.Base
                     return 0x00;
             }
         }
-
+        static string ConvertStringToHex(string asciiString)
+        {
+            string hex = "";
+            foreach (char c in asciiString)
+            {
+                int tmp = c;
+                hex += String.Format("0x{0:x2} ", (uint)System.Convert.ToUInt32(tmp.ToString()));
+            }
+            return hex;
+        }
         static bool ExecuteWithTimeout(Action action, TimeSpan timeout)
         {
             var task = Task.Run(() =>
