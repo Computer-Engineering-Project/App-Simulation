@@ -27,6 +27,7 @@ using System.Xml.Serialization;
 using Environment;
 using Simulator1.View;
 using Simulator1.View.StatisticWindow;
+using Environment.Base;
 
 namespace Simulator1.ViewModel
 {
@@ -39,6 +40,7 @@ namespace Simulator1.ViewModel
         public ObservableCollection<ButtonPort> Ports { get => ports; set { ports = value; OnPropertyChanged(); } }
 
         private string clickedPort;
+        private bool isHex = false;
 
         private string programName;
         public string ProgramName { get => programName; set { programName = value; OnPropertyChanged(); } }
@@ -146,6 +148,7 @@ namespace Simulator1.ViewModel
         public ICommand EnvVoltageSNRCommand { get; set; }
         public ICommand ConfigENVNoise { get; set; }
 
+        public ICommand ToggleDataTypeCommand { get; set; }
         ~MainViewModel() { }
         public MainViewModel(MainViewStore mainStore, MainStateManagement mainStateManagement, ModuleStateManagement moduleStateManagement,
             ModuleStore moduleStore, IServiceProvider serviceProvider, HistoryDataStore historyDataStore,
@@ -211,6 +214,10 @@ namespace Simulator1.ViewModel
             EnvPowerSNRCommand = new RelayCommand(() => ExecuteChangeTypeOfNoise("W"));
             EnvVoltageSNRCommand = new RelayCommand(() => ExecuteChangeTypeOfNoise("V"));
             ConfigENVNoise = new RelayCommand(() => ExecuteConfigENVNoise());
+            ToggleDataTypeCommand = new ParameterRelayCommand<object>((o) => { return true; }, (o) =>
+            {
+                ExecuteChangeDataHistoryType(o);
+            });
         }
         //Delegate handler
         private void OnStatusChanged()
@@ -353,6 +360,22 @@ namespace Simulator1.ViewModel
             Reset();
         }
         //Command handler
+        private void ExecuteChangeDataHistoryType(object o)
+        {
+            if ((bool)o)
+            {
+                if (DataHistory != null)
+                {
+                    DataHistory = Helper.ConvertStringToHex(DataHistory);
+                }
+                isHex = true;
+            }
+            else
+            {
+                DataHistory = SelectedItemHistory?.Data;
+                isHex = false;
+            }
+        }
         private void ExecuteClearHistoryData()
         {
             var moduleHistory = historyDataStore.ModuleHistories.FirstOrDefault(x => x.moduleObject.port == clickedPort);
@@ -705,7 +728,14 @@ namespace Simulator1.ViewModel
                 if (SelectedItemHistory != null)
                 {
                     SourceHistory = SelectedItemHistory.Source;
-                    DataHistory = SelectedItemHistory.Data;
+                    if (isHex)
+                    {
+                        DataHistory = Helper.ConvertStringToHex(SelectedItemHistory.Data);
+                    }
+                    else
+                    {
+                        DataHistory = SelectedItemHistory.Data;
+                    }
                     DelayTimeHistory = SelectedItemHistory.DelayTime == null ? "Na/N" : SelectedItemHistory.DelayTime;
                     DistanceHistory = SelectedItemHistory.Distance == null ? "Na/N" : SelectedItemHistory.Distance;
                     RSSIHistory = SelectedItemHistory.RSSI == null ? "Na/N" : SelectedItemHistory.RSSI;

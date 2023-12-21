@@ -287,7 +287,7 @@ namespace Environment.Base
                     return 0x00;
             }
         }
-        static string ConvertStringToHex(string asciiString)
+        public static string ConvertStringToHex(string asciiString)
         {
             string hex = "";
             foreach (char c in asciiString)
