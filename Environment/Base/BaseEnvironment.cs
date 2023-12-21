@@ -286,66 +286,65 @@ namespace Environment.Base
             foreach (var hw in Devices)
             {
                 if (hw.moduleObject.type == ModuleObjectType.LORA)
-                    hw.mode = 0;
-                var moduleObject = ModuleObjects.FirstOrDefault(x => x.port == hw.serialport.PortName);
-                if (moduleObject != null)
                 {
                     hw.mode = 0;
                     communication.deviceChangeMode(0, hw.moduleObject.id);
-                    hw.transferDataIn = new Thread(() => transferDataToDestinationDevice(hw, moduleObject));
-                    hw.transferDataIn.Name = "datain";
-                    hw.transferDataIn.Start();
-                    hw.transferDataOut = new Thread(() => transferDataToHardware(hw, moduleObject));
-                    hw.transferDataOut.Name = "dataout";
-                    hw.transferDataOut.Start();
                 }
             }
             communication.sendMessageIsRunning();
+            Thread transferToDestinationDevice = new Thread(() => transferDataToDestinationDevice());
+            transferToDestinationDevice.Name = "transferToDestinationDevice";
+            transferToDestinationDevice.Start();
+            Thread transferToHardware = new Thread(() => transferDataToHardware());
+            transferToHardware.Name = "transferToHardware";
+            transferToHardware.Start();
+
         }
         // transfer data from queue in to destination device
-        private void transferDataToDestinationDevice(NodeDevice module, ModuleObject moduleObject)
+        private void transferDataToDestinationDevice()
         {
             while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if (module.moduleObject.type == ModuleObjectType.LORA)
+                foreach (var hw in Devices)
                 {
-                    if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
+                    if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
-                        if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
+                        if (hw.mode != NodeDevice.MODE_POWERSAVING && hw.mode != NodeDevice.MODE_SLEEP)
+                        {
+                            if (hw.packetQueueIn.TryDequeue(out DataProcessed packet))
+                            {
+                                communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
+                                {
+                                    type = "in",
+                                    portName = hw.serialport.PortName,
+                                    packet = packet,
+                                }, portClicked);
+                                var inter_packet = ExecuteTransferDataToQueueOut(hw.mode, packet, hw.moduleObject);
+                                if (inter_packet != null)
+                                {
+                                    Task sendToDes = Task.Run(() => PushPackageIntoDestinationDevice(inter_packet, hw.moduleObject));
+                                }
+                            }
+                        }
+                    }
+                    else if (hw.moduleObject.type == ModuleObjectType.ZIGBEE)
+                    {
+                        if (hw.packetQueueIn.TryDequeue(out DataProcessed packet))
                         {
                             communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
                             {
                                 type = "in",
-                                portName = module.serialport.PortName,
+                                portName = hw.serialport.PortName,
                                 packet = packet,
                             }, portClicked);
-                            var inter_packet = ExecuteTransferDataToQueueOut(module.mode, packet, moduleObject);
+                            var inter_packet = ExecuteTransferDataToQueueOut(hw.mode, packet, hw.moduleObject);
                             if (inter_packet != null)
                             {
-                                PushPackageIntoDestinationDevice(inter_packet, moduleObject);
+                                Task sendToDes = Task.Run(() => PushPackageIntoDestinationDevice(inter_packet, hw.moduleObject));
                             }
                         }
                     }
                 }
-                else if (module.moduleObject.type == ModuleObjectType.ZIGBEE)
-                {
-                    if (module.packetQueueIn.TryDequeue(out DataProcessed packet))
-                    {
-                        communication.showQueueReceivedFromHardware(new PacketSendTransferToView()
-                        {
-                            type = "in",
-                            portName = module.serialport.PortName,
-                            packet = packet,
-                        }, portClicked);
-                        var inter_packet = ExecuteTransferDataToQueueOut(module.mode, packet, moduleObject);
-                        if (inter_packet != null)
-                        {
-                            PushPackageIntoDestinationDevice(inter_packet, moduleObject);
-                        }
-                    }
-                }
-
-
             }
             while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
@@ -437,8 +436,6 @@ namespace Environment.Base
 
                 foreach (var hw in Devices)
                 {
-
-
                     if (hw.moduleObject.type == ModuleObjectType.LORA)
                     {
 
@@ -673,41 +670,43 @@ namespace Environment.Base
             desHW.packetQueueOut.Enqueue(packet);
         }
         // transfer data from queue out to hardware. Delay time is caculated by CaculateService then send to hardware
-        private void transferDataToHardware(NodeDevice module, ModuleObject moduleObject)
+        private void transferDataToHardware()
         {
             while (EnvState.ProgramStatus == PROGRAM_STATUS.RUN)
             {
-                if (module.mode != NodeDevice.MODE_POWERSAVING && module.mode != NodeDevice.MODE_SLEEP)
+                foreach (var hw in Devices)
                 {
-                    if (module.packetQueueOut.TryDequeue(out InternalPacket packet))
+                    if (hw.mode != NodeDevice.MODE_POWERSAVING && hw.mode != NodeDevice.MODE_SLEEP)
                     {
-
-                        /*create task to delay time and after that send packet to hardware
-                         * To do: caculate delay time
-                         */
-                        communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
+                        if (hw.packetQueueOut.TryDequeue(out InternalPacket packet))
                         {
-                            type = "out",
-                            packet = packet,
-                        }, portClicked);
 
-                        // format packet before send, follow protocol
-                        module.serialport.DiscardOutBuffer();
-                        PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
-                        byte[] data = packetTransmit.getPacket();
-                        module.serialport.Write(data, 0, data.Length);
-                    }
-                    if (module.errorPackets.TryDequeue(out InternalPacket errPacket))
-                    {
-                        communication.showQueueError(new PacketReceivedTransferToView()
+                            /*create task to delay time and after that send packet to hardware
+                             * To do: caculate delay time
+                             */
+                            communication.showQueueReceivedFromOtherDevice(new PacketReceivedTransferToView()
+                            {
+                                type = "out",
+                                packet = packet,
+                            }, portClicked);
+
+                            // format packet before send, follow protocol
+                            hw.serialport.DiscardOutBuffer();
+                            PacketTransmit packetTransmit = Helper.formatDataFollowProtocol(PacketTransmit.SENDDATA, packet.packet.data);
+                            byte[] data = packetTransmit.getPacket();
+                            hw.serialport.Write(data, 0, data.Length);
+                        }
+                        if (hw.errorPackets.TryDequeue(out InternalPacket errPacket))
                         {
-                            type = "error",
-                            packet = errPacket,
-                        }, portClicked);
-                    }
+                            communication.showQueueError(new PacketReceivedTransferToView()
+                            {
+                                type = "error",
+                                packet = errPacket,
+                            }, portClicked);
+                        }
 
+                    }
                 }
-
             }
             while (EnvState.ProgramStatus == PROGRAM_STATUS.PAUSE)
             {
