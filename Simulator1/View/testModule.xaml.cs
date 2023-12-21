@@ -80,6 +80,19 @@ namespace Simulator1.View
             DependencyProperty.Register("CoveringArea", typeof(double), typeof(testModule), new PropertyMetadata(null));
 
 
+        public double CoveringLoss
+        {
+            get { return (double)GetValue(CoveringLossProperty); }
+            set { SetValue(CoveringLossProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CoveringLoss.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CoveringLossProperty =
+            DependencyProperty.Register("CoveringLoss", typeof(double), typeof(testModule), new PropertyMetadata(null));
+
+
+
+
         public ICommand DropModuleCommand
         {
             get { return (ICommand)GetValue(DropModuleCommandProperty); }
@@ -134,8 +147,8 @@ namespace Simulator1.View
                 {
                     transX = currentPosition.X - intialTransformElementOffset.X;
                     transY = currentPosition.Y - intialTransformElementOffset.Y;
-                    baseX = transX + CoveringArea / 2 - 20;
-                    baseY = transY + CoveringArea / 2 - 20;
+                    baseX = transX + CoveringLoss / 2 - 20;
+                    baseY = transY + CoveringLoss / 2 - 20;
                     var id = ((testModule)draggable).Id;
                     DropModuleCommand?.Execute(new
                     {

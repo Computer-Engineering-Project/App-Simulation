@@ -152,13 +152,13 @@ namespace Simulator1.ViewModel
                     IsEnableSave = moduleParameterVM.isEnableSave;
                     IsEnableDelete = moduleParameterVM.isEnableDelete;
                     IsEnablePortSelect = moduleParameterVM.isEnablePortSelect;
-                    if (ModuleType == "lora")
+                    if (ModuleType == "zigbee")
+                    {
+                        ((NavigateCommand)ZigbeeParamCommand).Execute(new { });
+                    }
+                    else
                     {
                         ((NavigateCommand)LoraParamCommand).Execute(new { });
-                    }
-                    else if (ModuleType == "zigbee")
-                    {
-                        ((NavigateCommand)ZigbeeModuleCommand).Execute(new { });
                     }
                 }
             }
@@ -217,9 +217,9 @@ namespace Simulator1.ViewModel
                     var y = Double.Parse(VerticalY);
                     if (y < 0) y = 0;
                     tmp_ModuleObject.x = x;
-                    tmp_ModuleObject.transformX = x / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
+                    tmp_ModuleObject.transformX = x / 10 - tmp_moduleObject.coveringLossDiameter / 2 + 20;
                     tmp_ModuleObject.y = y;
-                    tmp_ModuleObject.transformY = y / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
+                    tmp_ModuleObject.transformY = y / 10 - tmp_moduleObject.coveringLossDiameter / 2 + 20;
                     moduleStore.ModuleObjects.Add(tmp_ModuleObject);
                     historyDataStore.ModuleHistories.Add(new ModuleHistory()
                     {
@@ -252,9 +252,11 @@ namespace Simulator1.ViewModel
                             m.y = tmp_ModuleObject.y;
                             m.x = tmp_ModuleObject.x;
                             m.coveringAreaRange = tmp_ModuleObject.coveringAreaRange;
-                            m.coveringAreaDiameter = tmp_ModuleObject.coveringAreaRange / 5;
-                            m.transformX = tmp_ModuleObject.x / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
-                            m.transformY = tmp_ModuleObject.y / 10 - tmp_moduleObject.coveringAreaDiameter / 2 + 20;
+                            m.coveringAreaDiameter = tmp_ModuleObject.coveringAreaRange / Ratio.value * 2;
+                            m.coveringLossRange = tmp_ModuleObject.coveringLossRange;
+                            m.coveringLossDiameter = tmp_ModuleObject.coveringLossRange / Ratio.value * 2;
+                            m.transformX = tmp_ModuleObject.x / 10 - tmp_moduleObject.coveringLossDiameter / 2 + 20;
+                            m.transformY = tmp_ModuleObject.y / 10 - tmp_moduleObject.coveringLossDiameter / 2 + 20;
                             m.mode = tmp_ModuleObject.mode;
                             m.parameters = tmp_ModuleObject.parameters;
                             m.type = tmp_ModuleObject.type;
@@ -331,7 +333,26 @@ namespace Simulator1.ViewModel
                 var parameters = moduleStore.LoadParametersFromHardware(Port);
                 string json = JsonConvert.SerializeObject(parameters);
                 Dictionary<string, string> listParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                moduleStateManagement.readLoraConfigParameter(listParams);
+                if (listParams == null)
+                {
+                    MessageBox.Show("Please choose file has module information");
+                    return;
+                }
+                if (ModuleType == ModuleObjectType.LORA)
+                {
+                    moduleStateManagement.readLoraConfigParameter(listParams);
+                    IsEnableSave = true;
+                }
+                else if (ModuleType == ModuleObjectType.ZIGBEE)
+                {
+                    moduleStateManagement.readZigbeeConfigParameter(listParams);
+                    IsEnableSave = true;
+                }
+                else
+                {
+                    MessageBox.Show("Please choose type module before read config");
+                }
+
             }
             catch (Exception e)
             {
@@ -344,35 +365,50 @@ namespace Simulator1.ViewModel
             try
             {
                 SelectKindOfModule();
+
                 var moduleObject = moduleStore.ModuleObjects.FirstOrDefault(x => x.id == Id);
                 if (moduleObject != null)
                 {
-                    var tmp_moduleObject = new ModuleObject()
-                    {
-                        x = moduleObject.x,
-                        y = moduleObject.y,
-                        parameters = moduleObject.parameters,
-                        id = moduleObject.id,
-                        type = ModuleType,
-                        kind = KindOfModule,
-                    };
-                    tmp_moduleObject.mode = "MODE 3";
+                    var tmp_moduleObject = new ModuleObject();
+
+
+                    tmp_moduleObject.x = moduleObject.x;
+                    tmp_moduleObject.y = moduleObject.y;
+                    tmp_moduleObject.parameters = moduleObject.parameters;
+                    tmp_moduleObject.id = moduleObject.id;
+                    tmp_moduleObject.type = ModuleType;
+                    tmp_moduleObject.kind = KindOfModule;
                     tmp_moduleObject.port = Port;
-                    moduleStateManagement.updateParamsOfModule(tmp_moduleObject);
+                    if (moduleObject.type == "lora")
+                    {
+                        tmp_moduleObject.mode = "MODE 3";
+                        moduleStateManagement.updateLoraParamsOfModule(tmp_moduleObject);
+                    }
+                    else if (moduleObject.type == "zigbee")
+                    {
+                        moduleStateManagement.updateZigbeeParamsOfModule(tmp_moduleObject);
+                    }
+
                 }
                 else
                 {
                     var random = new Random();
                     var id = random.Next(50, 255);
-                    var module = new ModuleObject()
+                    var module = new ModuleObject();
+
+                    module.port = Port;
+                    module.id = id.ToString();
+                    module.type = ModuleType;
+                    module.kind = KindOfModule;
+                    if (ModuleType == "lora")
                     {
-                        port = Port,
-                        id = id.ToString(),
-                        mode = "MODE 3",
-                        type = ModuleType,
-                        kind = KindOfModule,
-                    };
-                    moduleStateManagement.createLoraParameter(module);
+                        module.mode = "MODE 3";
+                        moduleStateManagement.createLoraParameter(module);
+                    }
+                    else if (ModuleType == "zigbee")
+                    {
+                        moduleStateManagement.createZigbeeParameter(module);
+                    }
                     /*                moduleStateManagement.configParameter(ModuleType);
                     */
                 }

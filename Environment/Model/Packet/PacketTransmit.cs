@@ -96,11 +96,12 @@ namespace Environment.Model.Packet
     public class InternalPacket
     {
         public DataProcessed packet { get; set; }
+        public string lossProbality { get; set; }
         public double DelayTime { get; set; }
         public string? PreambleCode { get; set; }
         public string RSSI { get; set; }
         public string PathLoss { get; set; }
-        public string SNR = "20";
+        public string SNR { get; set; }
         public string Distance { get; set; }
         public int typeError { get; set; }
         public ModuleObject sourceModule { get; set; }

@@ -23,5 +23,6 @@ namespace Environment.Service.Interface
         public void Pause();
         public void Stop();
         public void closeThreads();
+        public void setNoise(string noise);
     }
 }

@@ -1,13 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Simulator1.HostBuilder;
+using Simulator1.View.StatisticWindow;
 using Simulator1.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Simulator1
@@ -36,10 +31,14 @@ namespace Simulator1
         {
             _host.Start();
             MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
-            MainWindow window = _host.Services.GetRequiredService<MainWindow>();
-            window.DataContext = mainViewModel;
+            MainWindow mainwindow = _host.Services.GetRequiredService<MainWindow>();
+            mainwindow.DataContext = mainViewModel;
 
-            window.Show();
+            mainwindow.Show();
+            ChartWindow chartWindow = _host.Services.GetRequiredService<ChartWindow>();
+            ChartViewModel chartViewModel = _host.Services.GetRequiredService<ChartViewModel>();
+            chartWindow.DataContext = chartViewModel;
+            
             base.OnStartup(e);
         }
 

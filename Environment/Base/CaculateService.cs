@@ -15,7 +15,7 @@ namespace Environment.Base
 {
     public static class CaculateService
     {
-        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC)
+        public static double caculateDelayTime(string airRate, string data, string preamble, string FEC, ModuleObject module)
         {
             double BW = 0;
             double SF = 0;
@@ -55,19 +55,25 @@ namespace Environment.Base
                     SF = 7;
                     break;
                 default:
+
                     break;
             }
             var Tsym = Math.Pow(2, SF) / BW;
             var Tpreamble = (n_preamble + 4.25) * Tsym;
             var Tpayload = Tsym * (8 + Math.Max(Math.Ceiling((8 * PL - 4 * SF + 28 + 16 * CRC - 20 * IH) / (4 * (SF - 2 * DE))) * (CR + 4), 0));
             var Tpacket = Tpayload + Tpreamble;
+            if (module.type == ModuleObjectType.ZIGBEE)
+                return 10;
             return Tpacket;
         }
-        public static double computeRange(string antenaGain, string transmissionPower)
+        public static double computeSNR(double RSSI, double noise)
+        {
+            return RSSI - noise;
+        }
+        public static double computeRange(string antenaGain, string transmissionPower, double productMaxRange)
         {
             double maxTransmitPower = 20;
             double productAntenaGain = 5;
-            double productMaxRange = 3000;
             var val1 = (Double.Parse(transmissionPower) + Double.Parse(antenaGain) - maxTransmitPower - productAntenaGain + 20 * Math.Log10(productMaxRange)) / 20;
             return Math.Pow(10, val1);
         }
@@ -93,7 +99,7 @@ namespace Environment.Base
         public static double computeRSSI(ModuleObject sender, ModuleObject receiver)
         {
             double rssi = 0;
-            if(sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
+            if (sender.type == ModuleObjectType.LORA && receiver.type == ModuleObjectType.LORA)
             {
                 LoraParameterObject senderParameter = (LoraParameterObject)sender.parameters;
                 LoraParameterObject receiverParameter = (LoraParameterObject)receiver.parameters;
@@ -102,9 +108,8 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
 
-                rssi = Double.Parse(senderParameter.Power) - pathLoss - noise;
+                rssi = Double.Parse(senderParameter.Power) - pathLoss;
                 return rssi;
             }
             else if (sender.type == ModuleObjectType.ZIGBEE && receiver.type == ModuleObjectType.ZIGBEE)
@@ -116,7 +121,8 @@ namespace Environment.Base
                 double gainTx = Double.Parse(senderParameter.AntennaGain);
                 double gainRx = Double.Parse(receiverParameter.AntennaGain);
                 double pathLoss = computePathLoss(distance, frequency, gainTx, gainRx);
-                double noise = 0;
+
+                rssi = Double.Parse(senderParameter.Power) - pathLoss;
                 return rssi;
             }
             else
@@ -124,19 +130,28 @@ namespace Environment.Base
                 return rssi;
             }
         }
-
-        public static bool acceptPacket(double percentPacketLoss)
+        public static double caculatePacketLossProbality(string _distance, double coveringArea, double coveringLoss)
         {
-            Random random = new Random();
-            double randomValue = random.NextDouble();
-            if (randomValue < percentPacketLoss)
+            var distance = Double.Parse(_distance);
+            if (distance <= coveringArea)
             {
-                return true;
+                return 0;
             }
-            else
+            if (distance > coveringLoss)
             {
-                return false;
+                return 1;
             }
+            var a = 100 / (coveringLoss - coveringArea);
+            var b = 100 * coveringArea / (coveringArea - coveringLoss);
+            return a * distance + b;
+        }
+        public static bool isPacketLoss(double lossProbality)
+        {
+            var random = new Random();
+            if (lossProbality == 1) return true;
+            if (lossProbality == 0) return false;
+            if (lossProbality >= random.Next(1, 99)) return true;
+            return false;
         }
     }
 }

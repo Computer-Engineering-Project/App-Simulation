@@ -17,9 +17,32 @@ namespace Simulator1.Database
     {
         string path = "";
         public List<ModuleObject> listInModules = new List<ModuleObject>();
+        public ModuleObject choosenModule = new ModuleObject();
         public LoadHistoryFile()
         {
 
+        }
+        public bool readConfigFromFile(string id, string type)
+        {
+            var openFileDialog = new OpenFileDialog();
+            bool? response = openFileDialog.ShowDialog();
+            if (response == true)
+            {
+                var pathFile = openFileDialog.FileName;
+                if (!pathFile.Contains(".json"))
+                {
+                    throw new Exception("File open is not right format, please choose again (.json)");
+                }
+                path = pathFile;
+                string json = File.ReadAllText(path);
+                var nodeJSONList = JsonConvert.DeserializeObject<List<ModuleObject>>(json);
+                if (nodeJSONList != null)
+                {
+                    choosenModule = nodeJSONList.FirstOrDefault(x => x.type == type && x.id == id);
+                }
+                return true;
+            }
+            return false;
         }
         public bool OpenJsonFile()
         {

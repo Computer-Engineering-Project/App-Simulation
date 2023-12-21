@@ -95,10 +95,7 @@ namespace Simulator1.ViewModel
             this.serviceProvider = serviceProvider;
             this.statusStateManagement = statusStateManagement;
 
-            this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
-            this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter; // load on program
-            this.moduleStateManagement.UpdateParamsOfModule += OnUpdateParamsOfModule;
-            this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;// load from database
+
             /*            this.moduleStateManagement.ConfigParams += OnConfigParameterToHardware;*/
 
             ListPower = new ObservableCollection<string>() { "20", "17", "14", "10" };
@@ -111,6 +108,10 @@ namespace Simulator1.ViewModel
             //Event Delegate
 
             this.moduleStateManagement.ResetParameterModule += OnResetParameterModule;
+            this.moduleStateManagement.LoraParamsCreated += OnCreateLoraParameter;
+            this.moduleStateManagement.OpenUpdateLoraParams += OnOpenUpdateLoraParamter; // load on program
+            this.moduleStateManagement.UpdateLoraParamsOfModule += OnUpdateLoraParamsOfModule;
+            this.moduleStateManagement.ReadLoraConfigParams += OnReadConfigLoraParameter;// load from database
 
         }
 
@@ -160,9 +161,10 @@ namespace Simulator1.ViewModel
                 var loraParams = createLoraParamsObject();
                 module.parameters = loraParams;
                 module.type = "lora";
-                module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
-                module.coveringAreaDiameter = module.coveringAreaRange / 5;
-                module.zIndex = 0;
+                module.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 1000);
+                module.coveringAreaDiameter = module.coveringAreaRange / Ratio.value * 2;
+                module.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
+                module.coveringLossDiameter = module.coveringLossRange / Ratio.value * 2;
 
                 var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(module.port, new
                 {
@@ -181,7 +183,7 @@ namespace Simulator1.ViewModel
                 MessageBox.Show("Lora paramter view model " + "OnCreateLoraParameter " + e);
             }
         }
-        private void OnUpdateParamsOfModule(ModuleObject moduleObject)
+        private void OnUpdateLoraParamsOfModule(ModuleObject moduleObject)
         {
             try
             {
@@ -189,8 +191,10 @@ namespace Simulator1.ViewModel
                 {
                     var loraParams = createLoraParamsObject();
                     moduleObject.parameters = loraParams;
-                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit);
-                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / 5;
+                    moduleObject.coveringAreaRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 1000);
+                    moduleObject.coveringAreaDiameter = moduleObject.coveringAreaRange / Ratio.value * 2;
+                    moduleObject.coveringLossRange = CaculateService.computeRange(AntennaGain, PowerTransmit, 3000);
+                    moduleObject.coveringLossDiameter = moduleObject.coveringLossRange / Ratio.value * 2;
 
                     var result = serviceProvider.GetRequiredService<IEnvironmentService>().configHardware(moduleObject.port, new
                     {
@@ -273,7 +277,7 @@ namespace Simulator1.ViewModel
         {
             this.moduleStateManagement.LoraParamsCreated -= OnCreateLoraParameter;
             this.moduleStateManagement.OpenUpdateLoraParams -= OnOpenUpdateLoraParamter; // load on program
-            this.moduleStateManagement.UpdateParamsOfModule -= OnUpdateParamsOfModule;
+            this.moduleStateManagement.UpdateLoraParamsOfModule -= OnUpdateLoraParamsOfModule;
             this.moduleStateManagement.ReadLoraConfigParams -= OnReadConfigLoraParameter;
             this.moduleStateManagement.ResetParameterModule -= OnResetParameterModule;
             base.Dispose();

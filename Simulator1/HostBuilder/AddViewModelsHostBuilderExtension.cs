@@ -43,6 +43,7 @@ namespace Simulator1.HostBuilder
                         serviceProvider.GetRequiredService<ModuleStore>(), serviceProvider,
                         serviceProvider.GetRequiredService<HistoryDataStore>(), serviceProvider.GetRequiredService<StatusStateManagement>());
                 });
+                services.AddSingleton<ChartViewModel>();
             });
             return hostBuilder;
         }
